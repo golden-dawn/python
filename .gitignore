@@ -1,0 +1,12 @@
+# Ignore all emacs backup files
+*~
+
+# Ignore all csv files
+*.csv
+
+# Ignore __init.py__ and __pycache__
+__init__.py
+__pycache__
+
+# Ignore old directory
+old
