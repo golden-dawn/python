@@ -484,6 +484,7 @@ class StxJL :
                                     jlr[self.col_ix['price']],
                                     jlr[self.col_ix['rg']]))
             ixx     -= 1
+        pivs.reverse()
         return pivs
                 
     def get_pivots_in_days(self, num_days) :
@@ -505,6 +506,7 @@ class StxJL :
                                     jlr[self.col_ix['price']],
                                     jlr[self.col_ix['rg']]))
             ixx     -= 1
+        pivs.reverse()
         return pivs
 
     def print_pivs(self, pivs) :

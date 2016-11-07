@@ -6,16 +6,12 @@ from stxcal import StxCal
 from stxjl import StxJL, JLPivot
 from stxts import StxTS
 
-
-PivotAnalysis = recordclass("PivotAnalysis", "support_resistance, " \
-                            "up_above, dn_below, above, below, min_px, " \
-                            "max_px, hilo_pct, setup, obv, lns_150")
 OptEntry      = recordclass("OptEntry", "dt, spot_px, opt_px")
 OptStats      = recordclass("OptStats", "pl_pct, pl, success, gain_pct, " \
                             "loss_pct, gain, loss")
 Trade         = recordclass("Trade", "stk, cp, exp, exp_bd, strike, opt_in, " \
-                            "num, avg_range, opt_out, opt_stats, opts, " \
-                            "pivot_analysis, ind_ranks")
+                            "num, avg_range, opt_out, opt_stats, opts, stp, " \
+                            "ind_ranks")
 IndRanks      = recordclass("IndRanks", "r_rs_252, udv_21, udv_42, udv_63, " \
                             "rs_21, min_rnk_252, min_rnk_252b")
 
@@ -24,21 +20,31 @@ IndRanks      = recordclass("IndRanks", "r_rs_252, udv_21, udv_42, udv_63, " \
 # length of the base is >= 30 business days
 def check_for_breaks(ts, jl, sc, pivs, sgn) :
     if sgn == 0 or len(pivs) < 2 :
-        return None, None, None, None
+        return None, None, None
     last_state = jl.last_rec('state')
     if(sgn == 1 and last_state != StxJL.UT) or \
       (sgn == -1 and last_state != StxJL.DT) :
-        return None, None, None, None
-#    prev_state = jl.last_rec('lns_s')
-#    if prev_state == last_state :
-#        return None, None, None, None
+        return None, None, None
+    # prev_state = jl.last_rec('lns_s')
+    # if prev_state == last_state :
+    #     return None, None, None, None
     edt        = ts.current_date()
+    dbg        = (edt == '2003-03-18')
+    # if dbg :
+    #     print('{0:s}: sgn = {1:d}, last_state = {2:d}'.\
+    #           format(edt, sgn, last_state))
+    #     for piv in pivs :
+    #         print('{0:s}: state = {1:d}, px = {2:.2f}, rg = {3:.2f}'.\
+    #               format(piv.dt, piv.state, piv.price, piv.rg))
     px         = ts.current('h') if sgn == 1 else ts.current('l')
     pivs_len   = -len(pivs) - 1
     max_px     = sgn * pivs[-2].price
+    # if dbg :
+    #     print('{0:s}: max_px = {1:.2f}, px = {2:.2f}'.format(edt, max_px, px))
+
     for ixx in range(-2, pivs_len, -2) :
         if sgn * px < sgn * pivs[ixx].price :
-            return None, None, None, None
+            return None, None, None
         if pivs[ixx].state in [StxJL.NRa, StxJL.NRe] or \
            sgn * pivs[ixx].price < max_px:
             continue
@@ -48,37 +54,35 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
         if base_length >= 30 :
             return 'call' if sgn == 1 else 'put', \
                 'breakout' if sgn == 1 else 'breakdown', \
-                obv(ts, pivs, jl.last_rec('dt')), jl.last_rec('rg')
-    return None, None, None, None
+                jl.last_rec('rg')
+    return None, None, None
 
 
 def check_for_pullbacks(ts, jl, sc, pivs, sgn) :
     edt = ts.current_date()
     # pivs   = jl.get_num_pivots(4)
     if len(pivs) < 2 or sgn == 0:
-        return None, None, None, None
+        return None, None, None
     last_state = jl.last_rec('state')
     if last_state == StxJL.SRa :
         if sgn == 1 and pivs[-1].state == StxJL.UT and \
            pivs[-2].state == StxJL.NRe  and jl.last_rec('ls_s') == StxJL.NRe :
-            return 'call', 'RevUpSRa', obv(ts, pivs, jl.last_rec('lns_dt')), \
-                jl.last_rec('rg')
+            return 'call', 'RevUpSRa', jl.last_rec('rg')
     elif last_state == StxJL.SRe :
         if sgn == -1 and pivs[-1].state == StxJL.DT and \
            pivs[-2].state == StxJL.NRa and jl.last_rec('ls_s') == StxJL.NRa :
-            return 'put', 'RevDnSRe', obv(ts, pivs, jl.last_rec('lns_dt')), \
-                jl.last_rec('rg')
+            return 'put', 'RevDnSRe', jl.last_rec('rg')
     elif last_state in [StxJL.NRa, StxJL.UT] :
         if sgn == 1 and pivs[-1].state == StxJL.NRe and \
            pivs[-2].state == StxJL.UT and jl.last_rec('lns_s') == StxJL.NRe :
             return 'call', 'RevUpNRa' if last_state==StxJL.NRa else 'RevUpUT', \
-                obv(ts, pivs, None), jl.last_rec('rg')
+                jl.last_rec('rg')
     elif last_state in [StxJL.NRe, StxJL.DT] :
         if sgn == -1 and pivs[-1].state == StxJL.NRa and \
            pivs[-2].state == StxJL.DT and jl.last_rec('lns_s') == StxJL.NRa :
             return 'put', 'RevDnNRe' if last_state==StxJL.NRe else 'RevDnDT', \
-                obv(ts, pivs, None), jl.last_rec('rg')
-    return None, None, None, None
+                jl.last_rec('rg')
+    return None, None, None
 
 
 def check_for_trend(ts, cp, min_call, max_put) :
@@ -100,84 +104,22 @@ def check_for_trend(ts, cp, min_call, max_put) :
 
 def get_trade_type(ts, sc, jl_150, jl_050, pivs, lt_trend, min_call, max_put) :
     # print('{0:s}: ldr = {1:.0f}'.format(ts.current_date(), ts.current('ldr')))
-    cp, stp, obv, avg_rg  = check_for_breaks(ts, jl_150, sc, pivs, lt_trend)
+    cp, stp, avg_rg       = check_for_breaks(ts, jl_150, sc, pivs, lt_trend)
     if cp == 'call' :
         min_call          = ts.current('c')
     if cp == 'put' :
         max_put           = ts.current('c')
     if ts.current('ldr') != 1 :
-        return None, None, None, None, min_call, max_put
+        return None, None, None, min_call, max_put
     cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
     if cp is not None :
-        return cp, stp, obv, avg_rg, min_call, max_put
-    cp, stp, obv, avg_rg  = check_for_pullbacks(ts, jl_050, sc, pivs, lt_trend)
+        return cp, stp, avg_rg, min_call, max_put
+    cp, stp, avg_rg       = check_for_pullbacks(ts, jl_050, sc, pivs, lt_trend)
     cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
-    return cp, stp, obv, avg_rg, min_call, max_put
+    return cp, stp, avg_rg, min_call, max_put
 
 
-def obv(ts, pivs, dt) :
-    if len(pivs) < 3 :
-        return 0
-    sd           = pivs[-3].dt if dt is None else pivs[-2].dt
-    ed           = pivs[-1].dt if dt is None else dt
-    s, e         = ts.find(sd), ts.find(ed)
-    tot_vol      = 0
-    obv          = 0
-    for ixx in range(s + 1, e + 1) :
-        sr       = ts.df.ix[ixx]
-        sr_1     = ts.df.ix[ixx - 1]
-        tot_vol += sr.v
-        if sr.c > sr_1.c :
-            obv += sr.v
-        else :
-            obv -= sr.v
-    avg_vol      = tot_vol / (e - s)
-    # print('obv: sd = {0:s}, ed = {1:s}, obv = {2:.0f} avg_vol = {3:.0f}'.\
-    #       format(sd, ed, obv, avg_vol))
-    obv         /= avg_vol
-    return -3 if obv <= -3 else 3 if obv >= 3 else \
-        float('{0:.0f}'.format(obv / 0.5)) * 0.5
-
-
-def pivotal_analysis(cp, ts, jl_150, pivs) :
-    min_px, max_px     = 1000000, 0
-    dn_below, up_above = 0, 0
-    below, above       = 0, 0
-    sr                 = []
-    lns_px             = jl_150.last_rec('lns_px')
-    rg                 = jl_150.last_rec('rg')
-    cc                 = ts.current('c')
-    for piv in pivs :
-        dt, state, price, rg = piv[0], piv[1], piv[2], piv[3]
-        if cc >= price :
-            above     += 1
-        else :
-            below     += 1
-        if jl_150.up(state) :
-            if price > max_px :
-                max_px = price
-            if cc >= price :
-                up_above += 1
-            if cp == 'call' and price - lns_px >= -0.5 * rg and \
-               price - lns_px <= 0.5 * rg :
-                sr.append('({0:s} {1:d} {2:.2f} {3:.2f})'. \
-                          format(dt, state, price, rg))
-        else : # jl.dn(state)
-            if price < min_px :
-                min_px = price
-            if cc <= price :
-                dn_below += 1
-            if cp == 'put' and price - lns_px >= -0.5 * rg and \
-               price - lns_px <= 0.5 * rg :
-                sr.append('({0:s} {1:d} {2:.2f} {3:.2f})'.\
-                          format(dt, state, price, rg))
-    x        = 100 * (cc - min_px) / (max_px - min_px)
-    hilo_pct = 100 if x >= 100 else 0 if x <= 0 else (x // 10) * 10
-    return PivotAnalysis(sr, up_above, dn_below, above, below, min_px, max_px,
-                         hilo_pct, None, None, jl_150.last_rec('lns'))
-
-
-def trade(ts, sc, cp, sl, rg, piv_analysis, ind_ranks) :
+def trade(ts, sc, cp, sl, rg, stp, ind_ranks) :
     crt_dt    = ts.current_date()
     cc        = ts.current('c')
     exp       = str(sc.next_expiry(crt_dt, 15))
@@ -186,7 +128,6 @@ def trade(ts, sc, cp, sl, rg, piv_analysis, ind_ranks) :
         all_q = "select strike,dt,bid,ask from opts where exp='%s' and und=" \
                 "'%s' and strike <= %.2f and cp='call'" % (exp, ts.stk, cc)
         # "'%s' and strike <= %.2f and cp='call'" % (exp, ts.stk, lns_px)
-        opt_q = "{0:s} and dt='{1:s}'".format(all_q, crt_dt)
     else :
         all_q = "select strike,dt,bid,ask from opts where exp='%s' and und="\
                 "'%s' and strike >= %.2f and cp='put'" % (exp, ts.stk, cc)
@@ -208,7 +149,7 @@ def trade(ts, sc, cp, sl, rg, piv_analysis, ind_ranks) :
     num       = int(6 / t_opts[crt_dt][1]) * 100
     opt_in    = OptEntry(crt_dt, ts.current('c'), t_opts[crt_dt][1])
     return Trade(ts.stk, cp, exp, exp_bd, strike, opt_in, num, sl, None,
-                 None, t_opts, piv_analysis, ind_ranks)
+                 None, t_opts, stp, ind_ranks)
 
 
 def to_short_string(trd) :
@@ -224,8 +165,8 @@ def risk_mgmt(ts, open_trades, trades) :
             bid_ask          = trd.opts.get(crt_dt)
             crt_spot         = ts.current('c')
             losing_trade     = False
-            if (trd.cp == 'call' and crt_spot < trd.strike - trd.avg_range) or \
-               (trd.cp == 'put' and crt_spot > trd.strike + trd.avg_range) :
+            if (trd.cp == 'call' and crt_spot < trd.strike) or \
+               (trd.cp == 'put' and crt_spot > trd.strike) :
                 losing_trade = True
             if bid_ask is None and losing_trade == False :
                 open_trades.remove(trd)
@@ -259,26 +200,21 @@ def to_csv_list(trd) :
             trd.opt_out.opt_px, trd.opt_stats.pl_pct, trd.opt_stats.pl,
             trd.opt_stats.success, trd.opt_stats.gain_pct,
             trd.opt_stats.loss_pct, trd.opt_stats.gain, trd.opt_stats.loss,
-            trd.pivot_analysis.support_resistance,
-            trd.pivot_analysis.up_above, trd.pivot_analysis.dn_below,
-            trd.pivot_analysis.above, trd.pivot_analysis.below,
-            trd.pivot_analysis.hilo_pct, trd.pivot_analysis.setup,
-            # trd.pivot_analysis.obv, trd.pivot_analysis.lns_150,
-            trd.ind_ranks.r_rs_252, trd.ind_ranks.udv_21, trd.ind_ranks.udv_42,
-            trd.ind_ranks.udv_63, trd.ind_ranks.rs_21,
+            trd.stp, trd.ind_ranks.r_rs_252, trd.ind_ranks.udv_21, \
+            trd.ind_ranks.udv_42, trd.ind_ranks.udv_63, trd.ind_ranks.rs_21,
             trd.ind_ranks.min_rnk_252, trd.ind_ranks.min_rnk_252b]
 
 
 def get_trend(ts, jl, pivs) :
-    if len(pivs) < 1 :
+    if len(pivs) < 2 :
         return 0
     if jl.last_rec('lns') == StxJL.UT :
         return 1
     if jl.last_rec('lns') == StxJL.DT :
         return -1
-    if jl.last_rec('lns') == StxJL.NRe and pivs[-1].state == StxJL.UT :
+    if pivs[-1].state == StxJL.UT and pivs[-2].state == StxJL.NRe :
         return 1
-    if jl.last_rec('lns') == StxJL.NRa and pivs[-1].state == StxJL.DT :
+    if pivs[-1].state == StxJL.DT and pivs[-2].state == StxJL.NRa :
         return -1
    
     # if jl.last_rec('lns') in [StxJL.UT, StxJL.NRe] and \
@@ -319,7 +255,7 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
         ts.set_day(str(ts.df.index[ts.start + 20].date()))
         start_w     = jl_150.initjl()
         start_w     = jl_050.initjl()
-        print('start_w = {0:d}, jl_150.w = {1:d}'.format(start_w, jl_150.w))
+        # print('start_w = {0:d}, jl_150.w = {1:d}'.format(start_w, jl_150.w))
         ixx         = start_w if start_w >= jl_150.w else -1
         lt_trend    = 0
         while ixx != -1 :
@@ -330,12 +266,12 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
             jl_050.nextjl()
             pivs    = jl_150.get_pivots_in_days(400)
             risk_mgmt(ts, open_trades, trades)
-            # print('{0:s}'.format(ts.current_date()))
             # for piv in pivs(
             lt_trend = get_trend(ts, jl_150, pivs)
-            cp, stp, obv, sl, min_call, max_put = get_trade_type \
-                                                  (ts, sc, jl_150, jl_050, pivs,
-                                                   lt_trend, min_call, max_put)
+            # print('{0:s}: lt_trend={1:d}'.format(ts.current_date(), lt_trend))
+            cp, stp, sl, min_call, max_put = get_trade_type \
+                                             (ts, sc, jl_150, jl_050, pivs,
+                                              lt_trend, min_call, max_put)
             if cp is None :
                 continue
             print('{0:s} {1:s} {2:s}'.format(ts.current_date(), cp, stp))
@@ -351,9 +287,6 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
                       format(ts.current_date(),
                              to_short_string(open_trades_by_exp)))
                 continue
-            piv_an       = pivotal_analysis(cp, ts, jl_150, pivs)
-            piv_an.setup = stp
-            piv_an.obv   = obv
             ind_ranks    = IndRanks(ts.current('r_rs_252'),
                                     ts.current('udv_21b'),
                                     ts.current('udv_42b'),
@@ -361,9 +294,7 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
                                     ts.current('rs_21b'),
                                     ts.current('rs_min_252'),
                                     ts.current('rs_min_252b'))
-           
-            # print(piv_an)
-            trd          = trade(ts, sc, cp, sl, jl_150.last_rec('rg'), piv_an,
+            trd          = trade(ts, sc, cp, sl, jl_150.last_rec('rg'), stp,
                                  ind_ranks)
             if trd is not None :
                 open_trades.append(trd)
@@ -376,10 +307,9 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
             wrtr.writerow(['Stock', 'Date', 'Year', 'CP', 'Expiry', 'Strike', \
                            'InSpot', 'InOpt', 'Contracts', 'Range', 'OutDate',
                            'OutSpot', 'OutOpt', 'P&L Pct', 'P&L', 'Success',
-                           'GainPct', 'LossPct', 'Gain', 'Loss',
-                           'SupportResistance', 'UpAbove', 'DnBelow', 'Above',
-                           'Below', 'HiLoPct', 'Setup', 'RSRank252', 'UDV21',
-                           'UDV42', 'UDV63', 'RS21', 'Best_252', 'Best_252b'])
+                           'GainPct', 'LossPct', 'Gain', 'Loss', 'Setup', \
+                           'RSRank252', 'UDV21', 'UDV42', 'UDV63', 'RS21', \
+                           'Best_252', 'Best_252b'])
         for trd in trades :
             wrtr.writerow(to_csv_list(trd))
 

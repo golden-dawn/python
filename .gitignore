@@ -4,6 +4,9 @@
 # Ignore all csv files
 *.csv
 
+# Ignore all xlsx files
+*.xlsx
+
 # Ignore __init.py__ and __pycache__
 __init__.py
 __pycache__
