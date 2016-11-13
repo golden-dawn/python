@@ -4,20 +4,6 @@ import pandas as pd
 from recordclass import recordclass
 from stxts import StxTS
 
-# additional columns needed:
-# h_1, l_1 - shift by 1 of h, l, needed to calculate true range
-# tr - true range, needed to calculate the average range
-# rg - average range, rolling mean of w true ranges
-# c, c2, float prices initiated if state != Nimic
-# p, p2, booleans, True if we have pivot(s)
-# s, s2, integers, contain the state of each date
-# TODO: remember what are xx, px, px2, nx, and lx for.
-#       I remember something about the date when a pivot becomes a pivot,
-#       but do I need that?
-# lns, ls - ptrs to last non-sec state, and last state (can include sec)
-# TODO: what are pns, ps?
-# lp: float array with 8 elements, one for each state, + m_NRa, m_NRe
-
 JLPivot = recordclass('JLPivot', 'dt, state, price, rg')
 
 class StxJL :
@@ -517,8 +503,10 @@ class StxJL :
         print(output)
 
 
-    def last_rec(self, col_name) :
-        jlr = self.jl_recs[-1]
+    def last_rec(self, col_name, ixx = 1) :
+        if ixx > len(self.jl_recs) :
+            ixx = len(self.jl_recs)
+        jlr = self.jl_recs[-ixx]
         if col_name in ['state', 'price', 'pivot'] :
             col_name2 = '{0:s}2'.format(col_name)
             if jlr[self.col_ix['state2']] != StxJL.Nil :

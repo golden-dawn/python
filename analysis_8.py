@@ -29,7 +29,7 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
     # if prev_state == last_state :
     #     return None, None, None, None
     edt        = ts.current_date()
-    dbg        = (edt == '2003-03-18')
+    # dbg        = (edt in ['2003-03-18', '2003-03-19', '2003-03-20'])
     # if dbg :
     #     print('{0:s}: sgn = {1:d}, last_state = {2:d}'.\
     #           format(edt, sgn, last_state))
@@ -45,10 +45,17 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
     for ixx in range(-2, pivs_len, -2) :
         if sgn * px < sgn * pivs[ixx].price :
             return None, None, None
-        if pivs[ixx].state in [StxJL.NRa, StxJL.NRe] or \
-           sgn * pivs[ixx].price < max_px:
+        if sgn * pivs[ixx].price < sgn * max_px:
             continue
+        # if pivs[ixx].state in [StxJL.NRa, StxJL.NRe] or \
+        #    sgn * pivs[ixx].price < sgn * max_px:
+        #     continue
         max_px = sgn * pivs[ixx].price
+        prev_lns = jl.last_rec('lns_px', 2)
+        # if dbg :
+        #     print('{0:s}: max_px = {1:.2f}, px = {2:.2f} prev_dt = {3:s}, prev_lns={4:.2f}'.format(edt, max_px, px, jl.last_rec('dt', 2), prev_lns))
+        if sgn * prev_lns > sgn * max_px :
+            continue
         sdt = pivs[ixx].dt
         base_length = sc.num_busdays(sdt, edt)
         if base_length >= 30 :
@@ -58,9 +65,9 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
     return None, None, None
 
 
-def check_for_pullbacks(ts, jl, sc, pivs, sgn) :
+def check_for_pullbacks(ts, jl, sc, sgn) :
     edt = ts.current_date()
-    # pivs   = jl.get_num_pivots(4)
+    pivs   = jl.get_num_pivots(4)
     if len(pivs) < 2 or sgn == 0:
         return None, None, None
     last_state = jl.last_rec('state')
@@ -86,6 +93,7 @@ def check_for_pullbacks(ts, jl, sc, pivs, sgn) :
 
 
 def check_for_trend(ts, cp, min_call, max_put) :
+    print('check_for_trend: d={0:s},c={1:.2f},cp={2:s},mnc={3:.2f},mxp={4:.2f}'.format(ts.current_date(), ts.current('c'), cp, min_call, max_put))
     if cp is not None :
         if cp == 'call' :
             if ts.current('c') < min_call or min_call == -1:
@@ -111,11 +119,13 @@ def get_trade_type(ts, sc, jl_150, jl_050, pivs, lt_trend, min_call, max_put) :
         max_put           = ts.current('c')
     if ts.current('ldr') != 1 :
         return None, None, None, min_call, max_put
-    cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
+    # if cp is not None :
+    #     cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
     if cp is not None :
         return cp, stp, avg_rg, min_call, max_put
-    cp, stp, avg_rg       = check_for_pullbacks(ts, jl_050, sc, pivs, lt_trend)
-    cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
+    cp, stp, avg_rg       = check_for_pullbacks(ts, jl_050, sc, lt_trend)
+    if cp is not None :
+        cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
     return cp, stp, avg_rg, min_call, max_put
 
 
