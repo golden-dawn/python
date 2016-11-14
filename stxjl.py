@@ -519,7 +519,7 @@ if __name__ == '__main__':
     ed    = '2016-06-11'
     ts    = StxTS(stk, sd, ed)
     jl    = StxJL(ts, 1.5)
-    dt    = '2014-03-11'
+    dt    = '2004-02-10'
     jlres = jl.jl(dt)
     jl.jl_print()
     pivs  = jl.get_pivots_in_days(100)
