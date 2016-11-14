@@ -211,7 +211,7 @@ class StxJL :
     def nextjl(self) :
         dtc    = self.ts.current_date() #df.index[self.ts.pos]
         # print("dtc=%s" % dtc)
-        ratio  = self.ts.splits.get(dtc)
+        ratio  = self.ts.splits.get(pd.Timestamp(dtc))
         if ratio is not None :
             self.adjust_for_splits(ratio)
         self.trs.pop(0)
