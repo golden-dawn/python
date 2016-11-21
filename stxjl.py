@@ -72,8 +72,8 @@ class StxJL :
         self.trs.append(df_0.ix[0].h - df_0.ix[0].l)
         for h, l, c_1 in zip(df_0['h'].values[1:], df_0['l'].values[1:], \
                              df_0['c'].values[:-1]) :
-            self.trs.append(max(h - l, h - c_1, c_1 - l))       
-        avg_rg   = np.mean(self.trs)
+            self.trs.append(max(h, c_1) - min(l, c_1))
+        self.avg_rg         = np.mean(self.trs)
         # assign hi to SRa, NRa, UT, m_NRa, and lo to SRe, NRe, DT, m_NRe
         self.lp  = [hi, hi, hi, lo, lo, lo, hi, lo]
         for ixx in range(0, len(df_0)) :
@@ -81,26 +81,26 @@ class StxJL :
             dtcs            = str(dtc.date())
             self.jlix[dtcs] = ixx + 1
             if dtc == max_dt and dtc == min_dt :
-                self.rec_day(StxJL.NRa, StxJL.NRe, avg_rg, self.ts.start + ixx)
+                self.rec_day(StxJL.NRa, StxJL.NRe, self.ts.start + ixx)
             elif dtc == max_dt :
-                self.rec_day(StxJL.NRa, StxJL.Nil, avg_rg, self.ts.start + ixx)
+                self.rec_day(StxJL.NRa, StxJL.Nil, self.ts.start + ixx)
             elif dtc == min_dt :
-                self.rec_day(StxJL.Nil, StxJL.NRe, avg_rg, self.ts.start + ixx)
+                self.rec_day(StxJL.Nil, StxJL.NRe, self.ts.start + ixx)
             else :
-                self.rec_day(StxJL.Nil, StxJL.Nil, avg_rg, self.ts.start + ixx)
+                self.rec_day(StxJL.Nil, StxJL.Nil, self.ts.start + ixx)
         return self.ts.start + win
 
-    def init_first_rec(self, dt, rg) :
-        return {'dt': dt, 'rg': rg, 'state': StxJL.Nil, 'price': 0, \
+    def init_first_rec(self, dt) :
+        return {'dt': dt, 'rg': self.avg_rg, 'state': StxJL.Nil, 'price': 0, \
                 'pivot': 0, 'state2': StxJL.Nil, 'price2': 0, 'pivot2': 0, \
                 'p1_dt': '', 'p1_px': 0, 'p1_s': StxJL.Nil, 'lns_dt': '', \
                 'lns_px': 0, 'lns_s': StxJL.Nil, 'lns': StxJL.Nil, \
                 'ls_s': StxJL.Nil, 'ls': StxJL.Nil}
 
-    def init_rec(self, dt, rg, list_ix) :
+    def init_rec(self, dt, list_ix) :
         #print("init_rec: list_ix = {0:d}, dt = {1:s}".format(list_ix, dt))
         prev = self.jl_recs[list_ix]
-        return {'dt': dt, 'rg': rg, 'state': StxJL.Nil, 'price': 0, \
+        return {'dt': dt, 'rg': self.avg_rg, 'state': StxJL.Nil, 'price': 0, \
                 'pivot': 0, 'state2': StxJL.Nil, 'price2': 0, 'pivot2': 0, \
                 'p1_dt': prev[self.col_ix['p1_dt']], \
                 'p1_px': prev[self.col_ix['p1_px']], \
@@ -113,15 +113,15 @@ class StxJL :
                 'ls_s': prev[self.col_ix['ls_s']]}
 
 
-    def rec_day(self, sh, sl, rg, ixx = -1) :
+    def rec_day(self, sh, sl, ixx = -1) :
         if ixx == -1 :
             ixx = self.ts.pos
         sr    = self.ts.df.ix[ixx]
         dtc   = str(self.ts.df.index[ixx].date())
         lix   = ixx - self.ts.start
         # print("lix = %d" % lix)
-        dd    = self.init_first_rec(dtc, rg) if lix == 0 \
-                else self.init_rec(dtc, rg, lix)
+        dd    = self.init_first_rec(dtc) if lix == 0 \
+                else self.init_rec(dtc, lix)
         if sh != StxJL.Nil and sl != StxJL.Nil :
             if sr.hb4l == 1 :
                 dd.update({'state': sh, 'price': sr['h'], 'state2': sl, \
@@ -214,12 +214,7 @@ class StxJL :
         ratio  = self.ts.splits.get(pd.Timestamp(dtc))
         if ratio is not None :
             self.adjust_for_splits(ratio)
-        self.trs.pop(0)
-        sr     = self.ts.df.ix[self.ts.pos]
-        sr_1   = self.ts.df.ix[self.ts.pos - 1]
-        self.trs.append(max(sr.h - sr.l, sr.h - sr_1.c, sr_1.c - sr.l))
-        avg_rg = np.mean(self.trs)
-        fctr   = self.f * avg_rg
+        fctr   = self.f * self.avg_rg
         if self.last['state']   == StxJL.SRa :
             self.sRa(fctr)
         elif self.last['state'] == StxJL.NRa :
@@ -232,6 +227,11 @@ class StxJL :
             self.nRe(fctr)
         elif self.last['state'] == StxJL.SRe :
             self.sRe(fctr)
+        self.trs.pop(0)
+        sr          = self.ts.df.ix[self.ts.pos]
+        sr_1        = self.ts.df.ix[self.ts.pos - 1]
+        self.trs.append(max(sr.h, sr_1.c) - min(sr.l, sr_1.c))
+        self.avg_rg = np.mean(self.trs)
 
     def adjust_for_splits(self, ratio) :
         for ixx in range(0, len(self.lp)) :
@@ -271,7 +271,7 @@ class StxJL :
                     else StxJL.NRe
                 if self.up(self.last['prim_state']) :
                     self.lp[StxJL.m_NRa] = self.last['prim_px']
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
     def nRa(self, fctr) :
         r          = self.ts.df.ix[self.ts.pos]
@@ -289,7 +289,7 @@ class StxJL :
                 sl = StxJL.NRe
             if sl != StxJL.SRe :
                 self.lp[StxJL.m_NRa] = self.lp[ StxJL.NRa];
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
     def uT(self, fctr) :
         r      = self.ts.df.ix[self.ts.pos]
@@ -301,7 +301,7 @@ class StxJL :
                               r.l < self.lp[StxJL.m_NRe] - fctr) \
                 else StxJL.NRe
             self.lp[StxJL.m_NRa] = self.lp[StxJL.UT]
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
     def sRe(self, fctr) :
         r          = self.ts.df.ix[self.ts.pos]
@@ -328,7 +328,7 @@ class StxJL :
                                   else StxJL.NRa
                 if self.dn(self.last['prim_state']) :
                     self.lp[StxJL.m_NRe] = self.last['prim_px']
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
 
     def dT(self, fctr) :
@@ -341,7 +341,7 @@ class StxJL :
                               r.h > self.lp[StxJL.m_NRa] + fctr) \
                 else StxJL.NRa
             self.lp[StxJL.m_NRe] = self.lp[StxJL.DT]
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
         
     def nRe(self, fctr) :
@@ -360,7 +360,7 @@ class StxJL :
                 sh = StxJL.NRa
             if sh != StxJL.SRa :
                 self.lp[StxJL.m_NRe] = self.lp[StxJL.NRe]
-        self.rec_day(sh, sl, fctr / self.f)
+        self.rec_day(sh, sl)
 
 
     def up(self, state) :
