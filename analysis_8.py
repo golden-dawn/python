@@ -177,11 +177,23 @@ def to_short_string(trd) :
     return '  {0:s} {1:s} {2:s} {3:s} {4:.2f} {5:s}'.\
         format(trd.stk, trd.opt_in.dt, trd.cp, trd.exp, trd.strike, trd.exp_bd)
 
-def risk_mgmt(sc, ts, open_trades, trades) :
+def risk_mgmt(sc, ts, jl_150, open_trades, trades) :
     crt_dt                   = ts.current_date()
     closed_trades            = []
+    last_state               = jl_150.last_rec('lns')
+    last_piv_state           = jl_150.last_rec('p1_s')
+    call_dt                  = None
+    if last_state == StxJL.UT :
+        call_dt              = jl_150.last_rec('lns_dt')
+    elif last_piv_state == StxJL.UT :
+        call_dt              = jl_150.last_rec('p1_dt')
+    if call_dt is not None :
+        num_reaction_days    = sc.num_busdays(call_dt, crt_dt)
+    else :
+        num_reaction_days    = 0
     for trd in open_trades :
-        if trd.exp_bd == crt_dt :
+        if (trd.stp == 'breakout' and num_reaction_days > 7) or \
+           trd.exp_bd == crt_dt :
             bid_ask          = trd.opts.get(crt_dt)
             crt_spot         = ts.current('c')
             losing_trade     = False
@@ -285,7 +297,7 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
             jl_150.nextjl()
             jl_050.nextjl()
             pivs     = jl_150.get_pivots_in_days(400)
-            risk_mgmt(sc, ts, open_trades, trades)
+            risk_mgmt(sc, ts, jl_150, open_trades, trades)
             # for piv in pivs(
             lt_trend = get_trend(ts, jl_150, pivs)
             # print('{0:s}: lt_trend={1:d}'.format(crt_dt, lt_trend))
@@ -351,10 +363,10 @@ def analyze(ts, sc, calls, puts, fname, fmode) :
             wrtr.writerow(to_csv_list(trd))
 
 
-stx   = 'NFLX'
-# stx   = 'INTU,NFLX,VLO,TSLA,GIGM,NTES,ACAD,AMR,HOV,CSCO,INTC,CSIQ,FSLR,TASR,LUV,USB,GOOG,MSFT,GLD,SPY,YHOO,AAPL,AMZN,MA,TIE'
+# stx   = 'INTU'
+stx   = 'INTU,NFLX,VLO,TSLA,GIGM,NTES,ACAD,AMR,HOV,CSCO,INTC,CSIQ,FSLR,TASR,LUV,USB,GOOG,MSFT,GLD,SPY,YHOO,AAPL,AMZN,MA,TIE'
 # stx   = 'FSLR,TASR,LUV,USB,GOOG,MSFT,GLD,SPY,YHOO,AAPL,AMZN,MA,TIE'
-name  = 'c3'
+name  = 'c4'
 sd    = '2001-01-01'
 ed    = '2013-12-31'
 sc    = StxCal()
