@@ -29,7 +29,7 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
     # if prev_state == last_state :
     #     return None, None, None, None
     edt        = ts.current_date()
-    # dbg        = (edt in ['2004-07-16'])
+    # dbg        = (edt in ['2011-07-29'])
     # if dbg :
     #     print('{0:s}: sgn = {1:d}, last_state = {2:d}'.\
     #           format(edt, sgn, last_state))
@@ -50,13 +50,14 @@ def check_for_breaks(ts, jl, sc, pivs, sgn) :
         # if pivs[ixx].state in [StxJL.NRa, StxJL.NRe] or \
         #    sgn * pivs[ixx].price < sgn * max_px:
         #     continue
-        max_px = sgn * pivs[ixx].price
-        prev_lns = jl.last_rec('lns_px', 2)
+        max_px     = sgn * pivs[ixx].price
+        prev_lns   = jl.last_rec('lns_px', 2)
+        prev_state = jl.last_rec('lns_s')
         # if dbg :
         #     print('{0:s}: max_px = {1:.2f}, px = {2:.2f} prev_dt = {3:s}, prev_lns={4:.2f}'.format(edt, max_px, px, jl.last_rec('dt', 2), prev_lns))
-        if sgn * prev_lns > max_px :
+        if sgn * prev_lns > max_px and prev_state != StxJL.NRe :
             continue
-        sdt = pivs[ixx].dt
+        sdt        = pivs[ixx].dt
         base_length = sc.num_busdays(sdt, edt)
         if base_length >= 30 :
             return 'call' if sgn == 1 else 'put', \
