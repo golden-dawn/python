@@ -15,6 +15,7 @@ class MypivotsSplits :
     def get_all(self) :
         with open(self.fname, 'r') as ifile :
             lines = ifile.readlines()
+        # found     = False
         for line in lines:
             if line.startswith(self.prefix) :
                 ixx        = line.find('">')
@@ -23,6 +24,10 @@ class MypivotsSplits :
                     continue
                 url_suffix = line[len(self.prefix): ixx]
                 ticker     = line[ixx + 2 : line.find('</a>')]
+                # if ticker == 'NRGY' :
+                #     found  = True
+                # if found :
+                #     self.store_splits(ticker, url_suffix)
                 self.store_splits(ticker, url_suffix)
                 print('Got splits for {0:s}'.format(ticker))
 
