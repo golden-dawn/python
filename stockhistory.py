@@ -1,12 +1,16 @@
 import csv
 from datetime import datetime
+import os
+import pandas as pd
+import stxdb
 from stxcal import StxCal
 
 class StockHistory :
 
-    def __init__(self, sh_dir = 'c:/goldendawn/stockhistory',
+    def __init__(self, cnx, sh_dir = 'c:/goldendawn/stockhistory',
                  d_dir = 'c:/goldendawn/data',
                  db_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads') :
+        self.cnx    = cnx
         self.sh_dir = sh_dir
         self.d_dir  = d_dir
         self.db_dir = db_dir
@@ -64,13 +68,17 @@ class StockHistory :
         return stx
 
     def load_stk(self, stk) :
-        stk_fname    = '{0:s}/{1:s}.csv'.format(self.d_dir, stk)
-        stk_data = []
+        stk_fname                = '{0:s}/{1:s}.csv'.format(self.d_dir, stk)
+        stk_data                 = []
+        stk_dict                 = {}
+        ixx                      = 0
         with open(stk_fname, 'r') as ifile :
-            frdr     = csv.reader(ifile)
+            frdr                 = csv.reader(ifile)
             for row in frdr :
                 stk_data.append(row)
-        return stk_data
+                stk_dict[row[1]] = ixx
+                ixx              = ixx + 1
+        return stk_data, stk_dict
         
     def gen_split_db_upload(self, stx) :
         split_list       = []
@@ -79,7 +87,7 @@ class StockHistory :
             split_dates.sort()
             six          = 0
             split_dt     = split_dates[six]
-            stk_data     = self.load_stk(stk)
+            stk_data, dd = self.load_stk(stk)
             sdate, edate = stk_data[0][1], stk_data[-1][1]
             while six < len(split_dates) and split_dt < sdate :
                 print('{0:s}:{1:s}: split before start'.format(stk, split_dt))
@@ -125,8 +133,28 @@ class StockHistory :
             for split in split_list :
                 ofile.write(split)
 
+    def adjust_volume_for_splits(self) :
+        splits    = pd.read_sql('select * from split', self.cnx)
+        stk_files = os.listdir(self.d_dir)
+        for stk_file in stk_files :
+            stk   = stk_file[:-4]
+            self.adjust_stock_volume_for_splits(stk, splits)
+
+    def adjust_stock_volume_for_splits(self, stk, splits) :
+        data, dct = self.load_stk(stk)
+        stk_splits = splits[splits['stk'] == stk]
+        for ixx in stk_splits.index :
+            split  = stk_splits.ix[ixx]
+            ixxx   = dct.get(split['dt'])
+            if ixxx is None :
+                print('{0:s}: no split date {1:s}'.format(stk, split['dt']))
+            
+                
 if __name__ == '__main__' :
-    sh = StockHistory()
+    cnx = stxdb.connect()
+    sh  = StockHistory(cnx)
     # sh.parse_eod_data()
-    stx = sh.load_splits()
-    sh.gen_split_db_upload(stx)
+    # stx = sh.load_splits()
+    # sh.gen_split_db_upload(stx)
+    sh.adjust_volume_for_splits()
+    stxdb.disconnect(cnx)
