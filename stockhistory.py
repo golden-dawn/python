@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import stxdb
 from stxcal import StxCal
+import sys
 
 class StockHistory :
 
@@ -11,6 +12,7 @@ class StockHistory :
                  d_dir = 'c:/goldendawn/data',
                  db_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads') :
         self.cnx    = cnx
+        self.sc     = StxCal()
         self.sh_dir = sh_dir
         self.d_dir  = d_dir
         self.db_dir = db_dir
@@ -45,7 +47,6 @@ class StockHistory :
 
     def load_splits(self) :
         fname            = '{0:s}/stocksplits.csv'.format(self.sh_dir)
-        sc               = StxCal()
         with open(fname) as csvfile :
             frdr         = csv.reader(csvfile)
             stx          = {}
@@ -53,7 +54,7 @@ class StockHistory :
                 stk      = row[0].strip()
                 data     = stx.get(stk, {})
                 dt       = str(datetime.strptime(row[1], '%m/%d/%Y').date())
-                dt       = str(sc.prev_busday(dt).date())
+                dt       = str(self.sc.prev_busday(dt).date())
                 if dt in data :
                     print('Duplicate entry for {0:s} on {1:s}'.format(stk, dt))
                     continue
@@ -133,28 +134,47 @@ class StockHistory :
             for split in split_list :
                 ofile.write(split)
 
-    def adjust_volume_for_splits(self) :
+    def adjust_volume_and_upload(self) :
         splits    = pd.read_sql('select * from split', self.cnx)
         stk_files = os.listdir(self.d_dir)
         for stk_file in stk_files :
             stk   = stk_file[:-4]
-            self.adjust_stock_volume_for_splits(stk, splits)
+            self.adjust_stock_volume_and_upload(stk, splits)
 
-    def adjust_stock_volume_for_splits(self, stk, splits) :
-        data, dct = self.load_stk(stk)
-        stk_splits = splits[splits['stk'] == stk]
+    def adjust_stock_volume_and_upload(self, stk, splits) :
+        data, dct      = self.load_stk(stk)
+        stk_splits     = splits[splits['stk'] == stk]
         for ixx in stk_splits.index :
-            split  = stk_splits.ix[ixx]
-            ixxx   = dct.get(split['dt'])
+            split      = stk_splits.ix[ixx]
+            ixxx       = dct.get(split['dt'])
             if ixxx is None :
+                # TODO: try with the next business day
                 print('{0:s}: no split date {1:s}'.format(stk, split['dt']))
-            
-                
+                continue
+            for row in data[: ixxx + 1] :
+                row[6] = '{0:.0f}'.format(int(row[6]) * split['ratio'])
+        ofname         = '{0:s}/eod_upload.txt'.format(self.db_dir)
+        with open(ofname, 'w') as ofile :
+            for row in data :
+                if int(row[6]) > 0 and float(row[5]) > 0.09 :
+                    ofile.write('{0:s}\n'.format('\t'.join(row[:7])))
+        try :
+            self.cnx.query("load data infile '{0:s}' into table eod". \
+                           format(ofname))
+            print('Loaded eod for {0:s}'.format(stk))
+        except :
+            e = sys.exc_info()[1]
+            print('Failed to upload {0:s}, error {1:s}'.format(stk, str(e)))
+
+        
 if __name__ == '__main__' :
     cnx = stxdb.connect()
     sh  = StockHistory(cnx)
     # sh.parse_eod_data()
     # stx = sh.load_splits()
     # sh.gen_split_db_upload(stx)
-    sh.adjust_volume_for_splits()
+    # splits    = pd.read_sql('select * from split', cnx)
+    # sh.adjust_stock_volume_and_upload('AAPL', splits)
+    # sh.adjust_stock_volume_and_upload('BKX', splits)
+    sh.adjust_volume_and_upload()
     stxdb.disconnect(cnx)
