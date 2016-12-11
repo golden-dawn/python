@@ -344,28 +344,52 @@ class StockHistory :
 
 
     def reconcile_opt_spots(self, stk) :
-        q        = "select dt, spot from opt_spots where stk='{0:s}'".\
+        q         = "select dt, spot from opt_spots where stk='{0:s}'".\
                                                               format(stk)
-        spot_df  = pd.read_sql(q, self.cnx)
+        spot_df   = pd.read_sql(q, self.cnx)
         spot_df.set_index('dt', inplace=True)
-        ts       = StxTS(stk, '2001-01-01', '2016-12-31')
-        df       = ts.df.join(spot_df)
-        df['r']  = df['spot'] / df['c']
-        df['r1'] = df['r'].shift(-1)
+        s_spot    = str(spot_df.index[0])
+        e_spot    = str(spot_df.index[-1])
+        try :
+            ts    = StxTS(stk, '2001-01-01', '2016-12-31')
+        except :
+            return '{0:s},{1:s},{2:s},N/A,N/A,N/A\n'.format(stk, s_spot, e_spot)
+        df        = ts.df.join(spot_df)
+        df['r']   = df['spot'] / df['c']
+        df['r1']  = df['r'].shift(-1)
+        df['r_1'] = df['r'].shift()
         df['r1'].fillna(method='bfill', inplace=True)
+        df['r_1'].fillna(method='bfill', inplace=True)
         df['r'].fillna(method='bfill', inplace=True)
-        df['rr'] = df['r1']/df['r']
-        df_f1    = df[((df['rr'] < 0.95) | (df['rr'] > 1.05)) & (df['c'] > 1.0)]
-        splits   = {}
-        for row in df_f1['rr'].iteritems():
-            splits[str(row[0].date())] = round(row[1], 4)
-        print('Found splits for {0:s}'.format(stk))
-        dates    = list(splits.keys())
-        dates.sort()
-        for dt in dates :
-            print('{0:s} : {1:.4f}'.format(dt, splits[dt]))
-            
-                    
+        df['rr']  = df['r1']/df['r']
+        df_f1     = df[(abs(df['rr'] - 1) > 0.05) & \
+                       (abs(df['r_1'] - df['r']) <= 0.05) & (df['c'] > 1.0)]
+        s_df      = str(df.index[0].date())
+        e_df      = str(df.index[-1].date())        
+        if len(df_f1) > 0 :
+            with open('c:/goldendawn/split_recon.csv', 'a') as ofile :
+                splits   = {}
+                for row in df_f1['rr'].iteritems():
+                    splits[str(row[0].date())] = round(row[1], 4)
+                print('Found {0:d} splits for {1:s}'.format(len(splits), stk))
+                dates    = list(splits.keys())
+                dates.sort()
+                for dt in dates :
+                    ofile.write('{0:s},{1:s},{2:.4f}\n'.format(stk, dt,
+                                                             splits[dt]))
+        return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d}\n'.\
+            format(stk, s_spot, e_spot, s_df, e_df, len(df_f1))
+
+    def reconcile_spots(self) :
+        cursor = self.cnx.cursor()
+        q      = 'select distinct stk from opt_spots'
+        cursor.execute(q)
+        with open('c:/goldendawn/spot_recon.csv', 'a') as ofile :
+            for stk in cursor :
+                res = self.reconcile_opt_spots(stk[0])
+                ofile.write(res)
+
+    
 if __name__ == '__main__' :
     cnx = stxdb.connect()
     sh  = StockHistory(cnx)
@@ -376,5 +400,6 @@ if __name__ == '__main__' :
     # sh.adjust_stock_volume_and_upload('AAPL', splits)
     # sh.adjust_stock_volume_and_upload('BKX', splits)
     # sh.adjust_volume_and_upload()
-    sh.reconcile_splits('C:/goldendawn/splits_to_reconcile.csv')
+    # sh.reconcile_splits('C:/goldendawn/splits_to_reconcile.csv')
+    sh.reconcile_spots()
     stxdb.disconnect(cnx)
