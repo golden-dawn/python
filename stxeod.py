@@ -51,21 +51,50 @@ class StxEOD :
 
     def load_from_files(self, stx = '') :
         if stx == '' :
+            lst      = [f for f in os.listdir(self.in_dir) \
+                        if f.endswith(self.extension)]
+        else :
+            lst      = []
+            stk_list = stx.split(',')
+            for stk in stk_list :
+                lst.append('{0:s}{1:s}'.format(stk.strip(), self.extension))
+        num_stx      = len(lst)
+        print('Loading data for {0:d} stocks'.format(num_stx))
+        ixx          = 0
+        for fname in lst :
+            self.load_stk(fname)
+            ixx     += 1
+            if ixx % 500 == 0 or ixx == num_stx :
+                print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
+
+
+    def reload_from_files(self, stx = '') :
+        if stx == '' :
             lst        = [f for f in os.listdir(self.in_dir) \
                           if f.endswith(self.extension)]
-            num_stx    = len(lst)
-            print('Loading data for {0:d} stocks'.format(num_stx))
-            ixx        = 0
-            for fname in lst :
-                self.load_stk(fname)
-                ixx   += 1
-                if ixx % 500 == 0 or ixx == num_stx :
-                    print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
         else :
-            stk_list   = stx.split(',')
+            lst      = []
+            stk_list = stx.split(',')
             for stk in stk_list :
-                self.load_stk('{0:s}.txt'.format(stk.strip()))
+                lst.append('{0:s}{1:s}'.format(stk.strip(), self.extension))
+        num_stx    = len(lst)
+        print('Reloading data for {0:d} stocks'.format(num_stx))
+        ixx        = 0
+        reloaded   = 0
+        cursor     = self.cnx.cursor()
+        for fname in lst :
+            cursor.execute("select count(*) from {0:s} where stk='{1:s}'".\
+                           format(self.eod_tbl, fname[:-4]))
+            for n in cursor :
+                if n[0] == 0 :
+                    self.repair_file(fname)
+                    self.load_stk(fname)
+            ixx   += 1
+            if ixx % 500 == 0 or ixx == num_stx :
+                print('Reloaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
+        cursor.close()
 
+                
     def load_stk(self, short_fname) :
         fname = '{0:s}/{1:s}'.format(self.in_dir, short_fname)
         stk   = short_fname[:-4]
@@ -117,7 +146,15 @@ class StxEOD :
         print('{0:s}: uploaded {1:d} eods and {2:d} splits'.\
               format(stk, eods, splits))
 
+    def repair_file(self, fname) :
+        # This function removes duplicate entries and incorrect rows
+        # VPA, WEG: duplicate entries
+        # VOXXE, WEFND: invalid utf8 character
+        # QQQQ: list index out of range
+        # Failed to upload LDX.txt, error (1264, "Out of range value for column 'ratio' at row 1")
+        pass
+        
 if __name__ == '__main__' :
     cnx  = stxdb.connect()
     seod = StxEOD(cnx, 'c:/goldendawn/bkp', 'eod1', 'split1')
-    seod.load_from_files()
+    seod.load_from_files('XTR')
