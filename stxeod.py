@@ -7,17 +7,60 @@ class StxEOD :
     upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
     eod_name   = '{0:s}/eod_upload.txt'.format(upload_dir)
 
-    def __init__(self, in_dir, extension = '.txt') :
+    def __init__(self, cnx, in_dir, eod_tbl, split_tbl, extension = '.txt') :
         self.in_dir    = in_dir
+        self.eod_tbl   = eod_tbl
+        self.split_tbl = split_tbl
         self.extension = extension
-        self.cnx       = stxdb.connect()
-    
+        self.cnx       = cnx
+        if cnx.query("show tables like '{0:s}'".format(eod_tbl)) == 0 :
+            try :
+                cnx.query('CREATE TABLE `{0:s}` ('\
+                          '`stk` varchar(8) NOT NULL,'\
+                          '`dt` varchar(10) NOT NULL,'\
+                          '`o` decimal(9,2) DEFAULT NULL,'\
+                          '`h` decimal(9,2) DEFAULT NULL,'\
+                          '`l` decimal(9,2) DEFAULT NULL,'\
+                          '`c` decimal(9,2) DEFAULT NULL,'\
+                          '`v` int(11) DEFAULT NULL,'\
+                          'PRIMARY KEY (`stk`,`dt`)'\
+                          ') ENGINE=MyISAM DEFAULT CHARSET=utf8'.\
+                          format(eod_tbl))
+                print('Successfully created DB table {0:s}'.format(eod_tbl))
+            except :
+                e = sys.exc_info()[1]
+                print('Failed to create DB table {0:s}, error {1:s}'.\
+                      format(eod_tbl, str(e)))
+                raise
+        if cnx.query("show tables like '{0:s}'".format(split_tbl)) == 0 :
+            try :
+                cnx.query('CREATE TABLE `{0:s}` ('\
+                          '`stk` varchar(8) NOT NULL,'\
+                          '`dt` varchar(10) NOT NULL,'\
+                          '`ratio` decimal(8,4) DEFAULT NULL,'\
+                          'PRIMARY KEY (`stk`,`dt`)'\
+                          ') ENGINE=MyISAM DEFAULT CHARSET=utf8'.\
+                          format(split_tbl))
+                print('Successfully created DB table {0:s}'.format(split_tbl))
+            except :
+                e = sys.exc_info()[1]
+                print('Failed to create DB table {0:s}, error {1:s}'.\
+                      format(split_tbl, str(e)))
+                raise
+
+
     def load_from_files(self, stx = '') :
         if stx == '' :
             lst        = [f for f in os.listdir(self.in_dir) \
                           if f.endswith(self.extension)]
+            num_stx    = len(lst)
+            print('Loading data for {0:d} stocks'.format(num_stx))
+            ixx        = 0
             for fname in lst :
                 self.load_stk(fname)
+                ixx   += 1
+                if ixx % 500 == 0 or ixx == num_stx :
+                    print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
         else :
             stk_list   = stx.split(',')
             for stk in stk_list :
@@ -34,7 +77,7 @@ class StxEOD :
             print('Failed to read {0:s}, error {1:s}'.\
                   format(short_fname, str(e)))
             return
-        q_split = 'insert into split values'
+        q_split = 'insert into {0:s} values'.format(self.split_tbl)
         eods, splits = 0, 0
         try :
             with open(self.eod_name, 'w') as eod :
@@ -57,8 +100,8 @@ class StxEOD :
                   format(short_fname, str(e)))
             return
         try :
-            self.cnx.query("load data infile '{0:s}' into table eod". \
-                           format(self.eod_name))
+            self.cnx.query("load data infile '{0:s}' into table {1:s}". \
+                           format(self.eod_name, self.eod_tbl))
         except :
             e = sys.exc_info()[1]
             print('Failed to upload {0:s}, error {1:s}'.\
@@ -73,3 +116,8 @@ class StxEOD :
                       format(short_fname, str(e)))
         print('{0:s}: uploaded {1:d} eods and {2:d} splits'.\
               format(stk, eods, splits))
+
+if __name__ == '__main__' :
+    cnx  = stxdb.connect()
+    seod = StxEOD(cnx, 'c:/goldendawn/bkp', 'eod1', 'split1')
+    seod.load_from_files()
