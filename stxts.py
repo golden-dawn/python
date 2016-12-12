@@ -11,12 +11,12 @@ class StxTS:
     busday_us = pd.tseries.offsets.CDay(holidays=sc.cal.holidays)
     cnx = stxdb.connect()
 
-    def __init__(self, stk, sd, ed):
+    def __init__(self, stk, sd, ed, eod_tbl = 'eod'):
         self.stk = stk
         self.sd  = pd.to_datetime(sd)
         self.ed  = pd.to_datetime(ed)
-        q = "select * from eod where stk='%s' and dt between '%s' and '%s'" % \
-            (stk, sd, ed)
+        q = "select * from %s where stk='%s' and dt between '%s' and '%s'" % \
+            (eod_tbl, stk, sd, ed)
         df = pd.read_sql(q, StxTS.cnx, index_col='dt', parse_dates=['dt'])
         if self.sd < df.index[0]: self.sd = df.index[0]
         if self.ed > df.index[-1]: self.ed = df.index[-1]
