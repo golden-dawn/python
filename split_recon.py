@@ -33,7 +33,7 @@ def split_analysis(cnx, stk, sd, ed, eod_tbl) :
     # apply the split adjustments
     for r in df_f1.iterrows():
         ts.splits[r[0]] = r[1]['rr']
-    ts.adjust_splits_date_range(0, len(ts.df) - 1)
+    ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
     df.drop(['c'], inplace = True, axis = 1)
     df         = df.join(ts.df[['c']])
     # calculate statistics: coverage and mean square error
