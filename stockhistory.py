@@ -354,7 +354,7 @@ class StockHistory :
             ts    = StxTS(stk, sd, ed, eod_tbl)
         except :
             print(sys.exc_info())
-            return '{0:s},{1:s},{2:s},N/A,N/A,N/A\n'.format(stk, s_spot, e_spot)
+            return '{0:s},{1:s},{2:s},N/A,N/A,N/A,N/A,N/A\n'.format(stk, s_spot, e_spot)
         df        = ts.df.join(spot_df)
         df['r']   = df['spot'] / df['c']
         df['r1']  = df['r'].shift(-1)
@@ -365,11 +365,15 @@ class StockHistory :
         df['r_3'] = df['r'].shift(3)
         df['c1']  = df['c'].shift(-1)
         df['s1']  = df['spot'].shift(-1)
+        df['r'].fillna(method='bfill', inplace=True)
         df['r1'].fillna(method='bfill', inplace=True)
+        df['r2'].fillna(method='bfill', inplace=True)
+        df['r3'].fillna(method='bfill', inplace=True)
         df['r_1'].fillna(method='bfill', inplace=True)
+        df['r_2'].fillna(method='bfill', inplace=True)
+        df['r_3'].fillna(method='bfill', inplace=True)
         df['c1'].fillna(method='bfill', inplace=True)
         df['s1'].fillna(method='bfill', inplace=True)
-        df['r'].fillna(method='bfill', inplace=True)
         df['rr']  = df['r1']/df['r']
         df_f1     = df[(abs(df['rr'] - 1) > 0.05) & \
                        (round(df['r_1'] - df['r'], 2) == 0) & \
@@ -396,9 +400,35 @@ class StockHistory :
                 for dt in dates :
                     ofile.write('{0:s},{1:s},{2:s}\n'.format(stk, dt,
                                                              splits[dt]))
-        return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d}\n'.\
-            format(stk, s_spot, e_spot, s_df, e_df, len(df_f1))
+        cov, acc  = self.quality(df, df_f1, ts, spot_df)
+        return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d},{6:.2f},{7:.4f}\n'.\
+            format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
 
+
+    def quality(sc, df, df_f1, ts, spot_df) :
+        s_spot     = str(spot_df.index[0])
+        e_spot     = str(spot_df.index[-1])
+        spot_days  = sc.num_busdays(s_spot, e_spot)
+        s_ts       = str(ts.df.index[0].date())
+        e_ts       = str(ts.df.index[-1].date())
+        if s_ts < s_spot :
+            s_ts   = s_spot
+        if e_ts > e_spot :
+            e_ts   = e_spot
+        ts_days    = self.sc.num_busdays(s_ts, e_ts)
+        coverage   = round(100.0 * ts_days / spot_days, 2)
+        # apply the split adjustments
+        ts.splits.clear()
+        for r in df_f1.iterrows():
+            ts.splits[r[0]] = r[1]['rr']
+        ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
+        df.drop(['c'], inplace = True, axis = 1)
+        df         = df.join(ts.df[['c']])
+        # calculate statistics: coverage and mean square error
+        df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
+        accuracy = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
+        return coverage, accuracy
+    
     def reconcile_spots(self, eod_tbl, sd = None, ed = None) :
         cursor = self.cnx.cursor()
         q      = 'select distinct stk from opt_spots {0:s}'.\
