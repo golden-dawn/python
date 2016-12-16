@@ -405,10 +405,10 @@ class StockHistory :
             format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
 
 
-    def quality(sc, df, df_f1, ts, spot_df) :
+    def quality(self, df, df_f1, ts, spot_df) :
         s_spot     = str(spot_df.index[0])
         e_spot     = str(spot_df.index[-1])
-        spot_days  = sc.num_busdays(s_spot, e_spot)
+        spot_days  = self.sc.num_busdays(s_spot, e_spot)
         s_ts       = str(ts.df.index[0].date())
         e_ts       = str(ts.df.index[-1].date())
         if s_ts < s_spot :
@@ -426,7 +426,7 @@ class StockHistory :
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
         df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
-        accuracy = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
+        accuracy   = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
         return coverage, accuracy
     
     def reconcile_spots(self, eod_tbl, sd = None, ed = None) :
