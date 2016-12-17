@@ -426,7 +426,8 @@ class StockHistory :
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
         df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
-        accuracy   = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
+        accuracy   = pow(df['sqrt'].sum() / min(len(df['sqrt']), len(spot_df)),
+                         0.5)
         return coverage, accuracy
     
     def reconcile_spots(self, eod_tbl, sd = None, ed = None) :
