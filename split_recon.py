@@ -30,7 +30,7 @@ def split_analysis(cnx, sc, stk, sd, ed, eod_tbl) :
                     (round(df['r2']  - df['r1'], 2) == 0) & \
                     (round(df['r3']  - df['r1'], 2) == 0) & \
                     (df['c'] > 1.0)]
-    cov, acc   = quality(sc, df, df_f1, ts, spot_df)
+    df, cov, acc = quality(sc, df, df_f1, ts, spot_df)
     print('Coverage: {0:.2f}, accuracy: {1:.4f}'.format(cov, acc))
     return df, df_f1
 
@@ -56,5 +56,5 @@ def quality(sc, df, df_f1, ts, spot_df) :
     # calculate statistics: coverage and mean square error
     df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
     accuracy = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
-    return coverage, accuracy
+    return df, coverage, accuracy
     
