@@ -2,22 +2,20 @@ import datetime
 import numpy as np
 import pandas as pd
 import pymysql
-import stxdb
-from stxcal import StxCal
+from stxdb import *
+from stxcal import *
 
 class StxTS:
     # static variables
-    sc = StxCal()
-    busday_us = pd.tseries.offsets.CDay(holidays=sc.cal.holidays)
-    cnx = stxdb.connect()
+    busday_us = pd.tseries.offsets.CDay(holidays=get_cal().holidays)
 
-    def __init__(self, stk, sd, ed, eod_tbl = 'eod'):
+    def __init__(self, stk, sd, ed, eod_tbl = 'eod', split_tbl = 'split'):
         self.stk = stk
         self.sd  = pd.to_datetime(sd)
         self.ed  = pd.to_datetime(ed)
         q = "select * from %s where stk='%s' and dt between '%s' and '%s'" % \
             (eod_tbl, stk, sd, ed)
-        df = pd.read_sql(q, StxTS.cnx, index_col='dt', parse_dates=['dt'])
+        df = pd.read_sql(q, db_get_cnx(), index_col='dt', parse_dates=['dt'])
         if self.sd < df.index[0]: self.sd = df.index[0]
         if self.ed > df.index[-1]: self.ed = df.index[-1]
         self.sd_str = str(self.sd.date())
@@ -25,12 +23,13 @@ class StxTS:
         # print("sd = %s, ed = %s" % (self.sd_str, self.ed_str))
         self.gaps = self.get_gaps(df)
         df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
-        q = "select dt, ratio from split where stk='%s'" % stk
-        self.splits = pd.read_sql(q, StxTS.cnx, index_col='dt', \
+        q = "select dt, ratio from {0:s} where stk='{1:s}'".\
+                                                    format(split_tbl, stk)
+        self.splits = pd.read_sql(q, db_get_cnx(), index_col='dt', \
                                   parse_dates=['dt']).to_dict()["ratio"]
-        q = "select dt, divi from dividend where stk='%s'" % stk
-        self.divis = pd.read_sql(q, StxTS.cnx, index_col='dt',  \
-                                 parse_dates=['dt']).to_dict()["divi"]
+        # q = "select dt, divi from dividend where stk='%s'" % stk
+        # self.divis = pd.read_sql(q, StxTS.cnx, index_col='dt',  \
+        #                          parse_dates=['dt']).to_dict()["divi"]
         # print("splits = %s, divis = %s" % (self.splits, self.divis))
         self.df = self.fill_gaps(df)
         self.l = len(self.df)
@@ -49,9 +48,9 @@ class StxTS:
         df['prev_date'] = df.index
         df['prev_date'] = df['prev_date'].shift(1)
         s1 = pd.Series(df['prev_date'])
-        s1[0] = pd.to_datetime(StxTS.sc.prev_busday(df.index[0].date()))
-        gapfun = lambda x : StxTS.sc.num_busdays(x['prev_date'].date(), \
-                                           x['prev_dt'].date())
+        s1[0] = pd.to_datetime(prev_busday(df.index[0].date()))
+        gapfun = lambda x : num_busdays(x['prev_date'].date(), \
+                                        x['prev_dt'].date())
         df['gap'] = df.apply(gapfun, axis=1)
         glist = df.loc[df['gap']>20].index.tolist()
         gaps = []
@@ -78,7 +77,7 @@ class StxTS:
         return self.df
 
     def find(self, dt, c = 0):
-        n = StxTS.sc.num_busdays(self.sd_str, dt);
+        n = num_busdays(self.sd_str, dt);
         if n < 0 :
             if c > 0 : return 0
         elif n >= self.l :
@@ -152,7 +151,8 @@ class StxTS:
         q = "select dt,%s from %s where stk='%s' and dt between '%s' and '%s'" \
             " %s" % (','.join(col_list), tbl_name, self.stk, self.sd, self.ed, \
                      "" if addl_cond is None else addl_cond)
-        sql_res = pd.read_sql(q, StxTS.cnx, index_col='dt', parse_dates=['dt'])
+        sql_res = pd.read_sql(q, db_get_cnx(), index_col='dt', \
+                              parse_dates=['dt'])
         self.df = self.df.merge(sql_res, how='left', left_index=True, \
                                 right_index=True)
         
@@ -169,7 +169,7 @@ class StxTS:
         q = "select * from rm_ldrs where stk='%s' and rm_ten='%s' and " \
             "rank>=%d and rank<=%d" % (self.stk, liq, min_rank, max_rank)
         # print("addleader q=%s" % q)
-        ldr = pd.read_sql(q, StxTS.cnx, parse_dates=['exp'])
+        ldr = pd.read_sql(q, db_get_cnx(), parse_dates=['exp'])
         # print("%5s read the leaders: %s" % (" ", datetime.datetime.now()))
         # print("Found %d leader time intervals for %s" % (len(ldr), self.stk))
         ldrs = tdf.merge(ldr, how='left', on=['exp'])
@@ -199,7 +199,7 @@ class StxTS:
     def gen_tdf(sd, ed):
         tdf = pd.DataFrame(data={'dt': pd.date_range(sd, ed,
                                                      freq=StxTS.busday_us)})
-        funexp = lambda x: StxTS.sc.prev_expiry(np.datetime64(x['dt'].date()))
+        funexp = lambda x: prev_expiry(np.datetime64(x['dt'].date()))
         tdf['exp'] = tdf.apply(funexp, axis=1)
         return tdf
 
