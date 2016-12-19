@@ -1,7 +1,7 @@
 import os
 import unittest
 from stxcal import *
-from stxdb import StxDB
+from stxdb import *
 
 class Test1StxDB(unittest.TestCase) :
     def setUp(self) :
@@ -38,32 +38,32 @@ class Test1StxDB(unittest.TestCase) :
         os.remove(self.file_name)
 
     def test_1_read_cmd(self) :
-        res = StxDB.read_cmd(self.sql_select_1)
+        res = db_read_cmd(self.sql_select_1)
         self.assertEqual(len(res), 19)
         
     def test_2_create_missing_table(self) :
-        res0 = StxDB.read_cmd(self.sql_tbls_like)
-        StxDB.create_missing_table(self.tbl_name, self.sql_create_tbl)
-        res1 = StxDB.read_cmd(self.sql_tbls_like)
-        res2 = StxDB.read_cmd(self.sql_describe)
+        res0 = db_read_cmd(self.sql_tbls_like)
+        db_create_missing_table(self.tbl_name, self.sql_create_tbl)
+        res1 = db_read_cmd(self.sql_tbls_like)
+        res2 = db_read_cmd(self.sql_describe)
         self.assertTrue((len(res0) == 0) and (len(res1) == 1) and \
                         (res1[0][0] == self.tbl_name) and \
                         (len(res2) == 7) and (res2[0][3] == 'PRI') and \
                         (res2[1][3] == 'PRI') and (res2[2][3] == ''))
 
     def test_3_get_key_len(self) :
-        res = StxDB.get_key_len(self.tbl_name)
+        res = db_get_key_len(self.tbl_name)
         self.assertEqual(res, 2)
 
     def test_4_upload_file(self) :
-        key_len = StxDB.get_key_len(self.tbl_name)
-        StxDB.upload_file(self.file_name, self.tbl_name, key_len)
-        res     = StxDB.read_cmd(self.sql_select_2)
+        key_len = db_get_key_len(self.tbl_name)
+        db_upload_file(self.file_name, self.tbl_name, key_len)
+        res     = db_read_cmd(self.sql_select_2)
         self.assertEqual(len(res), 4)
 
     def test_5_drop_table(self) :
-        StxDB.write_cmd(self.sql_drop_tbl)
-        res = StxDB.read_cmd(self.sql_tbls_like)
+        db_write_cmd(self.sql_drop_tbl)
+        res = db_read_cmd(self.sql_tbls_like)
         self.assertEqual(len(res), 0)
 
 
