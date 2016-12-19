@@ -1,14 +1,20 @@
 import numpy as np
 import pandas as pd
 import pytz
+import sys
 
 from datetime import datetime
 from dateutil import rrule
 
-class StxCal(object):
-    def __init__(self):
+this = sys.modules[__name__]
+this.cal = None
+
+def get_cal() :
+    if this.cal is None :
         start = pd.Timestamp('1998-01-01', tz='UTC')
         end = pd.Timestamp('today', tz='UTC') + pd.datetools.Timedelta(weeks=52)
+        print('Initializing calendar between {0:s} and {1:s}'.\
+              format(str(start.date()), str(end.date())))
         non_trading_rules = []
         new_years = rrule.rrule(
             rrule.MONTHLY,
@@ -176,61 +182,57 @@ class StxCal(object):
         hols.append('2012-10-29') # Frankenstorm
         hols.append('2012-10-30') # Frankenstorm
         hols.sort()
-        self.cal = np.busdaycalendar(holidays = hols)
+        this.cal = np.busdaycalendar(holidays = hols)
+    return this.cal
+        
+def next_busday(dt) :
+    return str(pd.to_datetime(np.busday_offset(dt, 1, roll='backward', \
+                                               busdaycal=get_cal())).date())
 
-    def next_busday(self, dt):
-        return pd.to_datetime(np.busday_offset(dt, 1, roll='backward', \
-                                               busdaycal=self.cal))
+def prev_busday(dt) :
+    return str(pd.to_datetime(np.busday_offset(dt, -1, roll='forward', \
+                                               busdaycal=get_cal())).date())
 
-    def prev_busday(self, dt):
-        return pd.to_datetime(np.busday_offset(dt, -1, roll='forward', \
-                                               busdaycal=self.cal))
+def is_busday(dt):
+    return np.is_busday(dt, busdaycal=get_cal())
 
-    def same_busday(self, dt):
-        return pd.to_datetime(np.busday_offset(dt, 0))
+# Move backwards (if bdays < 0) or forwards (if bdays > 0) bdays
+# business days.  If bdays is 0, then will not move if dt is already a
+# business day, otherwise, will move to the previous business day. The
+# parameter bdays can be 0 when we want to calculate the last business
+# day when an option is traded, by moving 0 business days from the
+# expiry, which would fall on a Saturday before Feb 2015, and on a
+# Friday afterwards.
+def move_busdays(dt, bdays):
+    return str(np.busday_offset(dt, bdays, busdaycal=get_cal(),
+                                roll='forward' if bdays<0 else 'backward'))
 
-    def is_busday(self, dt):
-        return np.is_busday(dt, busdaycal=self.cal)
+def num_busdays(sdt, edt):
+    return np.busday_count(sdt, edt, busdaycal=get_cal())
 
-    def move_busdays(self, dt, bdays):
-        return np.busday_offset(dt, bdays, busdaycal=self.cal,
-                                roll=('forward' if bdays<= 0 else 'backward'))
+def expiry(dt):
+    sat_fri_date = np.datetime64('2015-02')
+    exp = np.busday_offset(dt, 2, roll='forward', weekmask='Fri')
+    if np.datetime64(dt) < sat_fri_date:
+        exp = np.busday_offset(exp, 1, weekmask='1111111')
+    return str(exp)
 
-    def num_busdays(self, sdt, edt):
-        return np.busday_count( sdt, edt, busdaycal=self.cal)
+# call it like this: expiries('2015-01', '2015-08')
+def expiries(sdt, edt):
+    return [expiry(dt) for dt in np.arange(sdt, edt, dtype='datetime64[M]')]
 
-    def expiry(self, dt):
-        sat_fri_date = np.datetime64('2015-02')
-        exp = np.busday_offset(dt, 2, roll='forward', weekmask='Fri')
-        if dt < sat_fri_date:
-            exp = np.busday_offset(exp, 1, weekmask='1111111')
-        return exp
+def next_expiry(dt, min_days=1):
+    ym           = np.datetime64(str(dt)[ :-3])
+    last_exp     = move_busdays(expiry(ym), 0)
+    while num_busdays(dt, last_exp) < min_days :
+        ym      += np.timedelta64(1, 'M')
+        last_exp = move_busdays(expiry(ym), 0)
+    return expiry(ym)
 
-    # call it like this: expiries('2015-01', '2015-08')
-    def expiries(self, sdt, edt):
-        return [self.expiry(dt) for dt in np.arange(sdt, edt, dtype='datetime64[M]')]
-
-    def next_expiry(self, dt, min_days=1):
-        ym = np.datetime64(str(dt)[ :-3])
-        exp = self.expiry(ym)
-        last_exp = self.move_busdays(exp, 0)
-        if self.num_busdays(dt, last_exp) < min_days :
-            ym += np.timedelta64(1, 'M')
-        # if num_busdays(dt, exp) < 0:
-        #     ym += np.timedelta64(1, 'M')
-        return self.expiry(ym)
-
-    def prev_expiry(self, dt, min_days=0):
-        ym = np.datetime64(str(dt)[ :-3])
-        exp = self.expiry(ym)
-        last_exp = self.move_busdays(exp, 0)
-        if self.num_busdays(last_exp, dt) < min_days :
-            ym -= np.timedelta64(1, 'M')
-        return self.expiry(ym)
-
-# static public String moveWeekDays( String s, int d) { 
-# }
-# static String moveDays( String d, int n) { 
-# }
-# public static String moveToBusDay( String d, int n) {
-# }
+def prev_expiry(dt, min_days=0):
+    ym           = np.datetime64(str(dt)[ :-3])
+    last_exp     = move_busdays(expiry(ym), 0)
+    while num_busdays(last_exp, dt) < min_days :
+        ym      -= np.timedelta64(1, 'M')
+        last_exp = move_busdays(expiry(ym), 0)
+    return expiry(ym)
