@@ -62,36 +62,8 @@ class MypivotsSplits :
                     started     = False
                 else :
                     str_buffer += line.strip()
-            
 
-    def parse_file(self) :
-        fname      = 'C:/goldendawn/AAON.html'
-        with open(fname, 'r') as ifile :
-            lines  = ifile.readlines()
-        started    = False
-        str_buffer = ''
-        ticker     = 'AAON'
-        with open(self.out_fname, 'a') as ofile :
-            for line in lines:
-                line   = line.strip()
-                if not (started or line == self.start_row) :
-                    continue
-                if line == self.start_row :
-                    str_buffer = ''
-                    started    = True
-                elif line == self.end_row :
-                    tokens     = str_buffer[4:-5].split('</td><td>')
-                    split_date = str(datetime.strptime(tokens[1],
-                                                       '%m/%d/%Y').date())
-                    denom, num = tokens[3].split('-')
-                    ratio      = round(float(num) / float(denom), 2)
-                    print('date = {0:s}, ratio = {1:f}'.format(split_date, ratio))
-                    ofile.write('{0:s}\t{1:s}\t{2:.2f}\n'.\
-                                format(ticker, split_date, ratio))
-                    started    = False
-                else :
-                    str_buffer += line.strip()
-    
+                    
 if __name__ == '__main__' :
     mps = MypivotsSplits()
     mps.get_all()
