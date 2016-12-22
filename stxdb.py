@@ -64,13 +64,18 @@ def db_upload_file(file_name, tbl_name, key_len) :
         db_write_cmd("load data infile '{0:s}' into table {1:s}". \
                      format(file_name, tbl_name))
 
-        
-def connect():
-    #cnx = pymysql.connect(host='127.0.0.1', user='root', database='goldendawn')
-    print('Entered stxdb.connect()')
-    cnx = pymysql.connect(host='127.0.0.1', user='root',
-                          password='m1y2s3q7l8', database='goldendawn')
-    return cnx
+# Return sql string for specific timeframe between start date (sd) and
+# end date (ed).  If either start or end date is None this will return
+# everything before end date (if sd is None),or everything after start
+# date (if ed is None)
+def db_sql_timeframe(self, sd, ed, include_and) :
+    res     = ''
+    prefix  = ' and' if include_and else ' where'
+    if sd is not None and ed is not None :
+        res = "{0:s} dt between '{1:s}' and '{2:s}'".format(prefix, sd, ed)
+    elif sd is not None :
+        res = "{0:s} dt >= '{1:s}'".format(prefix, sd)
+    elif ed is not None :
+        res = "{0:s} dt <= '{1:s}'".format(prefix, ed)
+    return res
 
-def disconnect(cnx):
-    cnx.close()
