@@ -2,6 +2,7 @@ import os
 import unittest
 from stxcal import *
 from stxdb import *
+from stxts import StxTS
 
 class Test1StxDB(unittest.TestCase) :
     def setUp(self) :
@@ -143,7 +144,75 @@ class Test2StxCal(unittest.TestCase) :
         self.assertTrue((res1 == '2016-11-18') and (res2 == '2016-11-18') and \
                         (res3 == '2016-09-16') and (res4 == '2016-07-15'))
 
-    
 
+class Test3StxTS(unittest.TestCase) :
+
+    def setUp(self) :
+        pass
+    
+    def tearDown(self) :
+        pass
+    
+    def test_1_find(self) :
+        stk  = 'TASR'
+        sd   = '2002-04-01'
+        ed   = '2002-04-11'
+        ts   = StxTS(stk, sd, ed)
+        res1 = ts.find('2002-04-10')
+        res2 = ts.find('2002-04-06', -1)
+        res3 = ts.find('2002-04-06', 1)
+        self.assertTrue((res1 == 7) and (res2 == 4) and (res3 == 5))
+
+    def test_2_set_day_split(self) :
+        stk  = 'VXX'
+        sd   = '2012-10-01'
+        ed   = '2012-10-10'
+        ts   = StxTS(stk, sd, ed)
+        ts.set_day('2012-10-04')
+        res1 = ts.df.ix['2012-10-04']
+        res2 = ts.df.ix['2012-10-05']
+        print('res2.c = {0:f}'.format(round(res2.c, 2)))
+        self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and \
+                        (res2.c == 34.12) and (res2.v == 38796800))
+
+    def test_3_set_day_split(self) :
+        stk  = 'VXX'
+        sd   = '2012-10-01'
+        ed   = '2012-10-10'
+        ts   = StxTS(stk, sd, ed)
+        ts.set_day('2012-10-05')
+        res1 = ts.df.ix['2012-10-04']
+        res2 = ts.df.ix['2012-10-05']
+        print('res2.c = {0:f}'.format(round(res2.c, 2)))
+        self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and \
+                        (res2.c == 34.12) and (res2.v == 38796800))
+
+    def test_4_set_day_split(self) :
+        stk  = 'VXX'
+        sd   = '2012-10-01'
+        ed   = '2012-10-10'
+        ts   = StxTS(stk, sd, ed)
+        ts.set_day('2012-10-05')
+        ts.set_day('2012-10-04')
+        res1 = ts.df.ix['2012-10-04']
+        res2 = ts.df.ix['2012-10-05']
+        print('res2.c = {0:f}'.format(round(res2.c, 2)))
+        self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and \
+                        (res2.c == 34.12) and (res2.v == 38796800))
+        
+
+    def test_5_next_day_split(self) :
+        stk  = 'VXX'
+        sd   = '2012-10-01'
+        ed   = '2012-10-10'
+        ts   = StxTS(stk, sd, ed)
+        ts.set_day('2012-10-05')
+        ts.set_day('2012-10-04')
+        ts.next_day()
+        res1 = ts.df.ix['2012-10-04']
+        res2 = ts.df.ix['2012-10-05']
+        print('res2.c = {0:f}'.format(round(res2.c, 2)))
+        self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and \
+                        (res2.c == 34.12) and (res2.v == 38796800))
 if __name__ == '__main__':
     unittest.main()
