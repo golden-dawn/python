@@ -1,4 +1,5 @@
 import os
+from shutil import copyfile
 from stxdb import *
 import sys
 
@@ -22,20 +23,23 @@ class StxEOD :
                        '`ratio` decimal(8,4) DEFAULT NULL,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
-    
+
+
     def __init__(self, in_dir, eod_tbl, split_tbl, extension = '.txt') :
         self.in_dir    = in_dir
         self.eod_tbl   = eod_tbl
         self.split_tbl = split_tbl
         self.extension = extension
-        db_create_missing_table(eod_tbl, cls.sql_create_eod)
+        db_create_missing_table(eod_tbl, self.sql_create_eod)
         print('EOD DB table: {0:s}'.format(eod_tbl))
-        db_create_missing_table(split_tbl, cls.sql_create_split)
+        db_create_missing_table(split_tbl, self.sql_create_split)
         print('Split DB table: {0:s}'.format(split_tbl))
 
-        
+
+    # Load my historical data.  Load each stock and accumulate splits.
+    # Upload splits at the end.
     def load_ctin_files(self, stx = '') :
-        split_fname  = '{0:s}/splits_ctin.txt'.format(cls.upload_dir)
+        split_fname  = '{0:s}/splits_ctin.txt'.format(self.upload_dir)
         try :
             os.remove(split_fname)
             print('Removed {0:s}'.format(split_fname))
@@ -65,7 +69,9 @@ class StxEOD :
             print('Failed to upload the splits from file {0:s}, error {1:s}'.\
                   format(split_fname, str(e)))
             
-            
+
+    # Upload each stock.  Split lines are prefixed with '*'.  Upload
+    # stock data separately and then accumulate each stock.
     def load_ctin_stk(self, short_fname, split_fname) :
         fname = '{0:s}/{1:s}'.format(self.in_dir, short_fname)
         stk   = short_fname[:-4]
@@ -108,6 +114,168 @@ class StxEOD :
                   format(short_fname, str(e)))
 
         
+    # Parse delta neutral stock history.  First, separate each yearly
+    # data into stock files, and upload each stock file.  Then upload
+    # all the splits into the database.  We will worry about
+    # missing/wrong splits and volume adjustments later.
+    def load_deltaneutral_files(self) :
+        for yr in range(2001, 2017) :
+            fname    = '{0:s}/stockhistory_{1:d}.csv'.format(self.sh_dir, yr)
+            stx      = {}
+            with open(fname) as csvfile :
+                frdr = csv.reader(csvfile)
+                for row in frdr :
+                    stk  = row[0].strip()
+                    data = stx.get(stk, [])
+                    data.append('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'\
+                                '{5:.2f}\t{6:d}\n'.\
+                                format(stk, str(datetime.strptime\
+                                                (row[1], '%m/%d/%Y').date()),
+                                       float(row[2]), float(row[3]),
+                                       float(row[4]), float(row[5]),
+                                       int(row[7])))
+                    stx[stk] = data
+            print('{0:s}: got data for {1:d} stocks'.format(fname, len(stx)))
+            for stk, recs in stx.items() :
+                if stk in ['AUX', 'PRN'] or stk.find('/') != -1 or \
+                   stk.find('*') != -1 :
+                    continue
+                with open('{0:s}/{1:s}.txt'.format(self.d_dir, stk), 'a') \
+                     as ofile :
+                    for rec in recs :
+                        ofile.write(rec)
+        lst      = [f for f in os.listdir(self.in_dir) \
+                    if f.endswith(self.extension)]
+        for fname in lst :
+            copyfile(fname, self.eod_name)
+            try :
+                db_upload_file(self.eod_name, self.eod_tbl, 2)
+                print('{0:s}: uploaded eods'.format(stk))
+            except :
+                e = sys.exc_info()[1]
+                print('Failed to upload {0:s}, error {1:s}'.format(stk, str(e)))
+        self.load_deltaneutral_splits()
+
+
+    # Load the delta neutral splits into the database
+    def load_deltaneutral_splits(self) :
+        # this part uploads the splits
+        in_fname         = '{0:s}/stocksplits.csv'.format(self.sh_dir)
+        out_fname        = '{0:s}/stocksplits.txt'.format(self.upload_dir)
+        with open(in_fname, 'r') as csvfile :
+            with open(out_fname, 'w') as dbfile :
+                frdr         = csv.reader(csvfile)
+                for row in frdr :
+                    dt   = str(datetime.strptime(row[1], '%m/%d/%Y').date())
+                    out_file.write('{0:s}\t{1:s}\t{2:f}\n'.\
+                                   format(row[0].strip(), prev_busday(dt),
+                                          1 / float(row[2])))
+        try :
+            db_upload_file(out_fname, self.split_tbl, 2)
+            print('Uploaded delta neutral splits')
+        except :
+            e = sys.exc_info()[1]
+            print('Failed to upload splits, error {0:s}'.format(str(e)))
+
+
+    # Perform reconciliation with the option spots.  First get all the
+    # underliers for which we have spot prices within a given
+    # interval.  Then, reconcile for each underlier
+    def reconcile_spots(self, eod_tbl, sd = None, ed = None) :
+        stx = db_read_cmd('select distinct stk from opt_spots {0:s}'.\
+                          format(db_sql_timeframe(sd, ed, False)))
+        with open('c:/goldendawn/spot_recon_{0:s}.csv'.format(eod_tbl),
+                  'a') as ofile :
+            for stk in stx :
+                res = self.reconcile_opt_spots(stk[0], eod_tbl, sd, ed)
+                ofile.write(res)
+
+    # Perform reconciliation for a single stock. If we cannot get the
+    # EOD data, return N/A. Otherwise, return, for each stock, the
+    # name, the start and end date between which spot data is
+    # available, the start and end dates between which there is eod
+    # data, and then the mse and percentage of coverage
+    def reconcile_opt_spots(self, stk, eod_tbl, sd, ed) :
+        q         = "select dt, spot from opt_spots where stk='{0:s}' {1:s}".\
+                    format(stk, self.sql_timeframe(sd, ed, True))
+        spot_df   = pd.read_sql(q, db_get_cnx())
+        spot_df.set_index('dt', inplace=True)
+        s_spot    = str(spot_df.index[0])
+        e_spot    = str(spot_df.index[-1])
+        try :
+            ts    = StxTS(stk, sd, ed, eod_tbl)
+        except :
+            print(sys.exc_info())
+            return '{0:s},{1:s},{2:s},N/A,N/A,N/A,N/A,N/A\n'.\
+                format(stk, s_spot, e_spot)
+        df        = ts.df.join(spot_df)
+        df['r']   = df['spot'] / df['c']
+        for x in range(1, 4) :
+            df['r{0:d}'.format(x)]  = df['r'].shift(-x)
+            df['r_{0:d}'.format(x)] = df['r'].shift(x)            
+        df['c1']  = df['c'].shift(-1)
+        df['s1']  = df['spot'].shift(-1)
+        df[['r', 'r1', 'r2', 'r3', 'r_1', 'r_2', 'r_3', 'c1', 's1']].\
+            fillna(method='bfill', inplace=True)
+        df['rr']  = df['r1']/df['r']
+        df_f1     = df[(abs(df['rr'] - 1) > 0.05) & \
+                       (round(df['r_1'] - df['r'], 2) == 0) & \
+                       (round(df['r_2'] - df['r'], 2) == 0) & \
+                       (round(df['r_3'] - df['r'], 2) == 0) & \
+                       (round(df['r2']  - df['r1'], 2) == 0) & \
+                       (round(df['r3']  - df['r1'], 2) == 0) & \
+                       (df['c'] > 1.0)]
+        s_df      = str(df.index[0].date())
+        e_df      = str(df.index[-1].date())        
+        if len(df_f1) > 0 :
+            with open('c:/goldendawn/split_recon_{0:s}.csv'.\
+                      format(eod_tbl), 'a') as ofile :
+                splits   = {}
+                for r in df_f1.iterrows():
+                    splits[str(r[0].date())] = '{0:.4f},{1:.2f},{2:.2f},'\
+                                               '{3:.2f},{4:.2f}'.\
+                                               format(r[1]['rr'], r[1]['c'],
+                                                      r[1]['spot'], r[1]['c1'],
+                                                      r[1]['s1'])
+                print('Found {0:d} splits for {1:s}'.format(len(splits), stk))
+                dates    = list(splits.keys())
+                dates.sort()
+                for dt in dates :
+                    ofile.write('{0:s},{1:s},{2:s}\n'.format(stk, dt,
+                                                             splits[dt]))
+        cov, acc  = self.quality(df, df_f1, ts, spot_df)
+        return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d},{6:.2f},{7:.4f}\n'.\
+            format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
+
+
+    # Function that calculates the coverage and MSE between the spot
+    # and eod prices
+    def quality(self, df, df_f1, ts, spot_df) :
+        s_spot     = str(spot_df.index[0])
+        e_spot     = str(spot_df.index[-1])
+        spot_days  = num_busdays(s_spot, e_spot)
+        s_ts       = str(ts.df.index[0].date())
+        e_ts       = str(ts.df.index[-1].date())
+        if s_ts < s_spot :
+            s_ts   = s_spot
+        if e_ts > e_spot :
+            e_ts   = e_spot
+        ts_days    = num_busdays(s_ts, e_ts)
+        coverage   = round(100.0 * ts_days / spot_days, 2)
+        # apply the split adjustments
+        ts.splits.clear()
+        for r in df_f1.iterrows():
+            ts.splits[r[0]] = r[1]['rr']
+        ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
+        df.drop(['c'], inplace = True, axis = 1)
+        df         = df.join(ts.df[['c']])
+        # calculate statistics: coverage and mean square error
+        df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
+        accuracy   = pow(df['sqrt'].sum() / min(len(df['sqrt']), len(spot_df)),
+                         0.5)
+        return coverage, accuracy
+    
+
 if __name__ == '__main__' :
     seod = StxEOD('c:/goldendawn/bkp', 'eod1', 'split1')
     seod.load_ctin_files('XTR')
