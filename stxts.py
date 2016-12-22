@@ -23,10 +23,10 @@ class StxTS:
         # print("sd = %s, ed = %s" % (self.sd_str, self.ed_str))
         self.gaps = self.get_gaps(df)
         df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
-        q = "select dt, ratio from {0:s} where stk='{1:s}'".\
-                                                    format(split_tbl, stk)
-        self.splits = pd.read_sql(q, db_get_cnx(), index_col='dt', \
-                                  parse_dates=['dt']).to_dict()["ratio"]
+        s_lst       = db_read_cmd("select dt, ratio from {0:s} where "\
+                                  "stk='{1:s}'".format(split_tbl, stk))
+        self.splits = {pd.to_datetime(next_busday(split[0])):float(split[1]) \
+                       for split in s_lst}
         # q = "select dt, divi from dividend where stk='%s'" % stk
         # self.divis = pd.read_sql(q, StxTS.cnx, index_col='dt',  \
         #                          parse_dates=['dt']).to_dict()["divi"]
@@ -115,8 +115,9 @@ class StxTS:
             sdd      = self.df.index[self.start]
             for adj_dt in self.adj_splits :
                 split_ratio = self.splits.get(adj_dt)
-                self.adjust(sdd, adj_dt, 1 / split_ratio, ['o', 'h', 'l', 'c'])
-                self.adjust(sdd, adj_dt, split_ratio, ['v'])
+                self.adjust(sdd, prev_busday(adj_dt), 1 / split_ratio,
+                            ['o', 'h', 'l', 'c'])
+                self.adjust(sdd, prev_busday(adj_dt), split_ratio, ['v'])
             self.adj_splits.clear()
             self.start = new_s
             self.end   = new_e
@@ -138,8 +139,8 @@ class StxTS:
         splts = {k: v for k, v in self.splits.items() if sdd < k <= edd}
         for k, v in splts.items():
             r = v if inv == 0 else 1 / v
-            self.adjust(bdd, k, r, ['o', 'h', 'l', 'c'], "split")
-            self.adjust(bdd, k, 1 / r, ['v'], "split")
+            self.adjust(bdd, prev_busday(k), r, ['o', 'h', 'l', 'c'], "split")
+            self.adjust(bdd, prev_busday(k), 1 / r, ['v'], "split")
             self.adj_splits.append(k)
 
     def adjust(self, s_idx, e_idx, val, col_names, adj_type = 'split'):
