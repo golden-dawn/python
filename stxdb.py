@@ -68,7 +68,7 @@ def db_upload_file(file_name, tbl_name, key_len) :
 # end date (ed).  If either start or end date is None this will return
 # everything before end date (if sd is None),or everything after start
 # date (if ed is None)
-def db_sql_timeframe(self, sd, ed, include_and) :
+def db_sql_timeframe(sd, ed, include_and) :
     res     = ''
     prefix  = ' and' if include_and else ' where'
     if sd is not None and ed is not None :
