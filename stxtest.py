@@ -1,8 +1,10 @@
 import os
 import unittest
+from shutil import copyfile, rmtree
 from stxcal import *
-from stxdb import *
-from stxts import StxTS
+from stxdb  import *
+from stxeod import StxEOD
+from stxts  import StxTS
 
 class Test1StxDB(unittest.TestCase) :
     def setUp(self) :
@@ -214,5 +216,162 @@ class Test3StxTS(unittest.TestCase) :
         print('res2.c = {0:f}'.format(round(res2.c, 2)))
         self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and \
                         (res2.c == 34.12) and (res2.v == 38796800))
+
+
+
+class Test4StxEOD(unittest.TestCase) :
+
+    def setUp(self) :
+        self.my_eod_tbl     = 'my_eod_test'
+        self.dn_eod_tbl     = 'dn_eod_test'
+        self.my_split_tbl   = 'my_split_test'
+        self.dn_split_tbl   = 'dn_split_test'
+        self.my_in_dir      = 'C:/goldendawn/my_test'
+        self.dn_in_dir      = 'C:/goldendawn/dn_test'
+        self.my_dir         = 'C:/goldendawn/bkp'
+        self.dn_dir         = 'C:/goldendawn/dn'
+        self.stx            = 'EXPE,NFLX,TASR,TIE'
+        stk_list            = self.stx.split(',')
+        if not os.path.exists(self.my_in_dir) :
+            os.makedirs(self.my_in_dir)
+        if not os.path.exists(self.dn_in_dir) :
+            os.makedirs(self.dn_in_dir)
+        for stk in stk_list :
+            copyfile('{0:s}/{1:s}.txt'.format(self.my_dir, stk),
+                     '{0:s}/{1:s}.txt'.format(self.my_in_dir, stk))
+        self.my_spot_recon  = '{0:s}/spot_recon_{1:s}.csv'.\
+                              format(self.my_in_dir, self.my_eod_tbl)
+        self.my_split_recon = '{0:s}/split_recon_{1:s}.csv'.\
+                              format(self.my_in_dir, self.my_eod_tbl)
+        self.dn_spot_recon  = '{0:s}/spot_recon_{1:s}.csv'.\
+                              format(self.dn_in_dir, self.dn_eod_tbl)
+        self.dn_split_recon = '{0:s}/split_recon_{1:s}.csv'.\
+                              format(self.dn_in_dir, self.dn_eod_tbl)
+
+        
+    def tearDown(self) :
+        pass
+        
+    
+    def test_1_cleanup(self) :
+        db_create_missing_table(self.dn_eod_tbl,
+                                StxEOD.sql_create_eod.format(self.dn_eod_tbl))
+        db_create_missing_table(self.dn_split_tbl, StxEOD.sql_create_split.\
+                                format(self.dn_split_tbl))
+        dirname = self.dn_in_dir
+        if not os.path.exists(dirname) :
+            os.makedirs(dirname)
+        seod    = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        seod.cleanup()
+        seod.cleanup_data_folder()
+        res1    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.dn_eod_tbl))
+        res2    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.dn_split_tbl))
+        self.assertTrue((not res1) and (not res2) and \
+                        (not os.path.exists(dirname)))
+
+    def test_2_load_my_data(self) :
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        my_eod.load_my_files(self.stx)
+        res1   = db_read_cmd("show tables like '{0:s}'".format(self.my_eod_tbl))
+        res2   = db_read_cmd("show tables like '{0:s}'".\
+                             format(self.my_split_tbl))
+        res3   = db_read_cmd('select distinct stk from {0:s}'.\
+                             format(self.my_eod_tbl))
+        res4   = db_read_cmd("select stk, count(*) from {0:s} where "\
+                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "dt <= '2012-12-31' group by stk order by stk".\
+                             format(self.my_eod_tbl))
+        res5   = db_read_cmd("select stk, sum(ratio) from {0:s} where "\
+                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "dt <= '2012-12-31' group by stk order by stk".\
+                             format(self.my_split_tbl))
+        self.assertTrue(len(res1)==1 and len(res2)==1 and len(res3)==4 and \
+                        res4[0][0] == 'EXPE' and res4[0][1]==2694 and \
+                        res4[1][0] == 'NFLX' and res4[1][1]==2668 and \
+                        res4[2][0] == 'TASR' and res4[2][1]==2897 and \
+                        res4[3][0] == 'TIE'  and res4[3][1]==4164 and \
+                        res5[0][0] == 'NFLX' and float(res5[0][1])==0.5 and \
+                        res5[1][0] == 'TASR' and float(res5[1][1])==1.33)
+
+    
+    def test_3_load_dn_data(self) :
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod.load_deltaneutral_files(self.stx)
+        res1   = db_read_cmd("show tables like '{0:s}'".format(self.dn_eod_tbl))
+        res2   = db_read_cmd("show tables like '{0:s}'".\
+                             format(self.dn_split_tbl))
+        res3   = db_read_cmd('select distinct stk from {0:s}'.\
+                             format(self.dn_eod_tbl))
+        res4   = db_read_cmd("select stk, count(*) from {0:s} where "\
+                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "dt <= '2012-12-31' group by stk order by stk".\
+                             format(self.dn_eod_tbl))
+        res5   = db_read_cmd("select stk, sum(ratio) from {0:s} where "\
+                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "dt <= '2012-12-31' group by stk order by stk".\
+                             format(self.dn_split_tbl))
+        self.assertTrue(len(res1)==1 and len(res2)==1 and len(res3)==4 and \
+                        res4[0][0] == 'EXPE' and res4[0][1]==1875 and \
+                        res4[1][0] == 'NFLX' and res4[1][1]==2671 and \
+                        res4[2][0] == 'TASR' and res4[2][1]==2901 and \
+                        res4[3][0] == 'TIE'  and res4[3][1]==3017 and \
+                        res5[0][0] == 'NFLX' and float(res5[0][1])==0.5 and \
+                        res5[1][0] == 'TASR' and float(res5[1][1])==1.3333 and \
+                        res5[2][0] == 'TIE'  and float(res5[2][1])==15.1793)
+
+
+    def test_4_reconcile_my_data(self) :
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        my_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
+        print('MY spot recon:')
+        with open(self.my_spot_recon, 'r') as ifile :
+            spot_lines = ifile.readlines()
+        for line in spot_lines:
+            print(line.strip())
+        print('MY split recon:')
+        with open(self.my_split_recon, 'r') as ifile :
+            split_lines = ifile.readlines()
+        for line in split_lines:
+            print(line.strip())
+        self.assertTrue(len(spot_lines) == 4)
+                
+
+    def test_5_reconcile_dn_data(self) :
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
+        print('DN spot recon:')
+        with open(self.dn_spot_recon, 'r') as ifile :
+            spot_lines = ifile.readlines()
+        for line in spot_lines:
+            print(line.strip())
+        print('DN split recon:')
+        with open(self.dn_split_recon, 'r') as ifile :
+            split_lines = ifile.readlines()
+        for line in split_lines:
+            print(line.strip())
+        self.assertTrue(len(spot_lines) == 4)
+
+    def test_6_teardown(self) :
+        my_seod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        dn_seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        my_seod.cleanup()
+        my_seod.cleanup_data_folder()
+        dn_seod.cleanup()
+        dn_seod.cleanup_data_folder()
+        res1    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.my_eod_tbl))
+        res2    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.my_split_tbl))
+        res3    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.dn_eod_tbl))
+        res4    = db_read_cmd("show tables like '{0:s}'".\
+                              format(self.dn_split_tbl))
+        self.assertTrue((not res1) and (not res2) and (not res3) and \
+                        (not res4) and (not os.path.exists(self.my_in_dir)) \
+                        and (not os.path.exists(self.dn_in_dir)))
+        
+
 if __name__ == '__main__':
     unittest.main()
