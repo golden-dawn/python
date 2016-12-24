@@ -201,9 +201,8 @@ class StxEOD :
             stk_list = [stk[0] for stk in res]
         else :
             stk_list = stx.split(',')
-        with open('{0:s}/spot_recon_{1:s}.csv'.format(self.in_dir,
-                                                      self.eod_tbl),
-                  'a') as ofile :
+        with open('{0:s}/spot_recon_{1:s}.csv'.\
+                  format(self.in_dir, self.eod_tbl), 'a') as ofile :
             for stk in stk_list :
                 res = self.reconcile_opt_spots(stk, sd, ed)
                 ofile.write(res)
@@ -213,7 +212,7 @@ class StxEOD :
     # name, the start and end date between which spot data is
     # available, the start and end dates between which there is eod
     # data, and then the mse and percentage of coverage
-    def reconcile_opt_spots(self, stk, sd, ed) :
+    def reconcile_opt_spots(self, stk, sd, ed, dbg = False) :
         q         = "select dt, spot from opt_spots where stk='{0:s}' {1:s}".\
                     format(stk, db_sql_timeframe(sd, ed, True))
         spot_df   = pd.read_sql(q, db_get_cnx())
@@ -233,8 +232,8 @@ class StxEOD :
             df['r_{0:d}'.format(x)] = df['r'].shift(x)            
         df['c1']  = df['c'].shift(-1)
         df['s1']  = df['spot'].shift(-1)
-        df[['r', 'r1', 'r2', 'r3', 'r_1', 'r_2', 'r_3', 'c1', 's1']].\
-            fillna(method='bfill', inplace=True)
+        # df[['r', 'r1', 'r2', 'r3', 'r_1', 'r_2', 'r_3', 'c1', 's1']].\
+        #     fillna(method='bfill', inplace=True)
         df['rr']  = df['r1']/df['r']
         df_f1     = df[(abs(df['rr'] - 1) > 0.05) & \
                        (round(df['r_1'] - df['r'], 2) == 0) & \
@@ -262,6 +261,9 @@ class StxEOD :
                     ofile.write('{0:s},{1:s},{2:s}\n'.format(stk, dt,
                                                              splits[dt]))
         cov, acc  = self.quality(df, df_f1, ts, spot_df)
+        if dbg :
+            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}_recon.csv'.\
+                      format(ts.stk, self.eod_tbl))
         return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d},{6:.2f},{7:.4f}\n'.\
             format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
 
@@ -283,7 +285,7 @@ class StxEOD :
         # apply the split adjustments
         ts.splits.clear()
         for r in df_f1.iterrows():
-            ts.splits[r[0]] = r[1]['rr']
+            ts.splits[pd.to_datetime(next_busday(str(r[0].date())))]=r[1]['rr']
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
         df.drop(['c'], inplace = True, axis = 1)
         df         = df.join(ts.df[['c']])
