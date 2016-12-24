@@ -230,7 +230,9 @@ class Test4StxEOD(unittest.TestCase) :
         self.dn_in_dir      = 'C:/goldendawn/dn_test'
         self.my_dir         = 'C:/goldendawn/bkp'
         self.dn_dir         = 'C:/goldendawn/dn'
-        self.stx            = 'EXPE,NFLX,TASR,TIE'
+        self.stx            = 'AEOS,EXPE,NFLX,TIE'
+        self.sd             = '2002-02-01'
+        self.ed             = '2012-12-31'
         stk_list            = self.stx.split(',')
         if not os.path.exists(self.my_in_dir) :
             os.makedirs(self.my_in_dir)
@@ -239,6 +241,7 @@ class Test4StxEOD(unittest.TestCase) :
         for stk in stk_list :
             copyfile('{0:s}/{1:s}.txt'.format(self.my_dir, stk),
                      '{0:s}/{1:s}.txt'.format(self.my_in_dir, stk))
+        self.stk_list_db    = "('{0:s}')".format("','".join(stk_list))
         self.my_spot_recon  = '{0:s}/spot_recon_{1:s}.csv'.\
                               format(self.my_in_dir, self.my_eod_tbl)
         self.my_split_recon = '{0:s}/split_recon_{1:s}.csv'.\
@@ -279,21 +282,20 @@ class Test4StxEOD(unittest.TestCase) :
                              format(self.my_split_tbl))
         res3   = db_read_cmd('select distinct stk from {0:s}'.\
                              format(self.my_eod_tbl))
-        res4   = db_read_cmd("select stk, count(*) from {0:s} where "\
-                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
-                             "dt <= '2012-12-31' group by stk order by stk".\
-                             format(self.my_eod_tbl))
-        res5   = db_read_cmd("select stk, sum(ratio) from {0:s} where "\
-                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
-                             "dt <= '2012-12-31' group by stk order by stk".\
-                             format(self.my_split_tbl))
+        res4   = db_read_cmd("select stk, count(*) from {0:s} where stk in "\
+                             "{1:s} and dt<='{2:s}' group by stk order by stk".\
+                             format(self.my_eod_tbl, self.stk_list_db, self.ed))
+        res5   = db_read_cmd("select stk, sum(ratio) from {0:s} where stk in "\
+                             "{1:s} and dt<='{2:s}' group by stk order by stk".\
+                             format(self.my_split_tbl, self.stk_list_db,
+                                    self.ed))
         self.assertTrue(len(res1)==1 and len(res2)==1 and len(res3)==4 and \
-                        res4[0][0] == 'EXPE' and res4[0][1]==2694 and \
-                        res4[1][0] == 'NFLX' and res4[1][1]==2668 and \
-                        res4[2][0] == 'TASR' and res4[2][1]==2897 and \
+                        res4[0][0] == 'AEOS' and res4[0][1]==3214 and \
+                        res4[1][0] == 'EXPE' and res4[1][1]==2694 and \
+                        res4[2][0] == 'NFLX' and res4[2][1]==2668 and \
                         res4[3][0] == 'TIE'  and res4[3][1]==4164 and \
-                        res5[0][0] == 'NFLX' and float(res5[0][1])==0.5 and \
-                        res5[1][0] == 'TASR' and float(res5[1][1])==1.33)
+                        res5[0][0] == 'AEOS' and float(res5[0][1])==3.68 and \
+                        res5[1][0] == 'NFLX' and float(res5[1][1])==0.5)
 
     
     def test_3_load_dn_data(self) :
@@ -305,53 +307,73 @@ class Test4StxEOD(unittest.TestCase) :
         res3   = db_read_cmd('select distinct stk from {0:s}'.\
                              format(self.dn_eod_tbl))
         res4   = db_read_cmd("select stk, count(*) from {0:s} where "\
-                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "stk in ('NFLX', 'AEOS', 'TIE', 'EXPE') and "\
                              "dt <= '2012-12-31' group by stk order by stk".\
                              format(self.dn_eod_tbl))
         res5   = db_read_cmd("select stk, sum(ratio) from {0:s} where "\
-                             "stk in ('NFLX', 'TASR', 'TIE', 'EXPE') and "\
+                             "stk in ('NFLX', 'AEOS', 'TIE', 'EXPE') and "\
                              "dt <= '2012-12-31' group by stk order by stk".\
                              format(self.dn_split_tbl))
         self.assertTrue(len(res1)==1 and len(res2)==1 and len(res3)==4 and \
-                        res4[0][0] == 'EXPE' and res4[0][1]==1875 and \
-                        res4[1][0] == 'NFLX' and res4[1][1]==2671 and \
-                        res4[2][0] == 'TASR' and res4[2][1]==2901 and \
+                        res4[0][0] == 'AEOS' and res4[0][1]==1549 and \
+                        res4[1][0] == 'EXPE' and res4[1][1]==1875 and \
+                        res4[2][0] == 'NFLX' and res4[2][1]==2671 and \
                         res4[3][0] == 'TIE'  and res4[3][1]==3017 and \
                         res5[0][0] == 'NFLX' and float(res5[0][1])==0.5 and \
-                        res5[1][0] == 'TASR' and float(res5[1][1])==1.3333 and \
-                        res5[2][0] == 'TIE'  and float(res5[2][1])==15.1793)
+                        res5[1][0] == 'TIE'  and float(res5[1][1])==15.1793)
 
 
     def test_4_reconcile_my_data(self) :
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         my_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
-        print('MY spot recon:')
+        # print('MY spot recon:')
         with open(self.my_spot_recon, 'r') as ifile :
-            spot_lines = ifile.readlines()
-        for line in spot_lines:
-            print(line.strip())
-        print('MY split recon:')
+            spots = ifile.readlines()
+        # for line in spot_lines:
+        #     print(line.strip())
+        # print('MY split recon:')
         with open(self.my_split_recon, 'r') as ifile :
-            split_lines = ifile.readlines()
-        for line in split_lines:
-            print(line.strip())
-        self.assertTrue(len(spot_lines) == 4)
-                
+            splits = ifile.readlines()
+        # for line in split_lines:
+        #     print(line.strip())
+        self.assertTrue(spots[0]  == 'AEOS,2002-02-08,2007-03-09,2002-02-04,'\
+                        '2007-01-26,0,97.73,0.0009\n' and \
+                        spots[1]  == 'EXPE,2002-02-08,2012-12-31,2002-02-01,'\
+                        '2012-12-31,1,100.00,0.0019\n' and \
+                        spots[2]  == 'NFLX,2002-12-11,2012-12-31,2002-05-29,'\
+                        '2012-12-31,0,100.00,0.0016\n' and \
+                        spots[3]  == 'TIE,2005-10-03,2012-12-31,2002-02-04,'\
+                        '2012-12-31,2,100.00,0.0038\n' and \
+                        splits[0] == 'EXPE,2003-03-10,0.5000,34.33,68.66,'\
+                        '33.78,33.78\n' and \
+                        splits[1] == 'TIE,2006-02-16,0.5000,18.45,73.80,'\
+                        '18.78,37.56\n' and \
+                        splits[2] == 'TIE,2006-05-15,0.5000,36.06,72.12,'\
+                        '37.96,37.96\n')
 
     def test_5_reconcile_dn_data(self) :
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
         dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
-        print('DN spot recon:')
+        # print('DN spot recon:')
         with open(self.dn_spot_recon, 'r') as ifile :
-            spot_lines = ifile.readlines()
-        for line in spot_lines:
-            print(line.strip())
-        print('DN split recon:')
+            spots = ifile.readlines()
+        # for line in spot_lines:
+        #     print(line.strip())
+        # print('DN split recon:')
         with open(self.dn_split_recon, 'r') as ifile :
-            split_lines = ifile.readlines()
-        for line in split_lines:
-            print(line.strip())
-        self.assertTrue(len(spot_lines) == 4)
+            splits = ifile.readlines()
+        # for line in split_lines:
+        #     print(line.strip())
+        self.assertTrue(spots[0]  == 'AEOS,2002-02-08,2007-03-09,2002-02-04,'\
+                        '2007-03-09,1,100.00,0.0013\n' and \
+                        spots[1]  == 'EXPE,2002-02-08,2012-12-31,2005-07-21,'\
+                        '2012-12-31,0,68.34,0.0021\n' and \
+                        spots[2]  == 'NFLX,2002-12-11,2012-12-31,2002-05-23,'\
+                        '2012-12-31,0,100.00,0.0016\n' and \
+                        spots[3]  == 'TIE,2005-10-03,2012-12-31,2002-02-01,'\
+                        '2012-12-31,0,100.00,0.0053\n' and \
+                        splits[0] == 'AEOS,2005-03-07,0.4999,29.02,58.05,'\
+                        '28.96,28.96\n')
 
     def test_6_teardown(self) :
         my_seod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)

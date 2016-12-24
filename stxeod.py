@@ -305,5 +305,7 @@ class StxEOD :
 
         
 if __name__ == '__main__' :
-    seod = StxEOD('c:/goldendawn/bkp', 'eod1', 'split1')
-    seod.load_my_files('XTR')
+    eod = StxEOD('c:/goldendawn/bkp', 'eod', 'split')
+    # eod.load_my_files('XTR')
+    res = eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    print(res)
