@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+from math import trunc
 import os
 import pandas as pd
 from shutil import copyfile, rmtree
@@ -80,7 +81,7 @@ class StxEOD :
     # stock data separately and then accumulate each stock.
     def load_my_stk(self, short_fname, split_fname) :
         fname                   = '{0:s}/{1:s}'.format(self.in_dir, short_fname)
-        stk                     = short_fname[:-4]
+        stk                     = short_fname[:-4].upper()
         try :
             with open(fname, 'r') as ifile :
                 lines           = ifile.readlines()
@@ -115,8 +116,8 @@ class StxEOD :
             return
         try :
             db_upload_file(self.eod_name, self.eod_tbl, 2)
-            print('{0:s}: uploaded {1:d} eods and {2:d} splits'.\
-                  format(stk, eods, splits))
+            # print('{0:s}: uploaded {1:d} eods and {2:d} splits'.\
+            #       format(stk, eods, splits))
         except :
             e                   = sys.exc_info()[1]
             print('Failed to upload {0:s}: {1:s}'.format(short_fname, str(e)))
@@ -127,6 +128,8 @@ class StxEOD :
     # all the splits into the database.  We will worry about
     # missing/wrong splits and volume adjustments later.
     def load_deltaneutral_files(self, stks = '') :
+        if not os.path.exists(self.in_dir) :
+            os.makedirs(self.in_dir)
         for yr in range(2001, 2017) :
             fname    = '{0:s}/stockhistory_{1:d}.csv'.format(self.sh_dir, yr)
             stx      = {}
@@ -260,17 +263,18 @@ class StxEOD :
                 for dt in dates :
                     ofile.write('{0:s},{1:s},{2:s}\n'.format(stk, dt,
                                                              splits[dt]))
-        cov, acc  = self.quality(df, df_f1, ts, spot_df)
+        cov, acc  = self.quality(df, df_f1, ts, spot_df, dbg)
         if dbg :
-            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}_recon.csv'.\
-                      format(ts.stk, self.eod_tbl))
+            print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.\
+            format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df, len(df_f1),
+                   cov, acc))
         return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d},{6:.2f},{7:.4f}\n'.\
             format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
 
 
     # Function that calculates the coverage and MSE between the spot
     # and eod prices
-    def quality(self, df, df_f1, ts, spot_df) :
+    def quality(self, df, df_f1, ts, spot_df, dbg = False) :
         s_spot     = str(spot_df.index[0])
         e_spot     = str(spot_df.index[-1])
         spot_days  = num_busdays(s_spot, e_spot)
@@ -280,7 +284,7 @@ class StxEOD :
             s_ts   = s_spot
         if e_ts > e_spot :
             e_ts   = e_spot
-        ts_days    = num_busdays(s_ts, e_ts)
+        ts_days    = num_busdays(s_ts, e_ts) if e_ts > s_ts else 0
         coverage   = round(100.0 * ts_days / spot_days, 2)
         # apply the split adjustments
         ts.splits.clear()
@@ -290,9 +294,14 @@ class StxEOD :
         df.drop(['c'], inplace = True, axis = 1)
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
-        df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
+        msefun = lambda x: 0 if x['spot'] == trunc(x['c']) else \
+                 pow(1 - x['spot']/x['c'], 2)
+        df['sqrt'] = df.apply(msefun, axis=1)
         accuracy   = pow(df['sqrt'].sum() / min(len(df['sqrt']), len(spot_df)),
                          0.5)
+        if dbg :
+            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}_recon.csv'.\
+                      format(ts.stk, self.eod_tbl))
         return coverage, accuracy
 
     def cleanup(self) :
@@ -305,7 +314,19 @@ class StxEOD :
 
         
 if __name__ == '__main__' :
-    eod = StxEOD('c:/goldendawn/bkp', 'eod', 'split')
+    s_date = '2002-02-01'
+    e_date = '2012-12-31'
+    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
+    # my_eod.cleanup()
+    my_eod.load_my_files()
+    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
+    # dn_eod.cleanup()
+    # dn_eod.cleanup_data_folder()
+    dn_eod.load_deltaneutral_files()
+    my_eod.reconcile_spots(s_date, e_date)
+    dn_eod.reconcile_spots(s_date, e_date)
+
+
     # eod.load_my_files('XTR')
-    res = eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    print(res)
+    # res = eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    # print(res)
