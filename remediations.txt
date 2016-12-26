@@ -90,49 +90,49 @@ NAL	remove
 NCOC	remove
 NEU	load my delete data before 2003-11-03
 NEWCQ	remove
-NFLD	
+NFLD	ignore wrong spot value on 2008-11-03
 NRTLQ	remove
-NSI	
-NTLI	
-NTMD	
-NZT	
-OCLR	
-OCR	
-OEX	
-OIX	
-OMX	
-PALM	
-PCMC	
-PCX	
-PKB	
-PLA	
-PMP	
-POW	
-PRM	
-PSTI	
-PVF	
-QI	
-QMNDQ	
-QRE	
-RDSA	
-RDSB	
-RHT	
-RLG	
-RMN	
-RUI	
-S	
-SAN	
-SCMR	
-SCP	
-SDL	
+NSI	remove
+NTLI	load my add split on 2006-03-03 (0.33)
+NTMD	load my ignore wrong spot value on 2008-08-08 and 2008-08-11
+NZT	load my add split 2003-03-21 (0.7)
+OCLR	load my delete data between 2004-10-11 and 2004-10-15
+OCR	load my ignore wrong spot value on 2002-07-26 and 2002-07-29
+OEX	remove
+OIX	remove
+OMX	load my delete data between 2003-12-10 and 2004-05-21
+PALM	load my add splits:2007-10-24 (0.53) 2003-10-28 (0.68) 2002-10-14 (20)
+PCMC	remove
+PCX	load my add split 2008-08-11 (0.5)
+PKB	load my ignore wrong spot value on 2007-02-05
+PLA	remove
+PMP	remove
+POW	remove
+PRM	remove
+PSTI	load my, remove the splits
+PVF	remove
+QI	load my ignore wrong spot value for 2008-11-03
+QMNDQ	remove
+QRE	load my remove data before 2011-02-14
+RDSA	remove
+RDSB	remove
+RHT	load my remove data before 2004-01-26
+RLG	remove
+RMN	remove
+RUI	remove
+S	load my remove data between 2005-02-28 and 2005-03-24
+SAN	load my remove split 2012-06-28
+SCMR	load my add split 2012-12-24 (10)
+SCP	remove
+SDL	remove
 SKIL	
-SMRA	
+SMRA	remove
 SNS	
 SPC	
 SSI	
 STEL	
 STN	
-STQ	
+STQ	remove
 SVM	
 T	
 TALX	
@@ -145,18 +145,18 @@ TPC
 TRA	
 TRI	
 TSA	
-TXX	
-TYX	
+TXX	remove
+TYX	remove
 UAG	
-UTY	
-VERT	
-VION	
+UTY	remove
+VERT	remove
+VION	remove
 VIV	
 VNBC	
 VNT	
 VRA	
-WAMUQ	
-WCIMQ	
+WAMUQ	remove
+WCIMQ	remove
 WEN	
 WIN	
 WLP	Multiply o, h, l, c by 1.25 between 2004-11-18 and 2004-11-30.
