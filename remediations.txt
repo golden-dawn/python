@@ -1,0 +1,168 @@
+stk	Remediation
+AAI	remove
+ABKFQ	remove
+ACL	remove
+ACLI	load from dn add 2009-05-22 split (4.00)
+AFN	remove
+ALO	delete data starting 2008-01-01
+ANX	Upload existing data in my_eod. Ignore the mse.
+APB	remove
+ARM	remove
+ASF	delete data after 2010-03-04 and before 2009-02-23
+ASYTQ	remove
+BER	load from my add 2005-04-08 split (0.67)
+BHH	remove
+BHS	remove
+BPUR	remove
+BRP	remove
+BW	remove
+BYT	remove
+CD	delete data starting 2005-08-15
+CDL	delete data starting 2008-11-03
+CDS	remove
+CGI	delete data between 2008-03-24 and 2008-04-30
+CHU	load from dn add 2008-05-22 split (0.9197)
+CML	remove
+CNC	load from my delete data until 2002-08-12
+CNET	use dn, add 2002-11-29 split (0.667)
+CRGN	Ignore wrong spot value on 2008-11-03
+CRX	remove
+CRXX	Ignore wrong spot value on 2008-11-03
+CSR	remove
+CTDB	remove
+DCNAQ	remove
+DDX	remove
+DLM	remove
+DOT	remove
+DPHIQ	remove
+EEM	Ignore wrong spot value on 2007-01-08
+EPIC	remove
+EPIX	remove
+ERES	remove
+EUR	remove
+FBR	ignore all the splits between 2009-04-16 and 2009-06-04
+FCL	remove
+FDC	remove
+FNF	delete data between 2006-09-12 and 2006-11-09
+FRG	remove
+FRNTQ	remove
+FSE	remove
+FTO	load from my add 2005-06-17 split (0.5)
+FVX	remove
+GLK	load from my delete data after 2005-05-20
+GMEB	remove
+GOK	load from my, adjust prices on 2012-01-12, divide by 2.65
+GOX	remove
+GPT	load from my delete data between 2004-08-30 and 2004-09-30
+GTE	load from my delete data between 2006-08-02 and 2006-10-11
+HELX	remove
+HWD	load from my delete data between 2002-10-04 and 2003-03-03
+IDARQ	remove
+IDMCQ	remove
+IDT	load from my delete data before 2003-03-03
+IJJ	ignore wrong spot value on 2005-06-01
+IMGC	load from my add split on 2004-08-17 (0.67)
+INET	remove
+INX	remove
+ION	load from my delete data between 2005-01-24 and 2005-01-31
+IRX	remove
+IXX	remove
+IXZ	remove
+JAS	remove
+JMBA	ignore wrong spot value on 2008-11-03
+JSDA	ignore wrong spot value on 2008-11-03
+KBK	remove
+KG	remove
+KRX	remove
+L	load my delete data between 2006-03-01 and 2006-05-12
+LEHMQ	remove
+LFB	load my add split 2006-06-21 (0.67)
+LMRA	ignore wrong spot value on 2008-08-08
+LSX	remove
+MFX	remove
+MGG	load my add split 2005-03-11 (0.33)
+MGM	load my delete data before 2005-04-01
+MIRKQ	remove
+MKTY	remove
+MNX	remove
+MVR	remove
+NAL	remove
+NCOC	remove
+NEU	load my delete data before 2003-11-03
+NEWCQ	remove
+NFLD	
+NRTLQ	remove
+NSI	
+NTLI	
+NTMD	
+NZT	
+OCLR	
+OCR	
+OEX	
+OIX	
+OMX	
+PALM	
+PCMC	
+PCX	
+PKB	
+PLA	
+PMP	
+POW	
+PRM	
+PSTI	
+PVF	
+QI	
+QMNDQ	
+QRE	
+RDSA	
+RDSB	
+RHT	
+RLG	
+RMN	
+RUI	
+S	
+SAN	
+SCMR	
+SCP	
+SDL	
+SKIL	
+SMRA	
+SNS	
+SPC	
+SSI	
+STEL	
+STN	
+STQ	
+SVM	
+T	
+TALX	
+TBI	
+TCM	
+TELK	
+TNX	
+TOMO	
+TPC	
+TRA	
+TRI	
+TSA	
+TXX	
+TYX	
+UAG	
+UTY	
+VERT	
+VION	
+VIV	
+VNBC	
+VNT	
+VRA	
+WAMUQ	
+WCIMQ	
+WEN	
+WIN	
+WLP	Multiply o, h, l, c by 1.25 between 2004-11-18 and 2004-11-30.
+WM	
+WRC	
+XJT	
+XUE	
+YMI	
+YRCW	
