@@ -141,28 +141,28 @@ TCM	remove
 TELK	load my ignore wrong spot value for2010-03-08
 TNX	remove
 TOMO	load my delete data between 2007-05-10 and 2007-08-28, delete split on 2007-03-09
-TPC	
-TRA	
-TRI	
-TSA	
+TPC	load my add split 2003-03-21 (10)
+TRA	load my add split 2009-12-11 (0.82)
+TRI	load my multiply by 1.25 data between 2007-05-15 and 2007-06-29;add split on 2007-06-29 (0.8)
+TSA	load my delete data between 2002-10-04 and 2002-11-29
 TXX	remove
 TYX	remove
-UAG	
+UAG	remove
 UTY	remove
 VERT	remove
 VION	remove
-VIV	
-VNBC	
-VNT	
-VRA	
+VIV	load my add split 2008-10-17 (4.0)
+VNBC	remove
+VNT	load my delete data between 2002-02-08 and 2002-03-01, add split on 2006-04-13 (0.9)
+VRA	load my delete data before 2011-02-14
 WAMUQ	remove
 WCIMQ	remove
-WEN	
-WIN	
+WEN	load my add split on 2006-09-29 (0.47)
+WIN	load my add split on 2005-02-18 (8)
 WLP	Multiply o, h, l, c by 1.25 between 2004-11-18 and 2004-11-30.
-WM	
-WRC	
-XJT	
-XUE	
-YMI	
-YRCW	
+WM	load my delete data between 2008-07-21 and 2008-11-20
+WRC	load my delete data between 2003-11-21  and 2004-06-25
+XJT	load my ignore spot values for 2008-08-08 and 2008-08-11
+XUE	load my delete data before 2011-02-11
+YMI	load my ignore spot values for 2008-08-08 and 2008-08-11 and 2008-11-03
+YRCW	load my ignore sport value for 2010-10-28
