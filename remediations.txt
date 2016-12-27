@@ -125,22 +125,22 @@ SAN	load my remove split 2012-06-28
 SCMR	load my add split 2012-12-24 (10)
 SCP	remove
 SDL	remove
-SKIL	
+SKIL	load my delete data before 2002-09-09
 SMRA	remove
-SNS	
-SPC	
-SSI	
-STEL	
-STN	
+SNS	remove
+SPC	load my delete data between 2004-02-04 and 2004-04-01
+SSI	load my add split 2005-07-12 (0.67), delete data between 2005-07-12 and 2005-08-05
+STEL	load my delete data between 2006-10-18 and 2006-11-30
+STN	load my delete data between 2007-08-20 and 2007-09-28
 STQ	remove
-SVM	
-T	
-TALX	
-TBI	
-TCM	
-TELK	
-TNX	
-TOMO	
+SVM	load my delete split on 2010-01-11
+T	load my delete data between 2005-10-24 and 2005-11-30
+TALX	load my add split 2005-02-17 (0.67)
+TBI	load my delete data between 2004-03-15 and 2004-05-20
+TCM	remove
+TELK	load my ignore wrong spot value for2010-03-08
+TNX	remove
+TOMO	load my delete data between 2007-05-10 and 2007-08-28, delete split on 2007-03-09
 TPC	
 TRA	
 TRI	
