@@ -11,26 +11,49 @@ import sys
 
 class StxEOD :
 
-    sh_dir           = 'c:/goldendawn/stockhistory'
-    upload_dir       = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
-    eod_name         = '{0:s}/eod_upload.txt'.format(upload_dir)
-    sql_create_eod   = 'CREATE TABLE `{0:s}` ('\
-                       '`stk` varchar(8) NOT NULL,'\
-                       '`dt` varchar(10) NOT NULL,'\
-                       '`o` decimal(9,2) DEFAULT NULL,'\
-                       '`h` decimal(9,2) DEFAULT NULL,'\
-                       '`l` decimal(9,2) DEFAULT NULL,'\
-                       '`c` decimal(9,2) DEFAULT NULL,'\
-                       '`v` int(11) DEFAULT NULL,'\
-                       'PRIMARY KEY (`stk`,`dt`)'\
-                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
-    sql_create_split = 'CREATE TABLE `{0:s}` ('\
-                       '`stk` varchar(8) NOT NULL,'\
-                       '`dt` varchar(10) NOT NULL,'\
-                       '`ratio` decimal(8,4) DEFAULT NULL,'\
-                       'PRIMARY KEY (`stk`,`dt`)'\
-                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
-
+    sh_dir            = 'c:/goldendawn/stockhistory'
+    upload_dir        = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
+    eod_name          = '{0:s}/eod_upload.txt'.format(upload_dir)
+    sql_create_eod    = 'CREATE TABLE `{0:s}` ('\
+                        '`stk` varchar(8) NOT NULL,'\
+                        '`dt` varchar(10) NOT NULL,'\
+                        '`o` decimal(9,2) DEFAULT NULL,'\
+                        '`h` decimal(9,2) DEFAULT NULL,'\
+                        '`l` decimal(9,2) DEFAULT NULL,'\
+                        '`c` decimal(9,2) DEFAULT NULL,'\
+                        '`v` int(11) DEFAULT NULL,'\
+                        'PRIMARY KEY (`stk`,`dt`)'\
+                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+    sql_create_split  = 'CREATE TABLE `{0:s}` ('\
+                        '`stk` varchar(8) NOT NULL,'\
+                        '`dt` varchar(10) NOT NULL,'\
+                        '`ratio` decimal(8,4) DEFAULT NULL,'\
+                        'PRIMARY KEY (`stk`,`dt`)'\
+                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+    sql_create_split1 = 'CREATE TABLE `{0:s}` ('\
+                        '`stk` varchar(8) NOT NULL,'\
+                        '`dt` varchar(10) NOT NULL,'\
+                        '`ratio` decimal(8,4) DEFAULT NULL,'\
+                        '`implied` tinyint DEFAULT 0,'\
+                        'PRIMARY KEY (`stk`,`dt`)'\
+                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+    sql_create_recon  = 'CREATE TABLE `reconciliation` ('\
+                        '`stk` varchar(8) NOT NULL,'\
+                        '`recon_name` varchar(10) NOT NULL,'\
+                        '`recon_interval` char(18) NOT NULL,'\
+                        '`s_spot` char(10) DEFAULT NULL,'\
+                        '`e_spot` char(10) DEFAULT NULL,'\
+                        '`sdf` char(10) DEFAULT NULL,'\
+                        '`edf` char(10) DEFAULT NULL,'\
+                        '`splits` smallint DEFAULT NULL,'\
+                        '`coverage` float DEFAULT NULL,'\
+                        '`accuracy` float DEFAULT NULL,'\
+                        '`status` tinyint DEFAULT 0,'\
+                        'PRIMARY KEY (`stk`,`recon_name`,`recon_interval`)'\
+                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+    status_none       = 0
+    status_ok         = 1
+    status_ko         = 2
 
     def __init__(self, in_dir, eod_tbl, split_tbl, extension = '.txt') :
         self.in_dir    = in_dir
@@ -39,8 +62,9 @@ class StxEOD :
         self.extension = extension
         db_create_missing_table(eod_tbl, self.sql_create_eod)
         print('EOD DB table: {0:s}'.format(eod_tbl))
-        db_create_missing_table(split_tbl, self.sql_create_split)
+        db_create_missing_table(split_tbl, self.sql_create_split1)
         print('Split DB table: {0:s}'.format(split_tbl))
+        db_create_missing_table('reconciliation', self.sql_create_recon)
 
 
     # Load my historical data.  Load each stock and accumulate splits.
@@ -197,18 +221,27 @@ class StxEOD :
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
     # interval.  Then, reconcile for each underlier
-    def reconcile_spots(self, sd = None, ed = None, stx = '') :
+    def reconcile_spots(self, rec_name, sd = None, ed = None, stx = '',
+                        dbg = False) :
         if stx == '' :
             res      = db_read_cmd('select distinct stk from opt_spots {0:s}'.\
                                    format(db_sql_timeframe(sd, ed, False)))
             stk_list = [stk[0] for stk in res]
         else :
             stk_list = stx.split(',')
-        with open('{0:s}/spot_recon_{1:s}.csv'.\
-                  format(self.in_dir, self.eod_tbl), 'a') as ofile :
-            for stk in stk_list :
-                res = self.reconcile_opt_spots(stk, sd, ed)
-                ofile.write(res)
+        if sd is None :
+            sd       = '2002-02-08'
+        if ed is None :
+            ed       = datetime.now.strftime('%Y-%m%d')
+        rec_interval = '{0:s}_{1:s}'.format\
+                       (datetime.strptime('sd', '%Y-%m-%d').strftime('%Y%m%d'),
+                        datetime.strptime('ed', '%Y-%m-%d').strftime('%Y%m%d'))
+        for stk in stk_list :
+            res = self.reconcile_opt_spots(stk, sd, ed, dbg)
+            if not dbg :
+                db_write_cmd("insert into reconciliation values ('{0:s}',"\
+                             "'{1:s}','{2:s}',{3:s},0".\
+                             format(stk, rec_name, rec_interval, res))
 
     # Perform reconciliation for a single stock. If we cannot get the
     # EOD data, return N/A. Otherwise, return, for each stock, the
@@ -216,65 +249,55 @@ class StxEOD :
     # available, the start and end dates between which there is eod
     # data, and then the mse and percentage of coverage
     def reconcile_opt_spots(self, stk, sd, ed, dbg = False) :
-        q         = "select dt, spot from opt_spots where stk='{0:s}' {1:s}".\
-                    format(stk, db_sql_timeframe(sd, ed, True))
-        spot_df   = pd.read_sql(q, db_get_cnx())
+        q            = "select dt, spot from opt_spots where stk='{0:s}' "\
+                        "{1:s}".format(stk, db_sql_timeframe(sd, ed, True))
+        spot_df      = pd.read_sql(q, db_get_cnx())
         spot_df.set_index('dt', inplace=True)
-        s_spot    = str(spot_df.index[0])
-        e_spot    = str(spot_df.index[-1])
+        s_spot       = str(spot_df.index[0])
+        e_spot       = str(spot_df.index[-1])
         try :
-            ts    = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+            ts       = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         except :
-            print(sys.exc_info())
-            return '{0:s},{1:s},{2:s},N/A,N/A,N/A,N/A,N/A\n'.\
-                format(stk, s_spot, e_spot)
-        df        = ts.df.join(spot_df)
-        df['r']   = df['spot'] / df['c']
-        for x in range(1, 4) :
-            df['r{0:d}'.format(x)]  = df['r'].shift(-x)
-            df['r_{0:d}'.format(x)] = df['r'].shift(x)            
-        df['c1']  = df['c'].shift(-1)
-        df['s1']  = df['spot'].shift(-1)
-        # df[['r', 'r1', 'r2', 'r3', 'r_1', 'r_2', 'r_3', 'c1', 's1']].\
-        #     fillna(method='bfill', inplace=True)
-        df['rr']  = df['r1']/df['r']
-        df_f1     = df[(abs(df['rr'] - 1) > 0.05) & \
-                       (round(df['r_1'] - df['r'], 2) == 0) & \
-                       (round(df['r_2'] - df['r'], 2) == 0) & \
-                       (round(df['r_3'] - df['r'], 2) == 0) & \
-                       (round(df['r2']  - df['r1'], 2) == 0) & \
-                       (round(df['r3']  - df['r1'], 2) == 0) & \
-                       (df['c'] > 1.0)]
-        s_df      = str(df.index[0].date())
-        e_df      = str(df.index[-1].date())        
-        if len(df_f1) > 0 :
-            with open('{0:s}/split_recon_{1:s}.csv'.\
-                      format(self.in_dir, self.eod_tbl), 'a') as ofile :
-                splits   = {}
-                for r in df_f1.iterrows():
-                    splits[str(r[0].date())] = '{0:.4f},{1:.2f},{2:.2f},'\
-                                               '{3:.2f},{4:.2f}'.\
-                                               format(r[1]['rr'], r[1]['c'],
-                                                      r[1]['spot'], r[1]['c1'],
-                                                      r[1]['s1'])
-                print('Found {0:d} splits for {1:s}'.format(len(splits), stk))
-                dates    = list(splits.keys())
-                dates.sort()
-                for dt in dates :
-                    ofile.write('{0:s},{1:s},{2:s}\n'.format(stk, dt,
-                                                             splits[dt]))
-        cov, acc  = self.quality(df, df_f1, ts, spot_df, dbg)
+            return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk,s_spot,e_spot,',N/A'*5)
+        df           = ts.df.join(spot_df)
+        df['r']      = df['spot'] / df['c']
+        for i in [x for x in range(-3, 4) if x != 0] :
+            df['r{0:d}'.format(i)]  = df['r'].shift(-i)
+        for i in [x for x in range(-2, 3) if x != 0] :
+            df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
+        df['rr']     = df['r1']/df['r']
+        df_f1        = df[(abs(df['rr'] - 1) > 0.05) & (df['c'] > 1.0) &\
+                         (round(df['r-1'] - df['r'], 2) == 0) & \
+                         (round(df['r-2'] - df['r'], 2) == 0) & \
+                         (round(df['r-3'] - df['r'], 2) == 0) & \
+                         (round(df['r2']  - df['r1'], 2) == 0) & \
+                         (round(df['r3']  - df['r1'], 2) == 0)]
+        df, cov, acc     = self.quality(df, df_f1, ts, spot_df, dbg)
+        if acc > 0.02 :
+            df, df_f1    = self.autocorrect(df, df_f1)
+            df, cov, acc = self.quality(df, df_f1, ts, spot_df, dbg)
+        s_df, e_df   = str(df.index[0].date()), str(df.index[-1].date())
+        for r in df_f1.iterrows() :
+            if not dbg :
+                db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
+                             "{3:.4f}, 1)".format(self.split_tbl, stk, \
+                                                  str(r[0].date()), r[1]['rr']))
+            else :
+                print("{0:s}: {1:s} {2:.4f}".format(stk, str(r[0].date()),
+                                                    r[1]['rr']))
         if dbg :
             print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.\
-            format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df, len(df_f1),
-                   cov, acc))
-        return '{0:s},{1:s},{2:s},{3:s},{4:s},{5:d},{6:.2f},{7:.4f}\n'.\
-            format(stk, s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
+                  format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df,
+                         len(df_f1), cov, acc))
+            return df, df_f1
+        return "'{0:s}','{1:s}','{2:s}','{3:s}',{4:d},{5:.2f},{6:.4f}".\
+            format(s_spot, e_spot, s_df, e_df, len(df_f1), cov, acc)
 
 
     # Function that calculates the coverage and MSE between the spot
     # and eod prices
     def quality(self, df, df_f1, ts, spot_df, dbg = False) :
+        sx, df, ts = self.cleanup(df, df_f1, ts)
         s_spot     = str(spot_df.index[0])
         e_spot     = str(spot_df.index[-1])
         spot_days  = num_busdays(s_spot, e_spot)
@@ -294,15 +317,17 @@ class StxEOD :
         df.drop(['c'], inplace = True, axis = 1)
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
-        msefun = lambda x: 0 if x['spot'] == trunc(x['c']) else \
-                 pow(1 - x['spot']/x['c'], 2)
-        df['sqrt'] = df.apply(msefun, axis=1)
-        accuracy   = pow(df['sqrt'].sum() / min(len(df['sqrt']), len(spot_df)),
+        msefun     = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
+                     or (x['spot'] == x['s1'] and x['spot'] == x['s2']) or \
+                     (x['spot'] == x['s-1'] and x['spot'] == x['s-2']) else \
+                     pow(1 - x['spot']/x['c'], 2)
+        df['mse']  = df.apply(msefun, axis=1)
+        accuracy   = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)),
                          0.5)
         if dbg :
-            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}_recon.csv'.\
-                      format(ts.stk, self.eod_tbl))
-        return coverage, accuracy
+            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}{2:s}_recon.csv'.\
+                      format(ts.stk, self.eod_tbl, sx))
+        return df, coverage, accuracy
 
     def cleanup(self) :
         db_write_cmd('drop table `{0:s}`'.format(self.eod_tbl))
@@ -312,21 +337,39 @@ class StxEOD :
         if os.path.exists(self.in_dir) :
             rmtree('{0:s}'.format(self.in_dir))
 
-        
+    def recalc_quality(df, df_f1) :
+        ixx, ix0   = 0, 0
+        num_errs   = 0
+        df_err       = df.query('mse>0.01')
+        err_lst_0   = []
+        err_lst_1   = []
+        mse0       = df_err.ix[ix0].mse
+            while ixx < len(df_err) :
+                if trunc(df_err.ix[ixx].spot) != df_err.ix[ixx].spot and \
+                   abs(df_err.ix[ixx].mse - mse0) > 0.001 :
+                    
+                ix0       = ixx
+                num_errs += 1
+            ixx          += 1
+            
+            if ixx - ix0 <= 2 :
+                print('{0:s}: ignoring {1:d} errors'.format(ts.stk, ixx - ix0))
+                ix0       = ixx
+            else :
+                num_errs  = 0
+                # remove a split, or add a new split here
+
+            
+            
 if __name__ == '__main__' :
     s_date = '2002-02-01'
     e_date = '2012-12-31'
     my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
-    # my_eod.cleanup()
-    my_eod.load_my_files()
+    # my_eod.load_my_files()
     dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
-    # dn_eod.cleanup()
-    # dn_eod.cleanup_data_folder()
-    dn_eod.load_deltaneutral_files()
-    my_eod.reconcile_spots(s_date, e_date)
-    dn_eod.reconcile_spots(s_date, e_date)
-
-
-    # eod.load_my_files('XTR')
-    # res = eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    # print(res)
+    # dn_eod.load_deltaneutral_files()
+    stx = 'AAI,AAMRQ,ABH,ABKFQ,ACL,ACLI,ACRT,ACW,AFN,AG,AH,AIB,AL,ALN,ALO,ALOY,AMCC,ANTP,ANX,AONE,APB,APWR,ARC,ARM,ART,ASF,ASYTQ,ATLS,ATN,ATRS,ATTC,AWC,AWE,AWK,BBC,BBIB,BDH,BER,BHH,BHS,BLC,BOX,BPUR,BRP,BSC,BW,BWC,BYT,CCME,CD,CDL,CDS,CEU,CGI,CHRW,CHTR,CHU,CIT,CML,CMVT,CNC,CNET,CPN,CPNLQ,CRGN,CRX,CRXX,CSR,CTC,CTDB,CTE,CTIC,DALRQ,DCGN,DCNAQ,DDX,DFX,DGW,DHBT,DJR,DLM,DOT,DPHIQ,DRL,DUX,DVS,DWSN,EEM,ENRNQ,ENT,EPIC,EPIX,ERES,ESCL,ESPR,EUR,EXB,EXE,EXXI,FBR,FCL,FDC,FEED,FNF,FOL,FRC,FRG,FRNTQ,FRP,FSE,FTO,FTS,FTWR,FVX,GAPTQ,GGC,GGP,GHA,GIN,GIP,GLK,GMEB,GOK,GOX,GPT,GRP,GSL,GSM,GSO,GSV,GTC,GTE,GTOP,GUC,HCH,HELX,HGX,HI,HK,HLS,HOFF,HQS,HRC,HS,HSOA,HSP,HWD,IDARQ,IDMCQ,IDT,IFS,IJJ,IMGC,IMH,IMPH,INET,INTL,INX,ION,IRX,IXX,IXZ,JAS,JAZZ,JDSU,JMBA,JPN,JSDA,KBK,KG,KRX,KSX,KVA,L,LEHMQ,LFB,LFGRQ,LMRA,LSX,LWIN,MERQ,MESA,MEX,MFX,MGG,MGM,MHR,MIR,MIRKQ,MKTY,MM,MND,MNG,MNST,MNX,MNY,MOX,MUT,MVR,NAL,NCOC,NEU,NEWCQ,NFLD,NOBL,NRTLQ,NSI,NSTR,NTLI,NTMD,NWACQ,NZ,NZT,OCLR,OCR,OEX,OIX,OMX,ORN,OSX,OVNT,P,PACT,PALM,PAR,PATH,PCMC,PCS,PCX,PDC,PDS,PIC,PKB,PLA,PMP,PMTC,POW,PPC,PRGN,PRM,PSTI,PVF,QI,QMNDQ,QRE,QTRN,RAG,RATL,RAV,RDG,RDSA,RDSB,RHT,RINO,RIO,RLG,RMC,RMG,RMN,RMV,RRR,RUA,RUI,RUJ,RUO,RXS,S,SAN,SAY,SCMR,SCON,SCOR,SCP,SCQ,SDL,SFC,SFUN,SHOP,SIN,SKIL,SMBL,SML,SMQ,SMRA,SNS,SOX,SPC,SPOT,SPSN,SSCC,SSI,STAR,STEL,STN,STQ,STSA,STTS,SUNH,SVM,T,TALX,TAM,TBI,TCM,TCP,TELK,TGH,TLGD,TMTA,TNX,TOMO,TOPS,TOUSQ,TPC,TRA,TREE,TRI,TRX,TSA,TXX,TYX,UAG,UAL,UTA,UTH,UTY,VC,VERT,VIAB,VION,VISG,VIV,VNBC,VNT,VOLV,VRA,WAC,WAMUQ,WCG,WCIMQ,WEN,WIN,WLDA,WLP,WM,WRC,XAU,XCI,XEO,XEX,XJT,XOI,XUE,YMI,YRCW,Z'
+    my_eod.reconcile_spots(s_date, e_date, stx)
+    dn_eod.reconcile_spots(s_date, e_date, stx)
+    # To debug a reconciliation: 
+    # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
