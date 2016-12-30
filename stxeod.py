@@ -257,16 +257,12 @@ class StxEOD :
         spot_df          = pd.read_sql(q, db_get_cnx())
         spot_df.set_index('dt', inplace=True)
         s_spot, e_spot   = str(spot_df.index[0]), str(spot_df.index[-1])
-        try :
-            ts           = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
-        except :
+        df, ts           = self.build_df_ts(spot_df, stk, sd, ed)
+        if df is None :
             return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk,s_spot,e_spot,',N/A'*5)
-        df               = ts.df.join(spot_df)
         df['r']          = df['spot'] / df['c']
         for i in [x for x in range(-3, 4) if x != 0] :
             df['r{0:d}'.format(i)]  = df['r'].shift(-i)
-        for i in [x for x in range(-2, 3) if x != 0] :
-            df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
         df['rr']         = df['r1'] / df['r']
         df_f1            = df[(abs(df['rr'] - 1) > 0.05) & (df['c'] > 1.0) & \
                               (round(df['r-1'] - df['r'], 2) == 0) & \
@@ -280,7 +276,10 @@ class StxEOD :
                                               str(r[0].date()), r[1]['rr']))
         df, cov, mse     = self.quality(df, ts, spot_df, dbg)
         if mse > 0.02 :
-            df           = self.autocorrect(df, spot_df, ts.stk, sd, ed)
+            df, ts       = self.autocorrect(df, spot_df, ts.stk, sd, ed)
+            if df is None :
+                return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
+                                                         ',N/A' * 5)
             df, cov, mse = self.quality(df, ts, spot_df, dbg)
         s_df, e_df       = str(df.index[0].date()), str(df.index[-1].date())
         if dbg :
@@ -289,16 +288,12 @@ class StxEOD :
                          len(df_f1), cov, mse))
             return df
         return "'{0:s}','{1:s}','{2:s}','{3:s}',{4:d},{5:.2f},{6:.4f}".\
-            format(s_spot, e_spot, s_df, e_df, len(df_f1), cov, mse)
-
+            format(s_spot, e_spot, s_df, e_df, len(df_f1), cov, mse)    
     
     # Function that calculates the coverage and MSE between the spot
     # and eod prices
     def quality(self, df, ts, spot_df, dbg = False) :
-        sfx           = ''
-        if 'mse' in df.columns :
-            sfx       = '_adj'
-            df.drop(['mse'], inplace = True, axis = 1)
+        sfx           = '' if 'rr' in df.columns else '_adj'
         s_spot,e_spot = str(spot_df.index[0]), str(spot_df.index[-1])
         spot_days     = num_busdays(s_spot, e_spot)
         s_ts, e_ts    = str(ts.df.index[0].date()), str(ts.df.index[-1].date())
@@ -340,40 +335,47 @@ class StxEOD :
             rmtree('{0:s}'.format(self.in_dir))
 
     def autocorrect(self, df, spot_df, stk, sd, ed) :
-        # df_err        = df.query('mse>0.01')
-        # ix0, ixx      = 0, 1
-        # singular_errs = []
-        # serial_errs   = []
-        # is_serial     = False
-        # while ixx < len(df_err) :
-        #     if trunc(df_err.ix[ixx].spot) != df_err.ix[ixx].spot and \
-        #        abs(df_err.ix[ixx].mse - df_err.ix[ix0].mse) > 0.001 :
-        #         singular_errors.append(df_err
-        #         ix0       = ixx
-        #         num_errs += 1
-        #     ixx          += 1
-            
-        #     if ixx - ix0 <= 2 :
-        #         print('{0:s}: ignoring {1:d} errors'.format(ts.stk, ixx - ix0))
-        #         ix0       = ixx
-        #     else :
-        #         num_errs  = 0
-        #         # remove a split, or add a new split here
-        ts           = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
-        df           = ts.df.join(spot_df)
-        ts.splits.clear()
-        splits        = db_read_cmd("select dt, ratio from {0:s} where stk = "\
-                                    "'{1:s}' and implied = 1".\
-                                    format(self.split_tbl, ts.stk))
-        for s in splits:
-            ts.splits[pd.to_datetime(next_busday(s[0]))] = float(s[1])
-        ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
-        df.drop(['c'], inplace = True, axis = 1)
-        df         = df.join(ts.df[['c']])
+        df_err               = df.query('mse>0.01')
+        start                = 0
+        wrong_recs           = []
+        split_adjs           = []
+        while start < len(df_err) :
+            mse0             = df_err.ix[start].mse
+            strikes          = 0
+            end, ixx         = start, start + 1
+            while ixx < len(df_err) and strikes < 3 :
+                rec          = df_err.ix[ixx]
+                if rec.spot == trunc(rec.spot) :
+                    pass
+                elif abs(rec.mse - mse0) < 0.001 :
+                    strikes  = 0
+                    end      = ixx
+                else :
+                    strikes += 1
+                ixx         += 1
+            if end - start < 2 :
+                wrong_recs.append(df_err.index[start])
+                start       += 1
+            else :
+                rec          = df_err.ix[end]
+                ratio        = rec.c / rec.spot
+                start        = end + 1
+                split_adjs.append(tuple([df_err.index[end], 1 / ratio]))
+        print('wrong_recs = {0:s}'.format(str(wrong_recs)))
+        print('split_adjs = {0:s}'.format(str(split_adjs)))
+        return self.build_df_ts(spot_df, stk, sd, ed)
+
+    
+    def build_df_ts(self, spot_df, stk, sd, ed) :
+        try :
+            ts           = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        except :
+            return None, None
+        df               = ts.df.join(spot_df)
         for i in [x for x in range(-2, 3) if x != 0] :
             df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
-        return df
-            
+        return df, ts
+
             
 if __name__ == '__main__' :
     s_date = '2002-02-01'
