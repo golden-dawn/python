@@ -315,9 +315,11 @@ class StxEOD :
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
         msefun     = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
-                     or (x['spot'] == x['s1'] and x['spot'] == x['s2']) or \
-                     (x['spot'] == x['s-1'] and x['spot'] == x['s-2']) else \
-                     pow(1 - x['spot']/x['c'], 2)
+                     else pow(1 - x['c']/x['spot'], 2)
+        # msefun     = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
+        #              or (x['spot'] == x['s1'] and x['spot'] == x['s2']) or \
+        #              (x['spot'] == x['s-1'] and x['spot'] == x['s-2']) else \
+        #              pow(1 - x['spot']/x['c'], 2)
         df['mse']  = df.apply(msefun, axis=1)
         accuracy   = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)),
                          0.5)
@@ -353,7 +355,7 @@ class StxEOD :
                 else :
                     strikes += 1
                 ixx         += 1
-            if end - start < 2 :
+            if end - start < 15 :
                 wrong_recs.append(df_err.index[start])
                 start       += 1
             else :
