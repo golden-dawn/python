@@ -269,7 +269,8 @@ class StxEOD :
                               (round(df['r-2'] - df['r'], 2) == 0) & \
                               (round(df['r-3'] - df['r'], 2) == 0) & \
                               (round(df['r2'] - df['r1'], 2) == 0) & \
-                              (round(df['r3'] - df['r1'], 2) == 0)]
+                              (round(df['r3'] - df['r1'], 2) == 0) & \
+                              (df['v'] > 0)]
         for r in df_f1.iterrows() :
             db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
                          "{3:.4f}, 1)".format(self.split_tbl, stk, \
@@ -338,35 +339,42 @@ class StxEOD :
 
     def autocorrect(self, df, spot_df, stk, sd, ed) :
         df_err               = df.query('mse>0.01')
-        start                = 0
+        start                = len(df_err) - 1
+        adj_factor           = 1
         wrong_recs           = []
         split_adjs           = []
-        while start < len(df_err) :
+        while start >= 0 :
             mse0             = df_err.ix[start].mse
             strikes          = 0
-            end, ixx         = start, start + 1
-            while ixx < len(df_err) and strikes < 3 :
+            end, ixx         = start, start - 1
+            while ixx >= 0 and strikes < 3 :
                 rec          = df_err.ix[ixx]
                 if rec.spot == trunc(rec.spot) :
                     pass
-                elif abs(rec.mse - mse0) < 0.001 :
+                elif abs(1 - rec.mse/mse0) < 0.01 :
                     strikes  = 0
                     end      = ixx
                 else :
                     strikes += 1
-                ixx         += 1
-            if end - start < 15 :
+                ixx         -= 1
+            if start - end < 15 :
                 wrong_recs.append(df_err.index[start])
-                start       += 1
+                start       -= 1
             else :
-                rec          = df_err.ix[end]
+                rec          = df_err.ix[start]
                 ratio        = rec.c / rec.spot
-                start        = end + 1
-                split_adjs.append(tuple([df_err.index[end], 1 / ratio]))
+                if abs(1 - ratio * adj_factor) > 0.01 :
+                    split_adjs.append(list([df_err.index[start],
+                                            ratio * adj_factor]))
+                    adj_factor   = 1 / ratio
+                start        = end - 1
         print('wrong_recs = {0:s}'.format(str(wrong_recs)))
         print('split_adjs = {0:s}'.format(str(split_adjs)))
+        for s in split_adjs :
+            db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
+                         "{3:.4f}, 1)".format(self.split_tbl, stk, \
+                                              str(s[0].date()), s[1]))
         return self.build_df_ts(spot_df, stk, sd, ed)
-
     
     def build_df_ts(self, spot_df, stk, sd, ed) :
         try :
