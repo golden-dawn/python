@@ -236,3 +236,13 @@ def prev_expiry(dt, min_days=0):
         ym      -= np.timedelta64(1, 'M')
         last_exp = move_busdays(expiry(ym), 0)
     return expiry(ym)
+
+def long_expiries(starting_from = None) :
+    s_date = datetime.strftime(datetime.now(), '%Y-%m-%d')\
+             if starting_from is None else starting_from
+    e_date = next_expiry(s_date, 8 * 252 // 12)
+    epoch  = datetime.utcfromtimestamp(0)
+    return [int((datetime.strptime(x, '%Y-%m-%d') - epoch).total_seconds()) \
+            for x in expiries(s_date[:-3], e_date[:-3])]
+    
+    
