@@ -11,8 +11,9 @@ import sys
 
 class StxEOD :
 
-    sh_dir            = 'c:/goldendawn/stockhistory'
+    sh_dir            = 'C:/goldendawn/stockhistory'
     upload_dir        = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
+    ed_dir            = 'C:/goldendawn/EODData'
     eod_name          = '{0:s}/eod_upload.txt'.format(upload_dir)
     sql_create_eod    = 'CREATE TABLE `{0:s}` ('\
                         '`stk` varchar(8) NOT NULL,'\
@@ -217,7 +218,39 @@ class StxEOD :
             e = sys.exc_info()[1]
             print('Failed to upload splits, error {0:s}'.format(str(e)))
 
+    def load_eoddata_files(self, sd = '2013-01-02', ed = '2013-11-15') :
+        dt        = move_busdays(sd, -5)
+        fnames    = [self.in_dir + '/AMEX_{0:s}.txt',
+                     self.in_dir + '/NASDAQ_{0:s}.txt',
+                     self.in_dir + '/NYSE_{0:s}.txt']
+        while dt <= ed :
+            dtc   = dt.replace('-', '')
+            with open(self.eod_name, 'w') as ofile:
+                for fname in fnames :
+                    self.load_eoddata_file(ofile, fname.format(dtc), dt, dtc)
+            try :
+                db_upload_file(self.eod_name, self.eod_tbl, 2)
+                print('{0:s}: uploaded eods'.format(dt))
+            except :
+                e = sys.exc_info()[1]
+                print('Failed to upload {0:s}, error {1:s}'.format(dt, str(e)))
+            dt    = next_busday(dt)
 
+    def load_eoddata_file(self, ofile, ifname, dt, dtc) :
+        with open(ifname, 'r') as ifile :
+            lines = ifile.readlines()
+            for line in lines[1:] :
+                tokens = line.replace(dtc, dt).strip().split(',')
+                o = float(tokens[2])
+                h = float(tokens[3])
+                l = float(tokens[4])
+                c = float(tokens[5])
+                v = int(tokens[6])
+                if v == 0 or o < l or o > h or c < l or c > h or \
+                   len(tokens[0]) > 6 :
+                    continue
+                ofile.write('{0:s}\n'.format('\t'.join(tokens)))
+                
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
     # interval.  Then, reconcile for each underlier
@@ -388,14 +421,16 @@ class StxEOD :
 
             
 if __name__ == '__main__' :
-    s_date = '2002-02-01'
-    e_date = '2012-12-31'
-    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
-    # my_eod.load_my_files()
-    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
-    # dn_eod.load_deltaneutral_files()
-    stx = 'AAI,AAMRQ,ABH,ABKFQ,ACL,ACLI,ACRT,ACW,AFN,AG,AH,AIB,AL,ALN,ALO,ALOY,AMCC,ANTP,ANX,AONE,APB,APWR,ARC,ARM,ART,ASF,ASYTQ,ATLS,ATN,ATRS,ATTC,AWC,AWE,AWK,BBC,BBIB,BDH,BER,BHH,BHS,BLC,BOX,BPUR,BRP,BSC,BW,BWC,BYT,CCME,CD,CDL,CDS,CEU,CGI,CHRW,CHTR,CHU,CIT,CML,CMVT,CNC,CNET,CPN,CPNLQ,CRGN,CRX,CRXX,CSR,CTC,CTDB,CTE,CTIC,DALRQ,DCGN,DCNAQ,DDX,DFX,DGW,DHBT,DJR,DLM,DOT,DPHIQ,DRL,DUX,DVS,DWSN,EEM,ENRNQ,ENT,EPIC,EPIX,ERES,ESCL,ESPR,EUR,EXB,EXE,EXXI,FBR,FCL,FDC,FEED,FNF,FOL,FRC,FRG,FRNTQ,FRP,FSE,FTO,FTS,FTWR,FVX,GAPTQ,GGC,GGP,GHA,GIN,GIP,GLK,GMEB,GOK,GOX,GPT,GRP,GSL,GSM,GSO,GSV,GTC,GTE,GTOP,GUC,HCH,HELX,HGX,HI,HK,HLS,HOFF,HQS,HRC,HS,HSOA,HSP,HWD,IDARQ,IDMCQ,IDT,IFS,IJJ,IMGC,IMH,IMPH,INET,INTL,INX,ION,IRX,IXX,IXZ,JAS,JAZZ,JDSU,JMBA,JPN,JSDA,KBK,KG,KRX,KSX,KVA,L,LEHMQ,LFB,LFGRQ,LMRA,LSX,LWIN,MERQ,MESA,MEX,MFX,MGG,MGM,MHR,MIR,MIRKQ,MKTY,MM,MND,MNG,MNST,MNX,MNY,MOX,MUT,MVR,NAL,NCOC,NEU,NEWCQ,NFLD,NOBL,NRTLQ,NSI,NSTR,NTLI,NTMD,NWACQ,NZ,NZT,OCLR,OCR,OEX,OIX,OMX,ORN,OSX,OVNT,P,PACT,PALM,PAR,PATH,PCMC,PCS,PCX,PDC,PDS,PIC,PKB,PLA,PMP,PMTC,POW,PPC,PRGN,PRM,PSTI,PVF,QI,QMNDQ,QRE,QTRN,RAG,RATL,RAV,RDG,RDSA,RDSB,RHT,RINO,RIO,RLG,RMC,RMG,RMN,RMV,RRR,RUA,RUI,RUJ,RUO,RXS,S,SAN,SAY,SCMR,SCON,SCOR,SCP,SCQ,SDL,SFC,SFUN,SHOP,SIN,SKIL,SMBL,SML,SMQ,SMRA,SNS,SOX,SPC,SPOT,SPSN,SSCC,SSI,STAR,STEL,STN,STQ,STSA,STTS,SUNH,SVM,T,TALX,TAM,TBI,TCM,TCP,TELK,TGH,TLGD,TMTA,TNX,TOMO,TOPS,TOUSQ,TPC,TRA,TREE,TRI,TRX,TSA,TXX,TYX,UAG,UAL,UTA,UTH,UTY,VC,VERT,VIAB,VION,VISG,VIV,VNBC,VNT,VOLV,VRA,WAC,WAMUQ,WCG,WCIMQ,WEN,WIN,WLDA,WLP,WM,WRC,XAU,XCI,XEO,XEX,XJT,XOI,XUE,YMI,YRCW,Z'
-    my_eod.reconcile_spots(s_date, e_date, stx)
-    dn_eod.reconcile_spots(s_date, e_date, stx)
+    ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
+    ed_eod.load_eoddata_files()
+    # s_date = '2002-02-01'
+    # e_date = '2012-12-31'
+    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
+    # # my_eod.load_my_files()
+    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
+    # # dn_eod.load_deltaneutral_files()
+    # stx = 'AAI,AAMRQ,ABH,ABKFQ,ACL,ACLI,ACRT,ACW,AFN,AG,AH,AIB,AL,ALN,ALO,ALOY,AMCC,ANTP,ANX,AONE,APB,APWR,ARC,ARM,ART,ASF,ASYTQ,ATLS,ATN,ATRS,ATTC,AWC,AWE,AWK,BBC,BBIB,BDH,BER,BHH,BHS,BLC,BOX,BPUR,BRP,BSC,BW,BWC,BYT,CCME,CD,CDL,CDS,CEU,CGI,CHRW,CHTR,CHU,CIT,CML,CMVT,CNC,CNET,CPN,CPNLQ,CRGN,CRX,CRXX,CSR,CTC,CTDB,CTE,CTIC,DALRQ,DCGN,DCNAQ,DDX,DFX,DGW,DHBT,DJR,DLM,DOT,DPHIQ,DRL,DUX,DVS,DWSN,EEM,ENRNQ,ENT,EPIC,EPIX,ERES,ESCL,ESPR,EUR,EXB,EXE,EXXI,FBR,FCL,FDC,FEED,FNF,FOL,FRC,FRG,FRNTQ,FRP,FSE,FTO,FTS,FTWR,FVX,GAPTQ,GGC,GGP,GHA,GIN,GIP,GLK,GMEB,GOK,GOX,GPT,GRP,GSL,GSM,GSO,GSV,GTC,GTE,GTOP,GUC,HCH,HELX,HGX,HI,HK,HLS,HOFF,HQS,HRC,HS,HSOA,HSP,HWD,IDARQ,IDMCQ,IDT,IFS,IJJ,IMGC,IMH,IMPH,INET,INTL,INX,ION,IRX,IXX,IXZ,JAS,JAZZ,JDSU,JMBA,JPN,JSDA,KBK,KG,KRX,KSX,KVA,L,LEHMQ,LFB,LFGRQ,LMRA,LSX,LWIN,MERQ,MESA,MEX,MFX,MGG,MGM,MHR,MIR,MIRKQ,MKTY,MM,MND,MNG,MNST,MNX,MNY,MOX,MUT,MVR,NAL,NCOC,NEU,NEWCQ,NFLD,NOBL,NRTLQ,NSI,NSTR,NTLI,NTMD,NWACQ,NZ,NZT,OCLR,OCR,OEX,OIX,OMX,ORN,OSX,OVNT,P,PACT,PALM,PAR,PATH,PCMC,PCS,PCX,PDC,PDS,PIC,PKB,PLA,PMP,PMTC,POW,PPC,PRGN,PRM,PSTI,PVF,QI,QMNDQ,QRE,QTRN,RAG,RATL,RAV,RDG,RDSA,RDSB,RHT,RINO,RIO,RLG,RMC,RMG,RMN,RMV,RRR,RUA,RUI,RUJ,RUO,RXS,S,SAN,SAY,SCMR,SCON,SCOR,SCP,SCQ,SDL,SFC,SFUN,SHOP,SIN,SKIL,SMBL,SML,SMQ,SMRA,SNS,SOX,SPC,SPOT,SPSN,SSCC,SSI,STAR,STEL,STN,STQ,STSA,STTS,SUNH,SVM,T,TALX,TAM,TBI,TCM,TCP,TELK,TGH,TLGD,TMTA,TNX,TOMO,TOPS,TOUSQ,TPC,TRA,TREE,TRI,TRX,TSA,TXX,TYX,UAG,UAL,UTA,UTH,UTY,VC,VERT,VIAB,VION,VISG,VIV,VNBC,VNT,VOLV,VRA,WAC,WAMUQ,WCG,WCIMQ,WEN,WIN,WLDA,WLP,WM,WRC,XAU,XCI,XEO,XEX,XJT,XOI,XUE,YMI,YRCW,Z'
+    # my_eod.reconcile_spots(s_date, e_date, stx)
+    # dn_eod.reconcile_spots(s_date, e_date, stx)
     # To debug a reconciliation: 
     # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
