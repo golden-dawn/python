@@ -282,9 +282,6 @@ class StxEOD :
     # available, the start and end dates between which there is eod
     # data, and then the mse and percentage of coverage
     def reconcile_opt_spots(self, stk, sd, ed, dbg = False) :
-        db_write_cmd("delete from {0:s} where stk = '{1:s}' and dt between "\
-                     "'{2:s}' and '{3:s}' and implied = 1".\
-                     format(self.split_tbl, stk, sd, ed))
         q                = "select dt, spot from opt_spots where stk='{0:s}' "\
                            "{1:s}".format(stk, db_sql_timeframe(sd, ed, True))
         spot_df          = pd.read_sql(q, db_get_cnx())
@@ -293,6 +290,31 @@ class StxEOD :
         df, ts           = self.build_df_ts(spot_df, stk, sd, ed)
         if df is None :
             return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk,s_spot,e_spot,',N/A'*5)
+        self.calc_implied_splits(df, stk, sd, ed)
+        df, cov, mse     = self.quality(df, ts, spot_df, dbg)
+        if mse > 0.02 :
+            df, ts       = self.autocorrect(df, spot_df, ts.stk, sd, ed)
+            if df is None :
+                return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
+                                                         ',N/A' * 5)
+            df, cov, mse = self.quality(df, ts, spot_df, dbg)
+        s_df, e_df       = str(df.index[0].date()), str(df.index[-1].date())
+        res              = db_read_cmd("select * from {0:s} where stk = "\
+                                       "'{1:s}' and dt between '{2:s}' and "\
+                                       "'{3:s}' and implied = 1".\
+                                       format(self.split_tbl, stk, sd, ed))
+        if dbg :
+            print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.\
+                  format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df,
+                         len(res), cov, mse))
+            return df
+        return "'{0:s}','{1:s}','{2:s}','{3:s}',{4:d},{5:.2f},{6:.4f}".\
+            format(s_spot, e_spot, s_df, e_df, len(res), cov, mse)    
+    
+    def calc_implied_splits(self, df, stk, sd, ed) :
+        db_write_cmd("delete from {0:s} where stk = '{1:s}' and dt between "\
+                     "'{2:s}' and '{3:s}' and implied = 1".\
+                     format(self.split_tbl, stk, sd, ed))
         df['r']          = df['spot'] / df['c']
         for i in [x for x in range(-3, 4) if x != 0] :
             df['r{0:d}'.format(i)]  = df['r'].shift(-i)
@@ -308,22 +330,7 @@ class StxEOD :
             db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
                          "{3:.4f}, 1)".format(self.split_tbl, stk, \
                                               str(r[0].date()), r[1]['rr']))
-        df, cov, mse     = self.quality(df, ts, spot_df, dbg)
-        if mse > 0.02 :
-            df, ts       = self.autocorrect(df, spot_df, ts.stk, sd, ed)
-            if df is None :
-                return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
-                                                         ',N/A' * 5)
-            df, cov, mse = self.quality(df, ts, spot_df, dbg)
-        s_df, e_df       = str(df.index[0].date()), str(df.index[-1].date())
-        if dbg :
-            print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.\
-                  format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df,
-                         len(df_f1), cov, mse))
-            return df
-        return "'{0:s}','{1:s}','{2:s}','{3:s}',{4:d},{5:.2f},{6:.4f}".\
-            format(s_spot, e_spot, s_df, e_df, len(df_f1), cov, mse)    
-    
+
     # Function that calculates the coverage and MSE between the spot
     # and eod prices
     def quality(self, df, ts, spot_df, dbg = False) :
@@ -401,12 +408,22 @@ class StxEOD :
                                             ratio * adj_factor]))
                     adj_factor   = 1 / ratio
                 start        = end - 1
-        print('wrong_recs = {0:s}'.format(str(wrong_recs)))
-        print('split_adjs = {0:s}'.format(str(split_adjs)))
-        for s in split_adjs :
-            db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
-                         "{3:.4f}, 1)".format(self.split_tbl, stk, \
-                                              str(s[0].date()), s[1]))
+        if len(wrong_recs) > 0 :
+            sql              = "delete from {0:s} where stk='{1:s}' and "\
+                                "dt in (".format(self.eod_tbl, stk)
+            for wrong_rec in wrong_recs :
+                sql         += "'{0:s}',".format(str(wrong_rec.date()))
+            sql              = sql[:-1] + ')'
+            print('sql = {0:s}'.format(sql))
+            db_write_cmd(sql)
+            df, ts           = self.build_df_ts(spot_df, stk, sd, ed)
+            self.calc_implied_splits(df, stk, sd, ed)
+        else :
+            print('split_adjs = {0:s}'.format(str(split_adjs)))
+            for s in split_adjs :
+                db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
+                             "{3:.4f}, 1)".format(self.split_tbl, stk, \
+                                                  str(s[0].date()), s[1]))
         return self.build_df_ts(spot_df, stk, sd, ed)
     
     def build_df_ts(self, spot_df, stk, sd, ed) :
