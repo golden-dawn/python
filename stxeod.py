@@ -132,7 +132,7 @@ class StxEOD :
                     if start == 1 :
                         splits += 1
                         with open(split_fname, 'a') as split_file :
-                            split_file.write('{0:s}\t{1:s}\t{2:f}\n'.format \
+                            split_file.write('{0:s}\t{1:s}\t{2:f}\t0\n'.format \
                                              (stk, toks[0], float(toks[6])))
         except :
             e                   = sys.exc_info()[1]
@@ -209,7 +209,7 @@ class StxEOD :
                     if stk_list and stk not in stk_list :
                         continue
                     dt   = str(datetime.strptime(row[1], '%m/%d/%Y').date())
-                    dbfile.write('{0:s}\t{1:s}\t{2:f}\n'.\
+                    dbfile.write('{0:s}\t{1:s}\t{2:f}\t0\n'.\
                                  format(stk,prev_busday(dt),1/float(row[2])))
         try :
             db_upload_file(out_fname, self.split_tbl, 2)
@@ -265,15 +265,15 @@ class StxEOD :
         if sd is None :
             sd       = '2002-02-08'
         if ed is None :
-            ed       = datetime.now.strftime('%Y-%m%d')
+            ed       = datetime.now.strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format\
-                       (datetime.strptime('sd', '%Y-%m-%d').strftime('%Y%m%d'),
-                        datetime.strptime('ed', '%Y-%m-%d').strftime('%Y%m%d'))
+                       (datetime.strptime(sd, '%Y-%m-%d').strftime('%Y%m%d'),
+                        datetime.strptime(ed, '%Y-%m-%d').strftime('%Y%m%d'))
         for stk in stk_list :
             res = self.reconcile_opt_spots(stk, sd, ed, dbg)
             if not dbg :
                 db_write_cmd("insert into reconciliation values ('{0:s}',"\
-                             "'{1:s}','{2:s}',{3:s},0".\
+                             "'{1:s}','{2:s}',{3:s},0)".\
                              format(stk, rec_name, rec_interval, res))
 
     # Perform reconciliation for a single stock. If we cannot get the
@@ -451,7 +451,7 @@ if __name__ == '__main__' :
     # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
     # # dn_eod.load_deltaneutral_files()
     # stx = 'AAI,AAMRQ,ABH,ABKFQ,ACL,ACLI,ACRT,ACW,AFN,AG,AH,AIB,AL,ALN,ALO,ALOY,AMCC,ANTP,ANX,AONE,APB,APWR,ARC,ARM,ART,ASF,ASYTQ,ATLS,ATN,ATRS,ATTC,AWC,AWE,AWK,BBC,BBIB,BDH,BER,BHH,BHS,BLC,BOX,BPUR,BRP,BSC,BW,BWC,BYT,CCME,CD,CDL,CDS,CEU,CGI,CHRW,CHTR,CHU,CIT,CML,CMVT,CNC,CNET,CPN,CPNLQ,CRGN,CRX,CRXX,CSR,CTC,CTDB,CTE,CTIC,DALRQ,DCGN,DCNAQ,DDX,DFX,DGW,DHBT,DJR,DLM,DOT,DPHIQ,DRL,DUX,DVS,DWSN,EEM,ENRNQ,ENT,EPIC,EPIX,ERES,ESCL,ESPR,EUR,EXB,EXE,EXXI,FBR,FCL,FDC,FEED,FNF,FOL,FRC,FRG,FRNTQ,FRP,FSE,FTO,FTS,FTWR,FVX,GAPTQ,GGC,GGP,GHA,GIN,GIP,GLK,GMEB,GOK,GOX,GPT,GRP,GSL,GSM,GSO,GSV,GTC,GTE,GTOP,GUC,HCH,HELX,HGX,HI,HK,HLS,HOFF,HQS,HRC,HS,HSOA,HSP,HWD,IDARQ,IDMCQ,IDT,IFS,IJJ,IMGC,IMH,IMPH,INET,INTL,INX,ION,IRX,IXX,IXZ,JAS,JAZZ,JDSU,JMBA,JPN,JSDA,KBK,KG,KRX,KSX,KVA,L,LEHMQ,LFB,LFGRQ,LMRA,LSX,LWIN,MERQ,MESA,MEX,MFX,MGG,MGM,MHR,MIR,MIRKQ,MKTY,MM,MND,MNG,MNST,MNX,MNY,MOX,MUT,MVR,NAL,NCOC,NEU,NEWCQ,NFLD,NOBL,NRTLQ,NSI,NSTR,NTLI,NTMD,NWACQ,NZ,NZT,OCLR,OCR,OEX,OIX,OMX,ORN,OSX,OVNT,P,PACT,PALM,PAR,PATH,PCMC,PCS,PCX,PDC,PDS,PIC,PKB,PLA,PMP,PMTC,POW,PPC,PRGN,PRM,PSTI,PVF,QI,QMNDQ,QRE,QTRN,RAG,RATL,RAV,RDG,RDSA,RDSB,RHT,RINO,RIO,RLG,RMC,RMG,RMN,RMV,RRR,RUA,RUI,RUJ,RUO,RXS,S,SAN,SAY,SCMR,SCON,SCOR,SCP,SCQ,SDL,SFC,SFUN,SHOP,SIN,SKIL,SMBL,SML,SMQ,SMRA,SNS,SOX,SPC,SPOT,SPSN,SSCC,SSI,STAR,STEL,STN,STQ,STSA,STTS,SUNH,SVM,T,TALX,TAM,TBI,TCM,TCP,TELK,TGH,TLGD,TMTA,TNX,TOMO,TOPS,TOUSQ,TPC,TRA,TREE,TRI,TRX,TSA,TXX,TYX,UAG,UAL,UTA,UTH,UTY,VC,VERT,VIAB,VION,VISG,VIV,VNBC,VNT,VOLV,VRA,WAC,WAMUQ,WCG,WCIMQ,WEN,WIN,WLDA,WLP,WM,WRC,XAU,XCI,XEO,XEX,XJT,XOI,XUE,YMI,YRCW,Z'
-    # my_eod.reconcile_spots(s_date, e_date, stx)
-    # dn_eod.reconcile_spots(s_date, e_date, stx)
+    # my_eod.reconcile_spots('my', s_date, e_date, stx)
+    # dn_eod.reconcile_spots('deltaneutral', s_date, e_date, stx)
     # To debug a reconciliation: 
     # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
