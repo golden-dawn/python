@@ -293,10 +293,13 @@ class StxEOD :
         self.calc_implied_splits(df, stk, sd, ed)
         df, cov, mse     = self.quality(df, ts, spot_df, dbg)
         if mse > 0.02 :
-            df, ts       = self.autocorrect(df, spot_df, ts.stk, sd, ed)
+            num, df, ts  = self.autocorrect(df, spot_df, ts.stk, sd, ed)
             if df is None :
                 return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
                                                          ',N/A' * 5)
+            if num > 0 :
+                df, cov, mse = self.quality(df, ts, spot_df, dbg)
+                num, df, ts = self.autocorrect(df, spot_df, ts.stk, sd, ed)
             df, cov, mse = self.quality(df, ts, spot_df, dbg)
         s_df, e_df       = str(df.index[0].date()), str(df.index[-1].date())
         res              = db_read_cmd("select * from {0:s} where stk = "\
@@ -424,7 +427,8 @@ class StxEOD :
                 db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "\
                              "{3:.4f}, 1)".format(self.split_tbl, stk, \
                                                   str(s[0].date()), s[1]))
-        return self.build_df_ts(spot_df, stk, sd, ed)
+        df, ts                = self.build_df_ts(spot_df, stk, sd, ed)
+        return len(wrong_recs), df, ts
     
     def build_df_ts(self, spot_df, stk, sd, ed) :
         try :
