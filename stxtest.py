@@ -370,22 +370,23 @@ class Test4StxEOD(unittest.TestCase) :
                                     '2012-12-31', 0, 100.0, 0.0041, 0) and \
                         res2[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1))
 
+        
     def test_6_merge_eod_tbls(self) :
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
-        my_eod.upload_eod(stx, sd, ed)
-        dn_eod.upload_eod(stx, sd, ed)
+        my_eod.upload_eod(self.eod_test, self.stx, self.sd, self.ed)
+        dn_eod.upload_eod(self.stx, self.sd, self.ed)
         res1   = db_read_cmd("select * from {0:s} where stk='EXPE' and dt "\
                              "between '2003-03-10' and '2003-03-11'".\
-                             format(self.test_eod))
+                             format(self.eod_test))
         print(res1)
         res2   = db_read_cmd("select * from {0:s} where stk='TIE' and dt "\
                              "between '2006-02-16' and '2006-02-17'".\
-                             format(self.test_eod))
+                             format(self.eod_test))
         print(res2)
         res3   = db_read_cmd("select * from {0:s} where stk='TIE' and dt "\
                              "between '2006-05-15' and '2006-05-16'".\
-                             format(self.test_eod))
+                             format(self.eod_test))
         print(res3)
         self.assertTrue(res1[0][2] == Decimal('69.06') and \
                         res1[0][3] == Decimal('69.38') and \
@@ -396,8 +397,29 @@ class Test4StxEOD(unittest.TestCase) :
                         res1[1][3] == Decimal('34.20') and \
                         res1[1][4] == Decimal('33.32') and \
                         res1[1][5] == Decimal('33.78') and \
-                        res1[1][6] == 4107600)
-         
+                        res1[1][6] == 4107600 and \
+                        res2[0][2] == Decimal('72.36') and \
+                        res2[0][3] == Decimal('74.16') and \
+                        res2[0][4] == Decimal('71.28') and \
+                        res2[0][5] == Decimal('73.80') and \
+                        res2[0][6] == 1886800 and \
+                        res2[1][2] == Decimal('37.12') and \
+                        res2[1][3] == Decimal('38.00') and \
+                        res2[1][4] == Decimal('37.02') and \
+                        res2[1][5] == Decimal('37.56') and \
+                        res2[1][6] == 1439500 and \
+                        res3[0][2] == Decimal('77.12') and \
+                        res3[0][3] == Decimal('77.48') and \
+                        res3[0][4] == Decimal('69.60') and \
+                        res3[0][5] == Decimal('72.12') and \
+                        res3[0][6] == 22097800 and \
+                        res3[1][2] == Decimal('36.50') and \
+                        res3[1][3] == Decimal('38.50') and \
+                        res3[1][4] == Decimal('34.80') and \
+                        res3[1][5] == Decimal('37.96') and \
+                        res3[1][6] == 11771300)
+        
+        
     def test_7_teardown(self) :
         my_seod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         dn_seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
@@ -409,6 +431,7 @@ class Test4StxEOD(unittest.TestCase) :
                      "'{0:s}'".format(self.my_recon_name))
         db_write_cmd("delete from reconciliation where recon_name="\
                      "'{0:s}'".format(self.dn_recon_name))
+        db_write_cmd('drop table {0:s}'.format(self.eod_test))
         res1    = db_read_cmd("show tables like '{0:s}'".\
                               format(self.my_eod_tbl))
         res2    = db_read_cmd("show tables like '{0:s}'".\

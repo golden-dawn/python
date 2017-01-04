@@ -59,6 +59,7 @@ class StxEOD :
     def __init__(self, in_dir, eod_tbl, split_tbl, extension = '.txt') :
         self.in_dir    = in_dir
         self.eod_tbl   = eod_tbl
+        self.rec_name  = eod_tbl
         self.split_tbl = split_tbl
         self.extension = extension
         db_create_missing_table(eod_tbl, self.sql_create_eod)
@@ -254,8 +255,7 @@ class StxEOD :
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
     # interval.  Then, reconcile for each underlier
-    def reconcile_spots(self, rec_name, sd = None, ed = None, stx = '',
-                        dbg = False) :
+    def reconcile_spots(self, sd = None, ed = None, stx = '', dbg = False) :
         if stx == '' :
             res      = db_read_cmd('select distinct stk from opt_spots {0:s}'.\
                                    format(db_sql_timeframe(sd, ed, False)))
@@ -265,7 +265,7 @@ class StxEOD :
         if sd is None :
             sd       = '2002-02-08'
         if ed is None :
-            ed       = datetime.now.strftime('%Y-%m-%d')
+            ed       = datetime.now().strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format\
                        (datetime.strptime(sd, '%Y-%m-%d').strftime('%Y%m%d'),
                         datetime.strptime(ed, '%Y-%m-%d').strftime('%Y%m%d'))
@@ -274,7 +274,7 @@ class StxEOD :
             if not dbg :
                 db_write_cmd("insert into reconciliation values ('{0:s}',"\
                              "'{1:s}','{2:s}',{3:s},0)".\
-                             format(stk, rec_name, rec_interval, res))
+                             format(stk, self.rec_name, rec_interval, res))
 
     # Perform reconciliation for a single stock. If we cannot get the
     # EOD data, return N/A. Otherwise, return, for each stock, the
@@ -440,6 +440,42 @@ class StxEOD :
             df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
         return df, ts
 
+    def upload_eod(self, db_tbl, stx = '', sd = None, ed = None) :
+        db_create_missing_table(db_tbl, self.sql_create_eod)
+        # TODO: check the reconciliation table and only upload EOD
+        # data if mse and coverage are acceptable. Also, upload only
+        # when no other upload has taken place already.
+        if stx == '' :
+            res      = db_read_cmd('select distinct stk from opt_spots {0:s}'.\
+                                   format(db_sql_timeframe(sd, ed, False)))
+            stk_list = [stk[0] for stk in res]
+        else :
+            stk_list = stx.split(',')
+        if sd is None :
+            sd       = '2002-02-08'
+        if ed is None :
+            ed       = datetime.now().strftime('%Y-%m-%d')
+        # apply the split adjustments
+        for stk in stk_list :
+            
+            ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+            ts.splits.clear()
+            splits   = db_read_cmd("select dt, ratio from {0:s} where stk = "\
+                                   "'{1:s}' and implied = 1".\
+                                   format(self.split_tbl, stk))
+            for s in splits:
+                ts.splits[pd.to_datetime(next_busday(s[0]))] = float(s[1])
+            ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
+            # ts.write_to_db(db_tbl)
+            with open(self.eod_name, 'w') as ofile :
+                for idx, row in ts.df.iterrows() :
+                    if row['v'] > 0 :
+                        ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t'\
+                                    '{4:.2f}\t{5:.2f}\t{6:.0f}\n'.\
+                                    format(stk, str(idx.date()), row['o'],
+                                           row['h'], row['l'], row['c'],
+                                           row['v']))
+                db_upload_file(self.eod_name, db_tbl, 2)
             
 if __name__ == '__main__' :
     ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
