@@ -174,7 +174,6 @@ class Test3StxTS(unittest.TestCase) :
         ts.set_day('2012-10-04')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        print('res2.c = {0:f}'.format(round(res2.c, 2)))
         self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and \
                         (res2.c == 34.12) and (res2.v == 38796800))
 
@@ -186,7 +185,6 @@ class Test3StxTS(unittest.TestCase) :
         ts.set_day('2012-10-05')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        print('res2.c = {0:f}'.format(round(res2.c, 2)))
         self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and \
                         (res2.c == 34.12) and (res2.v == 38796800))
 
@@ -199,7 +197,6 @@ class Test3StxTS(unittest.TestCase) :
         ts.set_day('2012-10-04')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        print('res2.c = {0:f}'.format(round(res2.c, 2)))
         self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and \
                         (res2.c == 34.12) and (res2.v == 38796800))
         
@@ -214,7 +211,6 @@ class Test3StxTS(unittest.TestCase) :
         ts.next_day()
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        print('res2.c = {0:f}'.format(round(res2.c, 2)))
         self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and \
                         (res2.c == 34.12) and (res2.v == 38796800))
 
@@ -234,8 +230,6 @@ class Test4StxEOD(unittest.TestCase) :
         self.stx            = 'AEOS,EXPE,NFLX,TIE'
         self.sd             = '2002-02-01'
         self.ed             = '2012-12-31'
-        self.my_recon_name  = 'my_test'
-        self.dn_recon_name  = 'dn_test'
         self.eod_test       = 'eod_test'
         stk_list            = self.stx.split(',')
         if not os.path.exists(self.my_in_dir) :
@@ -321,22 +315,25 @@ class Test4StxEOD(unittest.TestCase) :
 
     def test_4_reconcile_my_data(self) :
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-        my_eod.reconcile_spots(self.my_recon_name, '2002-02-01', '2012-12-31',
-                               self.stx)
+        my_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
         res1   = db_read_cmd("select * from reconciliation where recon_name="\
-                             "'{0:s}' order by stk".format(self.my_recon_name))
+                             "'{0:s}' order by stk".format(my_eod.rec_name))
         res2   = db_read_cmd("select * from {0:s} where implied=1 "\
                              "order by stk, dt".format(self.my_split_tbl))
-        self.assertTrue(res1[0] == ('AEOS', 'my_test', '20020201_20121231',
+        self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
                                     '2007-01-26', 0, 97.73, 0.0009, 0) and \
-                        res1[1] == ('EXPE', 'my_test', '20020201_20121231',
+                        res1[1] == ('EXPE', my_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-02-08', '2012-12-31', '2002-02-01',
                                     '2012-12-31', 1, 100.0, 0.0001, 0) and \
-                        res1[2] == ('NFLX', 'my_test', '20020201_20121231',
+                        res1[2] == ('NFLX', my_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-12-11', '2012-12-31', '2002-05-29',
                                     '2012-12-31', 0, 100.0, 0.0012, 0) and \
-                        res1[3] == ('TIE', 'my_test', '20020201_20121231',
+                        res1[3] == ('TIE', my_eod.rec_name,
+                                    '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-04',
                                     '2012-12-31', 2, 100.0, 0.001, 0) and \
                         res2[0] == ('EXPE', '2003-03-10', Decimal('0.5000'),
@@ -348,24 +345,25 @@ class Test4StxEOD(unittest.TestCase) :
 
     def test_5_reconcile_dn_data(self) :
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
-        dn_eod.reconcile_spots(self.dn_recon_name, '2002-02-01', '2012-12-31',
-                               self.stx)
+        dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
         res1   = db_read_cmd("select * from reconciliation where recon_name="\
-                             "'{0:s}' order by stk".format(self.dn_recon_name))
-        print(res1)
+                             "'{0:s}' order by stk".format(dn_eod.rec_name))
         res2   = db_read_cmd("select * from {0:s} where implied=1 "\
                              "order by stk, dt".format(self.dn_split_tbl))
-        print(res2)
-        self.assertTrue(res1[0] == ('AEOS', 'dn_test', '20020201_20121231',
+        self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
                                     '2007-03-09', 1, 100.0, 0.0011, 0) and \
-                        res1[1] == ('EXPE', 'dn_test', '20020201_20121231',
+                        res1[1] == ('EXPE', dn_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-02-08', '2012-12-31', '2005-07-21',
                                     '2012-12-31', 0, 68.34, 0.0001, 0) and \
-                        res1[2] == ('NFLX', 'dn_test', '20020201_20121231',
+                        res1[2] == ('NFLX', dn_eod.rec_name,
+                                    '20020201_20121231',
                                     '2002-12-11', '2012-12-31', '2002-05-23',
                                     '2012-12-31', 0, 100.0, 0.0013, 0) and \
-                        res1[3] == ('TIE', 'dn_test', '20020201_20121231',
+                        res1[3] == ('TIE', dn_eod.rec_name,
+                                    '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-01',
                                     '2012-12-31', 0, 100.0, 0.0041, 0) and \
                         res2[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1))
@@ -379,15 +377,15 @@ class Test4StxEOD(unittest.TestCase) :
         res1   = db_read_cmd("select * from {0:s} where stk='EXPE' and dt "\
                              "between '2003-03-10' and '2003-03-11'".\
                              format(self.eod_test))
-        print(res1)
         res2   = db_read_cmd("select * from {0:s} where stk='TIE' and dt "\
                              "between '2006-02-16' and '2006-02-17'".\
                              format(self.eod_test))
-        print(res2)
         res3   = db_read_cmd("select * from {0:s} where stk='TIE' and dt "\
                              "between '2006-05-15' and '2006-05-16'".\
                              format(self.eod_test))
-        print(res3)
+        res4   = db_read_cmd("select * from {0:s} where stk='EXPE' and dt "\
+                             "between '2003-08-08' and '2005-07-21'".\
+                             format(self.eod_test))
         self.assertTrue(res1[0][2] == Decimal('69.06') and \
                         res1[0][3] == Decimal('69.38') and \
                         res1[0][4] == Decimal('68.40') and \
@@ -417,20 +415,22 @@ class Test4StxEOD(unittest.TestCase) :
                         res3[1][3] == Decimal('38.50') and \
                         res3[1][4] == Decimal('34.80') and \
                         res3[1][5] == Decimal('37.96') and \
-                        res3[1][6] == 11771300)
+                        res3[1][6] == 11771300 and \
+                        res4[0][1] == '2003-08-08' and \
+                        res4[1][1] == '2005-07-21')
         
         
     def test_7_teardown(self) :
-        my_seod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-        dn_seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
-        my_seod.cleanup()
-        my_seod.cleanup_data_folder()
-        dn_seod.cleanup()
-        dn_seod.cleanup_data_folder()
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        my_eod.cleanup()
+        my_eod.cleanup_data_folder()
+        dn_eod.cleanup()
+        dn_eod.cleanup_data_folder()
         db_write_cmd("delete from reconciliation where recon_name="\
-                     "'{0:s}'".format(self.my_recon_name))
+                     "'{0:s}'".format(my_eod.rec_name))
         db_write_cmd("delete from reconciliation where recon_name="\
-                     "'{0:s}'".format(self.dn_recon_name))
+                     "'{0:s}'".format(dn_eod.rec_name))
         db_write_cmd('drop table {0:s}'.format(self.eod_test))
         res1    = db_read_cmd("show tables like '{0:s}'".\
                               format(self.my_eod_tbl))

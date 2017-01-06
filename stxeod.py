@@ -48,7 +48,7 @@ class StxEOD :
                         '`edf` char(10) DEFAULT NULL,'\
                         '`splits` smallint DEFAULT NULL,'\
                         '`coverage` float DEFAULT NULL,'\
-                        '`accuracy` float DEFAULT NULL,'\
+                        '`mse` float DEFAULT NULL,'\
                         '`status` tinyint DEFAULT 0,'\
                         'PRIMARY KEY (`stk`,`recon_name`,`recon_interval`)'\
                         ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
@@ -440,42 +440,62 @@ class StxEOD :
             df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
         return df, ts
 
-    def upload_eod(self, db_tbl, stx = '', sd = None, ed = None) :
+    def upload_eod(self, db_tbl, stx = '', sd = None, ed = None,
+                   max_mse = 0.02, min_coverage = 80) :
         db_create_missing_table(db_tbl, self.sql_create_eod)
-        # TODO: check the reconciliation table and only upload EOD
-        # data if mse and coverage are acceptable. Also, upload only
-        # when no other upload has taken place already.
-        if stx == '' :
-            res      = db_read_cmd('select distinct stk from opt_spots {0:s}'.\
-                                   format(db_sql_timeframe(sd, ed, False)))
-            stk_list = [stk[0] for stk in res]
-        else :
-            stk_list = stx.split(',')
         if sd is None :
             sd       = '2002-02-08'
         if ed is None :
             ed       = datetime.now().strftime('%Y-%m-%d')
+        rec_interval = '{0:s}_{1:s}'.format(sd.replace('-', ''),
+                                            ed.replace('-', ''))
+        sql = "select stk from reconciliation where recon_name='{0:s}' and "\
+              "recon_interval='{1:s}' and mse<={2:f} and coverage>={3:f}".\
+              format(self.rec_name, rec_interval, max_mse, min_coverage)
+        if stx != '' :
+            sql      = "{0:s} and stk in ('{1:s}')".\
+                       format(sql, stx.replace(',', "','"))
+        res          = db_read_cmd(sql)
+        stk_list     = [x[0] for x in res]
+        num          = 0
         # apply the split adjustments
         for stk in stk_list :
-            
-            ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
-            ts.splits.clear()
-            splits   = db_read_cmd("select dt, ratio from {0:s} where stk = "\
-                                   "'{1:s}' and implied = 1".\
-                                   format(self.split_tbl, stk))
-            for s in splits:
-                ts.splits[pd.to_datetime(next_busday(s[0]))] = float(s[1])
-            ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
-            # ts.write_to_db(db_tbl)
-            with open(self.eod_name, 'w') as ofile :
-                for idx, row in ts.df.iterrows() :
-                    if row['v'] > 0 :
-                        ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t'\
-                                    '{4:.2f}\t{5:.2f}\t{6:.0f}\n'.\
-                                    format(stk, str(idx.date()), row['o'],
-                                           row['h'], row['l'], row['c'],
-                                           row['v']))
-                db_upload_file(self.eod_name, db_tbl, 2)
+            res = db_read_cmd("select * from reconciliation where stk='{0:s}' "\
+                              "and recon_interval='{1:s}' and status={2:d}".\
+                              format(stk, rec_interval, self.status_ok))
+            if not res :
+                try :
+                    self.upload_stk(db_tbl, stk, sd, ed, rec_interval)
+                    num += 1
+                except :
+                    e = sys.exc_info()[1]
+                    print('Failed to EOD upload stock {0:s}, error {1:s}'.\
+                          format(stk, str(e)))
+        print('{0:s} - uploaded {1:d} stocks'.format(self.rec_name, num))
+
+
+    def upload_stk(self, db_tbl, stk, sd, ed, rec_interval) :
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts.splits.clear()
+        splits   = db_read_cmd("select dt, ratio from {0:s} where stk='{1:s}'"\
+                               " and implied = 1".format(self.split_tbl, stk))
+        for s in splits:
+            ts.splits[pd.to_datetime(next_busday(s[0]))] = float(s[1])
+        ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
+        with open(self.eod_name, 'w') as ofile :
+            for idx, row in ts.df.iterrows() :
+                if row['v'] > 0 :
+                    ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t'\
+                                '{4:.2f}\t{5:.2f}\t{6:.0f}\n'.\
+                                format(stk, str(idx.date()), row['o'],
+                                       row['h'], row['l'], row['c'],
+                                       row['v']))
+        db_upload_file(self.eod_name, db_tbl, 2)
+        db_write_cmd("update reconciliation set status={0:d} where "\
+                     "stk='{1:s}' and recon_interval='{2:s}' and "\
+                     "recon_name='{3:s}'".format(self.status_ok, stk,
+                                                 rec_interval, self.rec_name))
+
             
 if __name__ == '__main__' :
     ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
