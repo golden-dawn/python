@@ -219,6 +219,11 @@ class StxEOD :
             e = sys.exc_info()[1]
             print('Failed to upload splits, error {0:s}'.format(str(e)))
 
+            
+    # Load data from EODData data source in the database. There is a
+    # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
+    # overlap of 5 days with the previous reconciliation interval
+    # (covering up to 2012-12-31)
     def load_eoddata_files(self, sd = '2013-01-02', ed = '2013-11-15') :
         dt        = move_busdays(sd, -5)
         fnames    = [self.in_dir + '/AMEX_{0:s}.txt',
@@ -237,6 +242,10 @@ class StxEOD :
                 print('Failed to upload {0:s}, error {1:s}'.format(dt, str(e)))
             dt    = next_busday(dt)
 
+
+    # Load data from a single EODData file in the database Perform
+    # some quality checks on the data: do not upload days where volume
+    # is 0, or where the open/close are outside the [low, high] range.
     def load_eoddata_file(self, ofile, ifname, dt, dtc) :
         with open(ifname, 'r') as ifile :
             lines = ifile.readlines()
@@ -313,7 +322,15 @@ class StxEOD :
             return df
         return "'{0:s}','{1:s}','{2:s}','{3:s}',{4:d},{5:.2f},{6:.4f}".\
             format(s_spot, e_spot, s_df, e_df, len(res), cov, mse)    
-    
+
+
+    # This function detects differences in the ratio between the spot
+    # prices (from opt_spots table) and the closing prices from the
+    # EOD table.  When the ratio changes, we assume there is a split.
+    # To avoid defining a split for every spike ina ratio (which can
+    # be due, for instancem to one day with wrong data), we are
+    # looking at the ratio to stay the same over three days before the
+    # day where the ratio change and 2 days after.
     def calc_implied_splits(self, df, stk, sd, ed) :
         db_write_cmd("delete from {0:s} where stk = '{1:s}' and dt between "\
                      "'{2:s}' and '{3:s}' and implied = 1".\
@@ -358,28 +375,39 @@ class StxEOD :
         df.drop(['c'], inplace = True, axis = 1)
         df         = df.join(ts.df[['c']])
         # calculate statistics: coverage and mean square error
-        msefun     = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
-                     else pow(1 - x['c']/x['spot'], 2)
-        # msefun     = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
-        #              or (x['spot'] == x['s1'] and x['spot'] == x['s2']) or \
-        #              (x['spot'] == x['s-1'] and x['spot'] == x['s-2']) else \
-        #              pow(1 - x['spot']/x['c'], 2)
-        df['mse']  = df.apply(msefun, axis=1)
-        accuracy   = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)),
-                         0.5)
+        msefun    = lambda x: 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
+                    else pow(1 - x['c']/x['spot'], 2)
+        df['mse'] = df.apply(msefun, axis=1)
+        mse       = pow(df['mse'].sum()/min(len(df['mse']), len(spot_df)), 0.5)
         if dbg :
             df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}{2:s}_recon.csv'.\
                       format(ts.stk, self.eod_tbl, sfx))
-        return df, coverage, accuracy
+        return df, coverage, mse
 
+
+    
     def cleanup(self) :
         db_write_cmd('drop table `{0:s}`'.format(self.eod_tbl))
         db_write_cmd('drop table `{0:s}`'.format(self.split_tbl))
+
         
     def cleanup_data_folder(self) :
         if os.path.exists(self.in_dir) :
             rmtree('{0:s}'.format(self.in_dir))
 
+
+    # This function detects any errors in the reconciled data
+    # (obtained after applying the calc_implied_splits function).
+    # Errors can be due either to a spike in the spot or the closing
+    # price, to mismatches over a large period of time (mostly due I
+    # think, to symbol changes), and errors that have the same value
+    # over a large time interval, and point to a missed split/large
+    # dividend.  The errors are reduced in two ways: by applying a
+    # split for large sequences of errors that have the same error
+    # value, and by deleting data in an interval where the values of
+    # the errors are different each day.  The removal of records, and
+    # the application of new implied splits (implied database table
+    # field is set to 1) is done directly in the database.
     def autocorrect(self, df, spot_df, stk, sd, ed) :
         df_err               = df.query('mse>0.01')
         start                = len(df_err) - 1
@@ -429,7 +457,10 @@ class StxEOD :
                                                   str(s[0].date()), s[1]))
         df, ts                = self.build_df_ts(spot_df, stk, sd, ed)
         return len(wrong_recs), df, ts
-    
+
+
+    # Utility function that builds a stock time series and a data
+    # frame that will include the reconciliation calculations.
     def build_df_ts(self, spot_df, stk, sd, ed) :
         try :
             ts           = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
@@ -440,6 +471,14 @@ class StxEOD :
             df['s{0:d}'.format(i)]  = df['spot'].shift(-i)
         return df, ts
 
+
+    # Once the reconciliation is performed, select all the
+    # reconciilations performed on a specific set of data for which
+    # the coverage is above a pre-defined threshold and the mean
+    # square error is below a pre-defined threshold.  For each stock
+    # that satisfies these criteria, retrieve all the implied splits,
+    # apply reverse adjustments for each implied split, and upload the
+    # data in the final EOD table.
     def upload_eod(self, db_tbl, stx = '', sd = None, ed = None,
                    max_mse = 0.02, min_coverage = 80) :
         db_create_missing_table(db_tbl, self.sql_create_eod)
