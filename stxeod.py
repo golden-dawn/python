@@ -535,7 +535,19 @@ class StxEOD :
                      "recon_name='{3:s}'".format(self.status_ok, stk,
                                                  rec_interval, self.rec_name))
 
-            
+
+    # Capture all the large price changes without a volume that is
+    # larger than the average, and check that these are not missed
+    # splits.  Also, check split data coming from several sources
+    # (mypivots, deltaneutral, my DB, EODData), make sure that these
+    # splits are reflected in the EOD data, and, if they are, make
+    # sure that they are added to the splits database.
+    def split_reconciliation(self, stk, sd, ed) :
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts.df['chg'] = ts.df['c'].pct_change()
+        ts.df['avg_v20'] = ts.df['v'].mean(20)
+        
+        
 if __name__ == '__main__' :
     ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
     ed_eod.load_eoddata_files()
