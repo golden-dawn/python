@@ -540,10 +540,33 @@ class StxEOD:
     # (mypivots, deltaneutral, my DB, EODData), make sure that these
     # splits are reflected in the EOD data, and, if they are, make
     # sure that they are added to the splits database.
-    def split_reconciliation(self, stk, sd, ed):
+    def split_reconciliation(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
-        ts.df['chg'] = ts.df['c'].pct_change()
-        ts.df['avg_v20'] = ts.df['v'].mean(20)
+        ts.df['chg'] = ts.df['c'].pct_change().abs()
+        ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
+        ts.df['avg_v20'] = ts.df['v'].shift().rolling(20).mean()
+        ts.df['avg_v50'] = ts.df['v'].rolling(50).mean()
+        df_review = ts.df.query('chg>=0.15 and chg>2*avg_chg20 and '
+                                'v<(0.5+10*chg)*avg_v50 and avg_v20>1000')
+        all_splits = {}
+        for split_table in split_tbls:
+            res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
+                                    "stk='{1:s}' and implied = 0".
+                                    format(split_table, stk))
+            all_splits[split_table] = {stxcal.next_busday(x[0]): x[1]
+                                       for x in res}
+        for idx, row in df_review.iterrows():
+            tbl = ''
+            if idx not in ts.splits:
+                spike_dt = str(idx.date())
+                for tbl_name, splits in all_splits.items():
+                    if spike_dt in splits:
+                        tbl = '{0:s} {1:f}'.format(tbl_name, splits[spike_dt])
+                print('{0:s}{1:6.2f}{2:6.2f}{3:6.2f}{4:6.2f}{5:9.0f}'
+                      ' {6:5.3f} {7:5.3f}{8:9.0f} {9:s}'.
+                      format(spike_dt, row['o'], row['h'], row['l'],
+                             row['c'], row['v'], row['chg'],
+                             row['avg_chg20'], row['avg_v50'], tbl))
 
 
 if __name__ == '__main__':
