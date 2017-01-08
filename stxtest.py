@@ -248,7 +248,7 @@ class Test4StxEOD(unittest.TestCase):
         stxdb.db_create_missing_table(
             self.dn_eod_tbl,
             StxEOD.sql_create_eod.format(self.dn_eod_tbl))
-        stxcal.db_create_missing_table(
+        stxdb.db_create_missing_table(
             self.dn_split_tbl,
             StxEOD.sql_create_split.format(self.dn_split_tbl))
         dirname = self.dn_in_dir
