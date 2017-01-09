@@ -2,7 +2,8 @@ import collections
 import csv
 import pandas as pd
 from recordclass import recordclass
-from stxcal import StxCal
+import stxcal
+import stxdb
 from stxjl import StxJL
 from stxts import StxTS
 
@@ -17,7 +18,7 @@ IndRanks = recordclass("IndRanks", "r_rs_252, udv_21, udv_42, udv_63, rs_21, "
 
 # check for breakouts / breakdowns. Consider only the setups where the
 # length of the base is >= 30 business days
-def check_for_breaks(ts, jl, sc, pivs, sgn):
+def check_for_breaks(ts, jl, pivs, sgn):
     if sgn == 0 or len(pivs) < 2:
         return None, None, None
     last_state = jl.last_rec('state')
@@ -59,7 +60,7 @@ def check_for_breaks(ts, jl, sc, pivs, sgn):
         if sgn * prev_lns > max_px and prev_state != StxJL.NRe:
             continue
         sdt = pivs[ixx].dt
-        base_length = sc.num_busdays(sdt, edt)
+        base_length = stxcal.num_busdays(sdt, edt)
         if base_length >= 30:
             return 'call' if sgn == 1 else 'put', \
                 'breakout' if sgn == 1 else 'breakdown', \
@@ -67,7 +68,7 @@ def check_for_breaks(ts, jl, sc, pivs, sgn):
     return None, None, None
 
 
-def check_for_pullbacks(ts, jl, sc, sgn):
+def check_for_pullbacks(ts, jl, sgn):
     pivs = jl.get_num_pivots(4)
     if len(pivs) < 2 or sgn == 0:
         return None, None, None
@@ -112,10 +113,10 @@ def check_for_trend(ts, cp, min_call, max_put):
     return cp, min_call, max_put
 
 
-def get_trade_type(ts, sc, jl_150, jl_050, pivs, lt_trend, min_call, max_put):
+def get_trade_type(ts, jl_150, jl_050, pivs, lt_trend, min_call, max_put):
     # print('{0:s}: ldr = {1:.0f}'.format(ts.current_date(),
     #                                     ts.current('ldr')))
-    cp, stp, avg_rg = check_for_breaks(ts, jl_150, sc, pivs, lt_trend)
+    cp, stp, avg_rg = check_for_breaks(ts, jl_150, pivs, lt_trend)
     if cp == 'call':
         min_call = ts.current('c')
     if cp == 'put':
@@ -126,32 +127,32 @@ def get_trade_type(ts, sc, jl_150, jl_050, pivs, lt_trend, min_call, max_put):
     #     cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
     if cp is not None:
         return cp, stp, avg_rg, min_call, max_put
-    cp, stp, avg_rg = check_for_pullbacks(ts, jl_050, sc, lt_trend)
+    cp, stp, avg_rg = check_for_pullbacks(ts, jl_050, lt_trend)
     if cp is not None:
         cp, min_call, max_put = check_for_trend(ts, cp, min_call, max_put)
     return cp, stp, avg_rg, min_call, max_put
 
 
-def get_trade_opts(stk, exp, cp, cc, rg, dt, cnx, rg_fctr=0):
+def get_trade_opts(stk, exp, cp, cc, rg, dt, rg_fctr=0):
     # print('get_trade_opts: stk={0:s}, exp={1:s}, cp={2:s}, cc={3:.2f}, '
     #       'rg={4:.2f}, dt={5:s}, rg_fctr={6:.2f}'.
     #       format(stk, exp, cp, cc, rg, dt, rg_fctr))
     if cp == "call":
-        all_q = "select strike,dt,bid,ask from opts where exp='%s' and und=" \
-                "'%s' and strike <= %.2f and cp='call'" % \
-                (exp, ts.stk, cc + rg * rg_fctr)
+        all_q = "select strike,dt,bid,ask from opts where exp='{0:s}' and "\
+                "und='{1:s}' and strike <= {2:.2f} and cp='call'".format(
+                    exp, ts.stk, cc + rg * rg_fctr)
         # "'%s' and strike <= %.2f and cp='call'" % (exp, ts.stk, lns_px)
     else:
-        all_q = "select strike,dt,bid,ask from opts where exp='%s' and und="\
-                "'%s' and strike >= %.2f and cp='put'" % \
-                (exp, ts.stk, cc - rg * rg_fctr)
+        all_q = "select strike,dt,bid,ask from opts where exp='{0:s}' and "\
+                "und='{1:s}' and strike >= {2:.2f} and cp='put'".format(
+                    exp, ts.stk, cc - rg * rg_fctr)
         # "'%s' and strike >= %.2f and cp='put'" % (exp, ts.stk, lns_px)
     opt_q = "{0:s} and dt='{1:s}'".format(all_q, dt)
     # dbg = (dt == '2004-02-12')
     # if dbg:
     #     print('dt={0:s}, opt_q={1:s}'.format(dt, opt_q))
-    crt_opts = pd.read_sql(opt_q, ts.cnx)
-    opts = pd.read_sql(all_q, ts.cnx)
+    crt_opts = pd.read_sql(opt_q, stxdb.db_get_cnx())
+    opts = pd.read_sql(all_q, stxdb.db_get_cnx())
     strike = crt_opts['strike'].max() if cp == 'call' else \
         crt_opts['strike'].min()
     # if dbg:
@@ -165,12 +166,12 @@ def get_trade_opts(stk, exp, cp, cc, rg, dt, cnx, rg_fctr=0):
     return t_opts, strike
 
 
-def trade(ts, sc, cp, sl, rg, stp, ind_ranks):
+def trade(ts, cp, sl, rg, stp, ind_ranks):
     crt_dt = ts.current_date()
     cc = ts.current('c')
-    exp = str(sc.next_expiry(crt_dt, 15))
-    exp_bd = str(sc.prev_busday(sc.move_busdays(exp, 0)).date())
-    t_opts, strike = get_trade_opts(ts.stk, exp, cp, cc, rg, crt_dt, ts.cnx)
+    exp = str(stxcal.next_expiry(crt_dt, 15))
+    exp_bd = str(stxcal.prev_busday(stxcal.move_busdays(exp, 0)).date())
+    t_opts, strike = get_trade_opts(ts.stk, exp, cp, cc, rg, crt_dt)
     if t_opts.get(crt_dt) is None or t_opts[crt_dt][1] == 0:
         return None
     num = int(6 / t_opts[crt_dt][1]) * 100
@@ -184,7 +185,7 @@ def to_short_string(trd):
         format(trd.stk, trd.opt_in.dt, trd.cp, trd.exp, trd.strike, trd.exp_bd)
 
 
-def risk_mgmt(sc, ts, open_trades, trades):
+def risk_mgmt(ts, open_trades, trades):
     crt_dt = ts.current_date()
     closed_trades = []
     for trd in open_trades:
@@ -264,7 +265,7 @@ def get_trend(ts, jl, pivs):
     return 0
 
 
-def analyze(ts, sc, calls, puts, fname, fmode):
+def analyze(ts, calls, puts, fname, fmode):
     trades = []
     open_trades = []
     min_call = -1
@@ -292,12 +293,12 @@ def analyze(ts, sc, calls, puts, fname, fmode):
             jl_150.nextjl()
             jl_050.nextjl()
             pivs = jl_150.get_pivots_in_days(400)
-            risk_mgmt(sc, ts, open_trades, trades)
+            risk_mgmt(ts, open_trades, trades)
             # for piv in pivs(
             lt_trend = get_trend(ts, jl_150, pivs)
             # print('{0:s}: lt_trend={1:d}'.format(crt_dt, lt_trend))
             cp, stp, sl, min_call, max_put = get_trade_type(
-                ts, sc, jl_150, jl_050, pivs, lt_trend, min_call, max_put)
+                ts, jl_150, jl_050, pivs, lt_trend, min_call, max_put)
             if cp is not None:
                 print('{0:s} {1:s} {2:s}'.format(crt_dt, cp, stp))
                 trades_by_exp = calls if cp == 'call' else puts
@@ -305,7 +306,7 @@ def analyze(ts, sc, calls, puts, fname, fmode):
                 if stk_trades_by_exp is None:
                     stk_trades_by_exp = {}
                     trades_by_exp[stk] = stk_trades_by_exp
-                exp = str(sc.next_expiry(crt_dt, 15))
+                exp = str(stxcal.next_expiry(crt_dt, 15))
                 open_trades_by_exp = stk_trades_by_exp.get(exp)
                 if open_trades_by_exp is not None:
                     print('{0:s}: Trade already there {1:s}'.
@@ -318,7 +319,7 @@ def analyze(ts, sc, calls, puts, fname, fmode):
                                          ts.current('rs_21b'),
                                          ts.current('rs_min_252'),
                                          ts.current('rs_min_252b'))
-                    trd = trade(ts, sc, cp, sl, jl_150.last_rec('rg'),
+                    trd = trade(ts, cp, sl, jl_150.last_rec('rg'),
                                 stp, ind_ranks)
                     if trd is not None:
                         open_trades.append(trd)
@@ -328,7 +329,7 @@ def analyze(ts, sc, calls, puts, fname, fmode):
             ratio = ts.splits.get(pd.Timestamp(crt_dt))
             # print('dt={0:s}, ratio={1:s}'.format(crt_dt, str(ratio)))
             if ratio is not None:
-                next_bd = str(sc.next_busday(crt_dt).date())
+                next_bd = str(stxcal.next_busday(crt_dt).date())
                 # print('FOUND SPLIT: dt={0:s}, ratio={1:.2f}, next_bd={2:s}'.\
                 #       format(crt_dt, ratio, next_bd))
                 min_call = min_call * ratio
@@ -341,7 +342,7 @@ def analyze(ts, sc, calls, puts, fname, fmode):
                     trd.avg_range = trd.avg_range * ratio
                     trd.opts, strike = get_trade_opts(
                         ts.stk, trd.exp, trd.cp, trd.strike, trd.avg_range,
-                        next_bd, ts.cnx, 0.1 / trd.avg_range)
+                        next_bd, 0.1 / trd.avg_range)
                     # print(trd.opts)
     with open(fname, fmode, newline='') as fp:
         wrtr = csv.writer(fp, delimiter=',')
@@ -363,7 +364,6 @@ stx = 'NFLX'
 name = 'c3'
 sd = '2001-01-01'
 ed = '2013-12-31'
-sc = StxCal()
 ixx = 0
 slst = stx.split(',')
 fname = '{0:s}_8.csv'.format(stx if len(slst) == 1 else name)
@@ -385,4 +385,4 @@ for stk in slst:
     puts = {}
     fmode = 'w' if ixx == 0 else 'a'
     ixx += 1
-    analyze(ts, sc, calls, puts, fname, fmode)
+    analyze(ts, calls, puts, fname, fmode)
