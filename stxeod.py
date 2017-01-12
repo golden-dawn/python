@@ -30,15 +30,9 @@ class StxEOD:
                        '`stk` varchar(8) NOT NULL,'\
                        '`dt` varchar(10) NOT NULL,'\
                        '`ratio` decimal(8,4) DEFAULT NULL,'\
+                       '`implied` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
-    sql_create_split1 = 'CREATE TABLE `{0:s}` ('\
-                        '`stk` varchar(8) NOT NULL,'\
-                        '`dt` varchar(10) NOT NULL,'\
-                        '`ratio` decimal(8,4) DEFAULT NULL,'\
-                        '`implied` tinyint DEFAULT 0,'\
-                        'PRIMARY KEY (`stk`,`dt`)'\
-                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
     sql_create_recon = 'CREATE TABLE `reconciliation` ('\
                        '`stk` varchar(8) NOT NULL,'\
                        '`recon_name` varchar(10) NOT NULL,'\
@@ -65,7 +59,7 @@ class StxEOD:
         self.extension = extension
         stxdb.db_create_missing_table(eod_tbl, self.sql_create_eod)
         print('EOD DB table: {0:s}'.format(eod_tbl))
-        stxdb.db_create_missing_table(split_tbl, self.sql_create_split1)
+        stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
         print('Split DB table: {0:s}'.format(split_tbl))
         stxdb.db_create_missing_table('reconciliation', self.sql_create_recon)
 
@@ -222,8 +216,8 @@ class StxEOD:
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
-    def load_eoddata_files(self, sd='2013-01-02', ed='2013-11-15'):
-        dt = stxcal.move_busdays(sd, -5)
+    def load_eoddata_files(self, sd='2013-01-01', ed='2012-12-21'):
+        dt = stxcal.move_busdays(sd, -25)
         fnames = [self.in_dir + '/AMEX_{0:s}.txt',
                   self.in_dir + '/NASDAQ_{0:s}.txt',
                   self.in_dir + '/NYSE_{0:s}.txt']
@@ -270,7 +264,7 @@ class StxEOD:
         else:
             stk_list = stx.split(',')
         if sd is None:
-            sd = '2002-02-08'
+            sd = '2001-01-01'
         if ed is None:
             ed = datetime.now().strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format(
@@ -476,11 +470,12 @@ class StxEOD:
     # that satisfies these criteria, retrieve all the implied splits,
     # apply reverse adjustments for each implied split, and upload the
     # data in the final EOD table.
-    def upload_eod(self, db_tbl, stx='', sd=None, ed=None,
+    def upload_eod(self, eod_table, split_table, stx='', sd=None, ed=None,
                    max_mse=0.02, min_coverage=80):
-        stxdb.db_create_missing_table(db_tbl, self.sql_create_eod)
+        stxdb.db_create_missing_table(eod_table, self.sql_create_eod)
+        stxdb.db_create_missing_table(split_table, self.sql_create_split)
         if sd is None:
-            sd = '2002-02-08'
+            sd = '2001-01-01'
         if ed is None:
             ed = datetime.now().strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format(sd.replace('-', ''),
@@ -502,7 +497,8 @@ class StxEOD:
                                     format(stk, rec_interval, self.status_ok))
             if not res:
                 try:
-                    self.upload_stk(db_tbl, stk, sd, ed, rec_interval)
+                    self.upload_stk(eod_table, split_table, stk, sd, ed,
+                                    rec_interval)
                     num += 1
                 except:
                     e = sys.exc_info()[1]
@@ -510,12 +506,14 @@ class StxEOD:
                           format(stk, str(e)))
         print('{0:s} - uploaded {1:d} stocks'.format(self.rec_name, num))
 
-    def upload_stk(self, db_tbl, stk, sd, ed, rec_interval):
+    def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.splits.clear()
         splits = stxdb.db_read_cmd("select dt, ratio from {0:s} where "
                                    "stk='{1:s}' and implied = 1".
                                    format(self.split_tbl, stk))
+        # for implied splits, need to perform a reverse adjustment
+        # for the adjustment to work, move the split date to next business day
         for s in splits:
             ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = float(s[1])
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv=1)
@@ -527,7 +525,18 @@ class StxEOD:
                                 format(stk, str(idx.date()), row['o'],
                                        row['h'], row['l'], row['c'],
                                        row['v']))
-        stxdb.db_upload_file(self.eod_name, db_tbl, 2)
+        # upload the eod data in the database
+        stxdb.db_upload_file(self.eod_name, eod_table, 2)
+        # for implied splits, move split date back 1 day to undo adjustment
+        for s in splits:
+            val = ts.splits.pop(pd.to_datetime(stxcal.next_busday(s[0])))
+            ts.splits[pd.to_datetime(s[0])] = val
+        # upload all the splits in a new split table
+        for dt in ts.splits:
+            sql = "insert into {0:s} values ('{1:s}','{2:s}',{3:.4f})".\
+                  format(split_table, stk, str(dt.date()), ts.splits[dt])
+            stxdb.db_write_cmd(sql)
+        # update the reconciilation table
         stxdb.db_write_cmd("update reconciliation set status={0:d} where "
                            "stk='{1:s}' and recon_interval='{2:s}' and "
                            "recon_name='{3:s}'".
@@ -561,9 +570,17 @@ class StxEOD:
                 spike_dt = str(idx.date())
                 for tbl_name, splits in all_splits.items():
                     if spike_dt in splits:
-                        tbl = '{0:s} {1:f}'.format(tbl_name, splits[spike_dt])
+                        tbl = '{0:s} {1:9s} {2:7.4f}'.format(tbl, tbl_name,
+                                                             splits[spike_dt])
+                        sql = "insert into {0:s} values ('{1:s}',{2:s},"\
+                              "{3:.4f})".format(self.split_tbl, stk, spike_dt,
+                                                splits[spike_dt])
+                        try:
+                            stxdb.db_write_cmd(sql)
+                        except:
+                            pass
                 print('{0:s}{1:6.2f}{2:6.2f}{3:6.2f}{4:6.2f}{5:9.0f}'
-                      ' {6:5.3f} {7:5.3f}{8:9.0f} {9:s}'.
+                      ' {6:5.3f} {7:5.3f}{8:9.0f} {9:9s} {10:.4f}'.
                       format(spike_dt, row['o'], row['h'], row['l'],
                              row['c'], row['v'], row['chg'],
                              row['avg_chg20'], row['avg_v50'], tbl))
