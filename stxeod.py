@@ -533,7 +533,7 @@ class StxEOD:
             ts.splits[pd.to_datetime(s[0])] = val
         # upload all the splits in a new split table
         for dt in ts.splits:
-            sql = "insert into {0:s} values ('{1:s}','{2:s}',{3:.4f})".\
+            sql = "insert into {0:s} values ('{1:s}','{2:s}',{3:.4f},0)".\
                   format(split_table, stk, str(dt.date()), ts.splits[dt])
             stxdb.db_write_cmd(sql)
         # update the reconciilation table
@@ -584,6 +584,16 @@ class StxEOD:
                       format(spike_dt, row['o'], row['h'], row['l'],
                              row['c'], row['v'], row['chg'],
                              row['avg_chg20'], row['avg_v50'], tbl))
+
+    def volume_check(self):
+        # ts.set_day('2006-12-18')
+        # ts.next_day()
+        # df1 = ts.df[['v']].ix[ts.pos-20:ts.pos]
+        # av1 = round(df1[['v']].mean()['v'], 0)
+        # df2 = ts.df[['v']].ix[ts.pos+1:ts.pos+21]
+        # av2 = round(df2[['v']].mean()['v'], 0)
+        # av2/av1
+        pass
 
 
 if __name__ == '__main__':
