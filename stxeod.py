@@ -568,18 +568,22 @@ class StxEOD:
                     if spike_dt in splits:
                         tbl = '{0:s} {1:9s} {2:7.4f}'.format(tbl, tbl_name,
                                                              splits[spike_dt])
-                        sql = "insert into {0:s} values ('{1:s}',{2:s},"\
-                              "{3:.4f})".format(self.split_tbl, stk, spike_dt,
-                                                splits[spike_dt])
+                        sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
+                              "{3:.4f},0)".format(self.split_tbl, stk,
+                                                  spike_dt, splits[spike_dt])
                         try:
                             stxdb.db_write_cmd(sql)
                         except:
+                            e = sys.exc_info()[1]
+                            print('SQL {0:s} failed, error {1:s}'.
+                                  format(sql, str(e)))
                             pass
-                print('{0:s}{1:6.2f}{2:6.2f}{3:6.2f}{4:6.2f}{5:9.0f}'
-                      ' {6:5.3f} {7:5.3f}{8:9.0f} {9:9s} {10:.4f}'.
-                      format(spike_dt, row['o'], row['h'], row['l'],
-                             row['c'], row['v'], row['chg'],
-                             row['avg_chg20'], row['avg_v50'], tbl))
+                with open('c:/goldendawn/splits_recon.txt', 'a') as ofile:
+                    ofile.write('{0:s}{1:6.2f}{2:6.2f}{3:6.2f}{4:6.2f}{5:9.0f}'
+                                ' {6:5.3f} {7:5.3f}{8:9.0f} {9:9s}'.
+                                format(spike_dt, row['o'], row['h'], row['l'],
+                                       row['c'], row['v'], row['chg'],
+                                       row['avg_chg20'], row['avg_v50'], tbl))
 
     def volume_check(self):
         # ts.set_day('2006-12-18')

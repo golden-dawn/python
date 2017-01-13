@@ -374,7 +374,18 @@ class Test4StxEOD(unittest.TestCase):
                         res2[0] == ('AEOS', '2005-03-07', Decimal('0.4999'),
                                     1))
 
-    def test_6_merge_eod_tbls(self):
+    def test_6_split_recon(self):
+        # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod.split_reconciliation('AEOS', '2001-01-01', '2012-12-31',
+                                    ['splits', 'my_split_test'])
+        res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
+                                .format(dn_eod.split_tbl, 'AEOS'))
+        self.assertTrue(
+            res[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1) and
+            res[1] == ('AEOS', '2006-12-19', Decimal('0.6700'), 0))
+
+    def test_7_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
         my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
@@ -432,7 +443,7 @@ class Test4StxEOD(unittest.TestCase):
                         res5[2] == ('NFLX', 1) and
                         res5[3] == ('TIE', 2))
 
-    def test_7_teardown(self):
+    def test_8_teardown(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
         my_eod.cleanup()
