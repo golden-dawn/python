@@ -509,12 +509,12 @@ class StxEOD:
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.splits.clear()
-        splits = stxdb.db_read_cmd("select dt, ratio from {0:s} where "
-                                   "stk='{1:s}' and implied = 1".
-                                   format(self.split_tbl, stk))
+        impl_splits = stxdb.db_read_cmd("select dt, ratio from {0:s} where "
+                                        "stk='{1:s}' and implied = 1".
+                                        format(self.split_tbl, stk))
         # for implied splits, need to perform a reverse adjustment
         # for the adjustment to work, move the split date to next business day
-        for s in splits:
+        for s in impl_splits:
             ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = float(s[1])
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv=1)
         with open(self.eod_name, 'w') as ofile:
@@ -527,15 +527,11 @@ class StxEOD:
                                        row['v']))
         # upload the eod data in the database
         stxdb.db_upload_file(self.eod_name, eod_table, 2)
-        # for implied splits, move split date back 1 day to undo adjustment
-        for s in splits:
-            val = ts.splits.pop(pd.to_datetime(stxcal.next_busday(s[0])))
-            ts.splits[pd.to_datetime(s[0])] = val
-        # upload all the splits in a new split table
-        for dt in ts.splits:
-            sql = "insert into {0:s} values ('{1:s}','{2:s}',{3:.4f},0)".\
-                  format(split_table, stk, str(dt.date()), ts.splits[dt])
-            stxdb.db_write_cmd(sql)
+        # finally, upload all the splits into the final split table
+        stxdb.db_write_cmd('insert into {0:s} (stk,dt,ratio,implied) '
+                           'select stk, dt, ratio, implied from {1:s} '
+                           "where stk='{2:s}'".
+                           format(split_table, self.split_tbl, stk))
         # update the reconciilation table
         stxdb.db_write_cmd("update reconciliation set status={0:d} where "
                            "stk='{1:s}' and recon_interval='{2:s}' and "

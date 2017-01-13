@@ -393,9 +393,8 @@ class Test4StxEOD(unittest.TestCase):
         res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and dt "
                                  "between '2003-08-08' and '2005-07-21'".
                                  format(self.eod_test))
-        res5 = stxdb.db_read_cmd("select * from {0:s} where stk='AEOS'".
-                                 format(self.split_test))
-        print(res5)
+        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
+                                 'group by stk'.format(self.split_test))
         self.assertTrue(res1[0][2] == Decimal('69.06') and
                         res1[0][3] == Decimal('69.38') and
                         res1[0][4] == Decimal('68.40') and
@@ -427,7 +426,11 @@ class Test4StxEOD(unittest.TestCase):
                         res3[1][5] == Decimal('37.96') and
                         res3[1][6] == 11771300 and
                         res4[0][1] == '2003-08-08' and
-                        res4[1][1] == '2005-07-21')
+                        res4[1][1] == '2005-07-21' and
+                        res5[0] == ('AEOS', 6) and
+                        res5[1] == ('EXPE', 1) and
+                        res5[2] == ('NFLX', 1) and
+                        res5[3] == ('TIE', 2))
 
     def test_7_teardown(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
