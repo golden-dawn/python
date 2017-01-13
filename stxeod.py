@@ -33,9 +33,9 @@ class StxEOD:
                        '`implied` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
-    sql_create_recon = 'CREATE TABLE `reconciliation` ('\
+    sql_create_recon = 'CREATE TABLE `{0:s}` ('\
                        '`stk` varchar(8) NOT NULL,'\
-                       '`recon_name` varchar(10) NOT NULL,'\
+                       '`recon_name` varchar(16) NOT NULL,'\
                        '`recon_interval` char(18) NOT NULL,'\
                        '`s_spot` char(10) DEFAULT NULL,'\
                        '`e_spot` char(10) DEFAULT NULL,'\
@@ -51,17 +51,19 @@ class StxEOD:
     status_ok = 1
     status_ko = 2
 
-    def __init__(self, in_dir, eod_tbl, split_tbl, extension='.txt'):
+    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl,
+                 extension='.txt'):
         self.in_dir = in_dir
         self.eod_tbl = eod_tbl
         self.rec_name = eod_tbl
         self.split_tbl = split_tbl
+        self.recon_tbl = recon_tbl
         self.extension = extension
         stxdb.db_create_missing_table(eod_tbl, self.sql_create_eod)
-        print('EOD DB table: {0:s}'.format(eod_tbl))
+        # print('EOD DB table: {0:s}'.format(eod_tbl))
         stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
-        print('Split DB table: {0:s}'.format(split_tbl))
-        stxdb.db_create_missing_table('reconciliation', self.sql_create_recon)
+        # print('Split DB table: {0:s}'.format(split_tbl))
+        stxdb.db_create_missing_table(recon_tbl, self.sql_create_recon)
 
     # Load my historical data.  Load each stock and accumulate splits.
     # Upload splits at the end.
@@ -273,10 +275,10 @@ class StxEOD:
         for stk in stk_list:
             res = self.reconcile_opt_spots(stk, sd, ed, dbg)
             if not dbg:
-                stxdb.db_write_cmd("insert into reconciliation values "
-                                   "('{0:s}','{1:s}','{2:s}',{3:s},0)".
-                                   format(stk, self.rec_name, rec_interval,
-                                          res))
+                stxdb.db_write_cmd("insert into {0:s} values "
+                                   "('{1:s}','{2:s}','{3:s}',{4:s},0)".
+                                   format(self.recon_tbl, stk, self.rec_name,
+                                          rec_interval, res))
 
     # Perform reconciliation for a single stock. If we cannot get the
     # EOD data, return N/A. Otherwise, return, for each stock, the
@@ -381,8 +383,16 @@ class StxEOD:
         return df, coverage, mse
 
     def cleanup(self):
+        # drop the EOD and splits tables
         stxdb.db_write_cmd('drop table `{0:s}`'.format(self.eod_tbl))
         stxdb.db_write_cmd('drop table `{0:s}`'.format(self.split_tbl))
+        # if reconciliation table exists, delete all the records that
+        # correspond to the self.recon_name variable
+        res = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                format(self.recon_tbl))
+        if res:
+            stxdb.db_write_cmd("delete from {0:s} where recon_name='{1:s}'".
+                               format(self.recon_tbl, self.rec_name))
 
     def cleanup_data_folder(self):
         if os.path.exists(self.in_dir):
@@ -480,9 +490,10 @@ class StxEOD:
             ed = datetime.now().strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format(sd.replace('-', ''),
                                             ed.replace('-', ''))
-        sql = "select stk from reconciliation where recon_name='{0:s}' and "\
-              "recon_interval='{1:s}' and mse<={2:f} and coverage>={3:f}".\
-              format(self.rec_name, rec_interval, max_mse, min_coverage)
+        sql = "select stk from {0:s} where recon_name='{1:s}' and "\
+              "recon_interval='{2:s}' and mse<={3:f} and coverage>={4:f}".\
+              format(self.recon_tbl, self.rec_name, rec_interval, max_mse,
+                     min_coverage)
         if stx != '':
             sql = "{0:s} and stk in ('{1:s}')".\
                   format(sql, stx.replace(',', "','"))
@@ -491,10 +502,11 @@ class StxEOD:
         num = 0
         # apply the split adjustments
         for stk in stk_list:
-            res = stxdb.db_read_cmd("select * from reconciliation where "
-                                    "stk='{0:s}' and recon_interval='{1:s}' "
-                                    "and status={2:d}".
-                                    format(stk, rec_interval, self.status_ok))
+            res = stxdb.db_read_cmd("select * from {0:s} where "
+                                    "stk='{1:s}' and recon_interval='{2:s}' "
+                                    "and status={3:d}".
+                                    format(self.recon_tbl, stk, rec_interval,
+                                           self.status_ok))
             if not res:
                 try:
                     self.upload_stk(eod_table, split_table, stk, sd, ed,
@@ -533,11 +545,11 @@ class StxEOD:
                            "where stk='{2:s}'".
                            format(split_table, self.split_tbl, stk))
         # update the reconciilation table
-        stxdb.db_write_cmd("update reconciliation set status={0:d} where "
-                           "stk='{1:s}' and recon_interval='{2:s}' and "
-                           "recon_name='{3:s}'".
-                           format(self.status_ok, stk, rec_interval,
-                                  self.rec_name))
+        stxdb.db_write_cmd("update {0:s} set status={1:d} where "
+                           "stk='{2:s}' and recon_interval='{3:s}' and "
+                           "recon_name='{4:s}'".
+                           format(self.recon_tbl, self.status_ok, stk,
+                                  rec_interval, self.rec_name))
 
     # Capture all the large price changes without a volume that is
     # larger than the average, and check that these are not missed

@@ -223,6 +223,7 @@ class Test4StxEOD(unittest.TestCase):
         self.dn_eod_tbl = 'dn_eod_test'
         self.my_split_tbl = 'my_split_test'
         self.dn_split_tbl = 'dn_split_test'
+        self.recon_tbl = 'reconciliation_test'
         self.my_in_dir = 'C:/goldendawn/my_test'
         self.dn_in_dir = 'C:/goldendawn/dn_test'
         self.my_dir = 'C:/goldendawn/bkp'
@@ -255,7 +256,8 @@ class Test4StxEOD(unittest.TestCase):
         dirname = self.dn_in_dir
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                      self.recon_tbl)
         seod.cleanup()
         seod.cleanup_data_folder()
         res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
@@ -266,7 +268,8 @@ class Test4StxEOD(unittest.TestCase):
                         (not os.path.exists(dirname)))
 
     def test_2_load_my_data(self):
-        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
         my_eod.load_my_files(self.stx)
         res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
                                  format(self.my_eod_tbl))
@@ -293,7 +296,8 @@ class Test4StxEOD(unittest.TestCase):
                         res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
 
     def test_3_load_dn_data(self):
-        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
         dn_eod.load_deltaneutral_files(self.stx)
         res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
                                  format(self.dn_eod_tbl))
@@ -318,11 +322,12 @@ class Test4StxEOD(unittest.TestCase):
                         res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
     def test_4_reconcile_my_data(self):
-        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
         my_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
-        res1 = stxdb.db_read_cmd("select * from reconciliation where "
-                                 "recon_name='{0:s}' order by stk".
-                                 format(my_eod.rec_name))
+        res1 = stxdb.db_read_cmd("select * from {0:s} where "
+                                 "recon_name='{1:s}' order by stk".
+                                 format(self.recon_tbl, my_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 "
                                  "order by stk, dt".format(self.my_split_tbl))
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
@@ -348,11 +353,12 @@ class Test4StxEOD(unittest.TestCase):
                         res2[2] == ('TIE', '2006-05-15', Decimal('0.5000'), 1))
 
     def test_5_reconcile_dn_data(self):
-        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
         dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
-        res1 = stxdb.db_read_cmd("select * from reconciliation where "
-                                 "recon_name='{0:s}' order by stk".
-                                 format(dn_eod.rec_name))
+        res1 = stxdb.db_read_cmd("select * from {0:s} where "
+                                 "recon_name='{1:s}' order by stk".
+                                 format(self.recon_tbl, dn_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 order"
                                  " by stk, dt".format(self.dn_split_tbl))
         self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
@@ -376,7 +382,8 @@ class Test4StxEOD(unittest.TestCase):
 
     def test_6_split_recon(self):
         # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
         dn_eod.split_reconciliation('AEOS', '2001-01-01', '2012-12-31',
                                     ['splits', 'my_split_test'])
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
@@ -386,8 +393,10 @@ class Test4StxEOD(unittest.TestCase):
             res[1] == ('AEOS', '2006-12-19', Decimal('0.6700'), 0))
 
     def test_7_merge_eod_tbls(self):
-        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
         my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
                           self.ed)
         dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
@@ -444,18 +453,17 @@ class Test4StxEOD(unittest.TestCase):
                         res5[3] == ('TIE', 2))
 
     def test_8_teardown(self):
-        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl)
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
         my_eod.cleanup()
         my_eod.cleanup_data_folder()
         dn_eod.cleanup()
         dn_eod.cleanup_data_folder()
-        stxdb.db_write_cmd("delete from reconciliation where recon_name="
-                           "'{0:s}'".format(my_eod.rec_name))
-        stxdb.db_write_cmd("delete from reconciliation where recon_name="
-                           "'{0:s}'".format(dn_eod.rec_name))
         stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_test))
         stxdb.db_write_cmd('drop table {0:s}'.format(self.split_test))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.recon_tbl))
         res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
                                  format(self.my_eod_tbl))
         res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
@@ -464,8 +472,15 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.dn_eod_tbl))
         res4 = stxdb.db_read_cmd("show tables like '{0:s}'".
                                  format(self.dn_split_tbl))
+        res5 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.eod_test))
+        res6 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.split_test))
+        res7 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.recon_tbl))
         self.assertTrue((not res1) and (not res2) and (not res3) and
-                        (not res4) and (not os.path.exists(self.my_in_dir))
+                        (not res4) and (not res5) and (not res6) and
+                        (not res7) and (not os.path.exists(self.my_in_dir))
                         and (not os.path.exists(self.dn_in_dir)))
 
 
