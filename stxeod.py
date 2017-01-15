@@ -272,13 +272,36 @@ class StxEOD:
         rec_interval = '{0:s}_{1:s}'.format(
             datetime.strptime(sd, '%Y-%m-%d').strftime('%Y%m%d'),
             datetime.strptime(ed, '%Y-%m-%d').strftime('%Y%m%d'))
+        num_stx = len(stk_list)
+        print('Reconciling {0:d} stocks in interval {1:s}'.
+              format(num_stx, rec_interval))
+        num = 0
         for stk in stk_list:
-            res = self.reconcile_opt_spots(stk, sd, ed, dbg)
-            if not dbg:
-                stxdb.db_write_cmd("insert into {0:s} values "
-                                   "('{1:s}','{2:s}','{3:s}',{4:s},0)".
-                                   format(self.recon_tbl, stk, self.rec_name,
-                                          rec_interval, res))
+            try:
+                rec_res = stxdb.db_read_cmd("select * from {0:s} where "
+                                            "stk='{1:s}' and "
+                                            "recon_name='{2:s}' and "
+                                            "recon_interval='{3:s}'".
+                                            format(self.recon_tbl, stk,
+                                                   self.rec_name,
+                                                   rec_interval))
+                if not rec_res:
+                    res = self.reconcile_opt_spots(stk, sd, ed, dbg)
+                    if not dbg:
+                        stxdb.db_write_cmd("insert into {0:s} values "
+                                           "('{1:s}','{2:s}','{3:s}',{4:s},0)".
+                                           format(self.recon_tbl, stk,
+                                                  self.rec_name,
+                                                  rec_interval, res))
+            except:
+                e = sys.exc_info()[1]
+                print('Failed to reconcile {0:s}, error {1:s}'.
+                      format(stk, str(e)))
+            finally:
+                num += 1
+                if num % 500 == 0 or num == num_stx:
+                    print('Reconciled {0:4d} out of {1:4d} stocks'.
+                          format(num, num_stx))
 
     # Perform reconciliation for a single stock. If we cannot get the
     # EOD data, return N/A. Otherwise, return, for each stock, the
@@ -293,15 +316,15 @@ class StxEOD:
         s_spot, e_spot = str(spot_df.index[0]), str(spot_df.index[-1])
         df, ts = self.build_df_ts(spot_df, stk, sd, ed)
         if df is None:
-            return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
-                                                     ',N/A' * 5)
+            return "'{0:s}','{1:s}'{2:s}".format(s_spot, e_spot,
+                                                 ",'','',0,0,0")
         self.calc_implied_splits(df, stk, sd, ed)
         df, cov, mse = self.quality(df, ts, spot_df, dbg)
         if mse > 0.02:
             num, df, ts = self.autocorrect(df, spot_df, ts.stk, sd, ed)
             if df is None:
-                return '{0:s},{1:s},{2:s}{3:s}\n'.format(stk, s_spot, e_spot,
-                                                         ',N/A' * 5)
+                return "'{0:s}','{1:s}'{2:s}".format(s_spot, e_spot,
+                                                     ",'','',0,0,0")
             if num > 0:
                 df, cov, mse = self.quality(df, ts, spot_df, dbg)
                 num, df, ts = self.autocorrect(df, spot_df, ts.stk, sd, ed)
@@ -447,12 +470,12 @@ class StxEOD:
             for wrong_rec in wrong_recs:
                 sql += "'{0:s}',".format(str(wrong_rec.date()))
             sql = sql[:-1] + ')'
-            print('sql = {0:s}'.format(sql))
+            # print('sql = {0:s}'.format(sql))
             stxdb.db_write_cmd(sql)
             df, ts = self.build_df_ts(spot_df, stk, sd, ed)
             self.calc_implied_splits(df, stk, sd, ed)
         else:
-            print('split_adjs = {0:s}'.format(str(split_adjs)))
+            # print('split_adjs = {0:s}'.format(str(split_adjs)))
             for s in split_adjs:
                 stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}'"
                                    ", {3:.4f}, 1)".format(self.split_tbl, stk,
@@ -499,6 +522,9 @@ class StxEOD:
                   format(sql, stx.replace(',', "','"))
         res = stxdb.db_read_cmd(sql)
         stk_list = [x[0] for x in res]
+        num_stx = len(stk_list)
+        print('Found {0:d} reconciled stocks from {1:s} EOD table'.
+              format(num_stx, self.eod_tbl))
         num = 0
         if sd == '2001-01-01':
             sd = '1962-01-01'
@@ -513,6 +539,9 @@ class StxEOD:
                     self.upload_stk(eod_table, split_table, stk, sd, ed,
                                     rec_interval)
                     num += 1
+                    if num % 500 == 0:
+                        print('Uploaded {0:4d} stocks from {1:s}'.
+                              format(num, self.eod_tbl))
                 except:
                     e = sys.exc_info()[1]
                     print('Failed to EOD upload stock {0:s}, error {1:s}'.
@@ -565,8 +594,16 @@ class StxEOD:
             stk_list = [x[0] for x in res]
         else:
             stk_list = stx.split(',')
+        num_stx = len(stk_list)
+        print('Reconciling big changes for {0:d} stocks from {1:s}'.
+              format(num_stx, self.eod_tbl))
+        num = 0
         for stk in stk_list:
             self.reconcile_big_changes(stk, sd, ed, split_tbls)
+            num += 1
+            if num % 500 == 0 or num == num_stx:
+                print('Reconciled big changes for {0:4d} out of {1:4d} stocks'.
+                      format(num, num_stx))
 
     def reconcile_big_changes(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
@@ -626,9 +663,11 @@ if __name__ == '__main__':
     # ed_eod.load_eoddata_files()
     s_date = '2001-01-01'
     e_date = '2012-12-31'
-    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
+    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
+                    'reconciliation')
     # my_eod.load_my_files()
-    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
+    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
+                    'reconciliation')
     # dn_eod.load_deltaneutral_files()
     my_eod.reconcile_spots(s_date, e_date)
     dn_eod.reconcile_spots(s_date, e_date)
