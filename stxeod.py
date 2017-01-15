@@ -557,7 +557,17 @@ class StxEOD:
     # (mypivots, deltaneutral, my DB, EODData), make sure that these
     # splits are reflected in the EOD data, and, if they are, make
     # sure that they are added to the splits database.
-    def split_reconciliation(self, stk, sd, ed, split_tbls):
+    def split_reconciliation(self, stx, sd, ed, split_tbls):
+        if stx == '':
+            res = "select distinct stk from {0:s} where dt between '{1:s}'"\
+                  " and '{2:s}'".format(self.eod_tbl, sd, ed)
+            stk_list = [x[0] for x in res]
+        else:
+            stk_list = stx.split(',')
+        for stk in stk_list:
+            self.reconcile_big_changes(stk, sd, ed, split_tbls)
+
+    def reconcile_big_changes(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
@@ -568,34 +578,36 @@ class StxEOD:
         all_splits = {}
         for split_table in split_tbls:
             res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
-                                    "stk='{1:s}' and implied = 0".
+                                    "stk='{1:s}' and implied=0".
                                     format(split_table, stk))
             all_splits[split_table] = {stxcal.next_busday(x[0]): x[1]
                                        for x in res}
         for idx, row in df_review.iterrows():
-            tbl = ''
-            if idx not in ts.splits:
-                spike_dt = str(idx.date())
-                for tbl_name, splits in all_splits.items():
-                    if spike_dt in splits:
-                        tbl = '{0:s} {1:9s} {2:7.4f}'.format(tbl, tbl_name,
-                                                             splits[spike_dt])
-                        sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
-                              "{3:.4f},0)".format(self.split_tbl, stk,
-                                                  spike_dt, splits[spike_dt])
-                        try:
-                            stxdb.db_write_cmd(sql)
-                        except:
-                            e = sys.exc_info()[1]
-                            print('SQL {0:s} failed, error {1:s}'.
-                                  format(sql, str(e)))
-                            pass
-                with open('c:/goldendawn/splits_recon.txt', 'a') as ofile:
-                    ofile.write('{0:s}{1:6.2f}{2:6.2f}{3:6.2f}{4:6.2f}{5:9.0f}'
-                                ' {6:5.3f} {7:5.3f}{8:9.0f} {9:9s}'.
-                                format(spike_dt, row['o'], row['h'], row['l'],
-                                       row['c'], row['v'], row['chg'],
-                                       row['avg_chg20'], row['avg_v50'], tbl))
+            if idx in ts.splits:
+                continue
+            db_splits = ''
+            big_chg_dt = str(idx.date())
+            for tbl_name, splits in all_splits.items():
+                if big_chg_dt not in splits:
+                    continue
+                db_splits = '{0:s}{1:9s} {2:7.4f} '.\
+                            format(db_splits, tbl_name, splits[big_chg_dt])
+                sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
+                      "{3:.4f},0)".format(self.split_tbl, stk, big_chg_dt,
+                                          splits[big_chg_dt])
+                try:
+                    stxdb.db_write_cmd(sql)
+                except:
+                    pass
+            ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
+                     format(sd.replace('-', ''), ed.replace('-', ''))
+            with open(ofname, 'a') as ofile:
+                ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} {5:6.2f} '
+                            '{6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f} {10:s}\n'.
+                            format(stk, big_chg_dt, row['o'], row['h'],
+                                   row['l'], row['c'], row['v'], row['chg'],
+                                   row['avg_chg20'], row['avg_v50'],
+                                   db_splits))
 
     def volume_check(self):
         # ts.set_day('2006-12-18')
@@ -609,15 +621,20 @@ class StxEOD:
 
 
 if __name__ == '__main__':
-    ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
-    ed_eod.load_eoddata_files()
-    # s_date = '2002-02-01'
-    # e_date = '2012-12-31'
-    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
-    # # my_eod.load_my_files()
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
-    # # dn_eod.load_deltaneutral_files()
-    # my_eod.reconcile_spots('my', s_date, e_date, stx)
-    # dn_eod.reconcile_spots('deltaneutral', s_date, e_date, stx)
+    # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
+    # ed_eod.load_eoddata_files()
+    s_date = '2001-01-01'
+    e_date = '2012-12-31'
+    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split')
+    # my_eod.load_my_files()
+    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split')
+    # dn_eod.load_deltaneutral_files()
+    my_eod.reconcile_spots(s_date, e_date)
+    dn_eod.reconcile_spots(s_date, e_date)
     # To debug a reconciliation:
     # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    my_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    eod = StxEOD('', 'eod', 'split', 'reconciliation')
+    eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
+                                                  'dn_split'])

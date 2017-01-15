@@ -384,8 +384,8 @@ class Test4StxEOD(unittest.TestCase):
         # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
                         self.recon_tbl)
-        dn_eod.split_reconciliation('AEOS', '2001-01-01', '2012-12-31',
-                                    ['splits', 'my_split_test'])
+        dn_eod.reconcile_big_changes('AEOS', '2001-01-01', '2012-12-31',
+                                     ['splits', 'my_split_test'])
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
                                 .format(dn_eod.split_tbl, 'AEOS'))
         self.assertTrue(
