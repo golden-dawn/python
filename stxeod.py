@@ -500,7 +500,8 @@ class StxEOD:
         res = stxdb.db_read_cmd(sql)
         stk_list = [x[0] for x in res]
         num = 0
-        # apply the split adjustments
+        if sd == '2001-01-01':
+            sd = '1962-01-01'
         for stk in stk_list:
             res = stxdb.db_read_cmd("select * from {0:s} where "
                                     "stk='{1:s}' and recon_interval='{2:s}' "
