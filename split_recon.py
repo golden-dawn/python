@@ -1,60 +1,77 @@
-import pandas as pd
+import stxcal
 import stxdb
-from stxts import StxTS
 
-def split_analysis(cnx, sc, stk, sd, ed, eod_tbl) :
-    q          = "select dt, spot from opt_spots where stk='{0:s}'".format(stk)
-    spot_df    = pd.read_sql(q, cnx)
-    spot_df.set_index('dt', inplace=True)
-    ts         = StxTS(stk, sd, ed, eod_tbl)
-    df         = ts.df.join(spot_df)
-    df['r']    = df['spot'] / df['c']
-    df['r1']   = df['r'].shift(-1)
-    df['r2']   = df['r'].shift(-2)
-    df['r3']   = df['r'].shift(-3)
-    df['r_1']  = df['r'].shift()
-    df['r_2']  = df['r'].shift(2)
-    df['r_3']  = df['r'].shift(3)
-    df['r'].fillna(method='bfill', inplace=True)
-    df['r1'].fillna(method='bfill', inplace=True)
-    df['r2'].fillna(method='bfill', inplace=True)
-    df['r3'].fillna(method='bfill', inplace=True)
-    df['r_1'].fillna(method='bfill', inplace=True)
-    df['r_2'].fillna(method='bfill', inplace=True)
-    df['r_3'].fillna(method='bfill', inplace=True)
-    df['rr']   = df['r1']/df['r']
-    df_f1      = df[(abs(df['rr'] - 1) > 0.05) & \
-                    (round(df['r_1'] - df['r'], 2) == 0) & \
-                    (round(df['r_2'] - df['r'], 2) == 0) & \
-                    (round(df['r_3'] - df['r'], 2) == 0) & \
-                    (round(df['r2']  - df['r1'], 2) == 0) & \
-                    (round(df['r3']  - df['r1'], 2) == 0) & \
-                    (df['c'] > 1.0)]
-    df, cov, acc = quality(sc, df, df_f1, ts, spot_df)
-    print('Coverage: {0:.2f}, accuracy: {1:.4f}'.format(cov, acc))
-    return df, df_f1
 
-def quality(sc, df, df_f1, ts, spot_df) :
-    s_spot     = str(spot_df.index[0])
-    e_spot     = str(spot_df.index[-1])
-    spot_days  = sc.num_busdays(s_spot, e_spot)
-    s_ts       = str(ts.df.index[0].date())
-    e_ts       = str(ts.df.index[-1].date())
-    if s_ts < s_spot :
-        s_ts   = s_spot
-    if e_ts > e_spot :
-        e_ts   = e_spot
-    ts_days    = sc.num_busdays(s_ts, e_ts)
-    coverage   = round(100.0 * ts_days / spot_days, 2)
-    # apply the split adjustments
-    ts.splits.clear()
-    for r in df_f1.iterrows():
-        ts.splits[r[0]] = r[1]['rr']
-    ts.adjust_splits_date_range(0, len(ts.df) - 1, inv = 1)
-    df.drop(['c'], inplace = True, axis = 1)
-    df         = df.join(ts.df[['c']])
-    # calculate statistics: coverage and mean square error
-    df['sqrt'] = pow(1 - df['spot']/df['c'], 2)
-    accuracy = pow(df['sqrt'].sum() / len(df['sqrt']), 0.5)
-    return df, coverage, accuracy
-    
+def print_stk_data(stk, dt):
+    s_date = stxcal.move_busdays(dt, -8)
+    e_date = stxcal.move_busdays(dt, 8)
+    sql = "select * from split where stk='{0:s}' and "\
+        "dt between '{1:s}' and '{2:s}'".format(stk, s_date, e_date)
+    res = stxdb.db_read_cmd(sql)
+    print('{0:s}: splits'.format(stk))
+    for x in res:
+        print('{0:s} {1:s} {2:.4f} {3:d}'.format(x[0], x[1], float(x[2]),
+                                                 x[3]))
+    sql = "select * from eod where stk='{0:s}' and "\
+        "dt between '{1:s}' and '{2:s}'".format(stk, s_date, e_date)
+    res = stxdb.db_read_cmd(sql)
+    print('{0:s}: eod'.format(stk))
+    for x in res:
+        print('{0:s} {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:d}'.
+              format(x[0], x[1], float(x[2]), float(x[3]), float(x[4]),
+                     float(x[5]), x[6]))
+
+
+def split_adjustments():
+    stxdb.db_write_cmd("update eod set c=17.00 where stk='AACC' and "
+                       "dt='2004-09-21'")
+    stxdb.db_write_cmd("insert into split values ('AAUKY', '2001-05-07', "
+                       "0.25, 0)")
+    stxdb.db_write_cmd("insert into split values ('AAUKY', '2006-03-03', "
+                       "0.5, 0)")
+    stxdb.db_write_cmd("delete from eod where stk='ABVT'")
+    stxdb.db_write_cmd("delete from eod where stk='AFN'")
+    stxdb.db_write_cmd("insert into split values ('AI', '2002-11-01', "
+                       "100.0, 0)")
+    stxdb.db_write_cmd("insert into split values ('AIBYY', '2011-02-22', "
+                       "4.0, 0)")
+    stxdb.db_write_cmd("update split set dt='2012-07-23' where stk='AMPL' "
+                       "and dt='2012-07-20'")
+    stxdb.db_write_cmd("update split set dt='2006-04-19' where stk='APPX' "
+                       "and dt='2006-04-18'")
+    stxdb.db_write_cmd("insert into split values ('AT', '2006-07-17', "
+                       "0.8333, 0)")
+    stxdb.db_write_cmd("insert into split values ('AXAHY', '2001-05-17', "
+                       "0.5, 0)")
+    stxdb.db_write_cmd("insert into split values ('BAH', '2012-09-03', "
+                       "0.67, 0)")
+    stxdb.db_write_cmd("insert into split values ('BANRD', '2011-05-31', "
+                       "6.0, 0)")
+    stxdb.db_write_cmd("insert into split values ('BAY', '2001-08-07', "
+                       "0.8333, 0)")
+    stxdb.db_write_cmd("insert into split values ('BBH', '2009-03-31', "
+                       "0.5, 0)")
+    stxdb.db_write_cmd("insert into split values ('BCO', '2008-10-31', "
+                       "0.55, 0)")
+    stxdb.db_write_cmd("update split set dt='2003-11-21' where stk='BKE' "
+                       "and dt='2003-11-20'")
+    stxdb.db_write_cmd("update split set dt='2004-09-10' where stk='BKHM' "
+                       "and dt='2004-09-09'")
+    stxdb.db_write_cmd("insert into split values ('BZF', '2012-12-20', "
+                       "0.8, 0)")
+    stxdb.db_write_cmd("insert into split values ('CAGC', '2009-09-04', "
+                       "4.5, 0)")
+    stxdb.db_write_cmd("insert into split values ('CAH', '2009-08-31', "
+                       "0.75, 0)")
+    stxdb.db_write_cmd("insert into split values ('CCE', '2010-10-01', "
+                       "0.67, 0)")
+    stxdb.db_write_cmd("insert into split values ('CCMP', '2012-03-01', "
+                       "0.67, 0)")
+    stxdb.db_write_cmd("insert into split values ('CEL', '2003-05-09', "
+                       "10.0, 0)")
+    stxdb.db_write_cmd("update split set dt='2005-10-21' where stk='CHRW' "
+                       "and dt='2005-10-14'")
+    stxdb.db_write_cmd("insert into split values ('', '', "
+                       ", 0)")
+    stxdb.db_write_cmd("update split set ratio=0.67 where stk='SNHY' "
+                       "and dt='2011-07-15'")
