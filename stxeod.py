@@ -589,8 +589,9 @@ class StxEOD:
     # sure that they are added to the splits database.
     def split_reconciliation(self, stx, sd, ed, split_tbls):
         if stx == '':
-            res = "select distinct stk from {0:s} where dt between '{1:s}'"\
+            sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
                   " and '{2:s}'".format(self.eod_tbl, sd, ed)
+            res = stxdb.db_read_cmd(sql)
             stk_list = [x[0] for x in res]
         else:
             stk_list = stx.split(',')
@@ -599,11 +600,17 @@ class StxEOD:
               format(num_stx, self.eod_tbl))
         num = 0
         for stk in stk_list:
-            self.reconcile_big_changes(stk, sd, ed, split_tbls)
-            num += 1
-            if num % 500 == 0 or num == num_stx:
-                print('Reconciled big changes for {0:4d} out of {1:4d} stocks'.
-                      format(num, num_stx))
+            try:
+                self.reconcile_big_changes(stk, sd, ed, split_tbls)
+            except:
+                e = sys.exc_info()[1]
+                print('Failed to reconcile {0:s}, error {1:s}'.
+                      format(stk, str(e)))
+            finally:
+                num += 1
+                if num % 500 == 0 or num == num_stx:
+                    print('Reconciled big changes for {0:4d} out of {1:4d}'
+                          ' stocks'.format(num, num_stx))
 
     def reconcile_big_changes(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
@@ -631,7 +638,8 @@ class StxEOD:
                 db_splits = '{0:s}{1:9s} {2:7.4f} '.\
                             format(db_splits, tbl_name, splits[big_chg_dt])
                 sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
-                      "{3:.4f},0)".format(self.split_tbl, stk, big_chg_dt,
+                      "{3:.4f},0)".format(self.split_tbl, stk,
+                                          stxcal.prev_busday(big_chg_dt),
                                           splits[big_chg_dt])
                 try:
                     stxdb.db_write_cmd(sql)
@@ -646,6 +654,18 @@ class StxEOD:
                                    row['l'], row['c'], row['v'], row['chg'],
                                    row['avg_chg20'], row['avg_v50'],
                                    db_splits))
+
+    def correct_split_adjustment_error(self, fname):
+        with open(fname, 'r') as ifile:
+            lines = ifile.readlines()
+            for line in lines:
+                tokens = line.split()
+                if len(tokens) > 10:
+                    stk, dt = tokens[0], tokens[1]
+                    sql = "update {0:s} set dt='{1:s}' where "\
+                        "stk='{2:s}' and dt='{3:s}'".\
+                        format(self.split_tbl, stxcal.prev_busday(dt), stk, dt)
+                    stxdb.db_write_cmd(sql)
 
     def volume_check(self):
         # ts.set_day('2006-12-18')
@@ -669,12 +689,14 @@ if __name__ == '__main__':
     dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
                     'reconciliation')
     # dn_eod.load_deltaneutral_files()
-    my_eod.reconcile_spots(s_date, e_date)
-    dn_eod.reconcile_spots(s_date, e_date)
+    # my_eod.reconcile_spots(s_date, e_date)
+    # dn_eod.reconcile_spots(s_date, e_date)
     # To debug a reconciliation:
     # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    my_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
     eod = StxEOD('', 'eod', 'split', 'reconciliation')
     eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
                                                   'dn_split'])
