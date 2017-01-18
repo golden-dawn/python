@@ -615,11 +615,14 @@ class StxEOD:
     def reconcile_big_changes(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
+        ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
         ts.df['avg_v20'] = ts.df['v'].shift().rolling(20).mean()
-        ts.df['avg_v50'] = ts.df['v'].rolling(50).mean()
+        ts.df['avg_v50'] = ts.df['v'].shift().rolling(50).mean()
         df_review = ts.df.query('chg>=0.15 and chg>2*avg_chg20 and '
-                                'v<(0.5+10*chg)*avg_v50 and avg_v20>1000')
+                                'v<(0.5+10*chg)*avg_v50 and avg_v20>1000 and '
+                                'id_chg<0.6*chg and c>3 and '
+                                '(chg-id_chg)>2*avg_chg20 and (c>8 or chg>1)')
         all_splits = {}
         for split_table in split_tbls:
             res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
