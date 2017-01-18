@@ -71,6 +71,8 @@ def split_adjustments():
                        "10.0, 0)")
     stxdb.db_write_cmd("update split set dt='2005-10-21' where stk='CHRW' "
                        "and dt='2005-10-14'")
+    stxdb.db_write_cmd("update eod set o=1.5*o, h=1.5*h, l=1.5*l, c=1.5*c, "
+                       "v=0.67*v where stk='COLM' and dt='2001-04-30'")
     stxdb.db_write_cmd("insert into split values ('', '', "
                        ", 0)")
     stxdb.db_write_cmd("update split set ratio=0.67 where stk='SNHY' "
