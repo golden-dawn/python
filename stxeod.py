@@ -214,6 +214,49 @@ class StxEOD:
             e = sys.exc_info()[1]
             print('Failed to upload splits, error {0:s}'.format(str(e)))
 
+    # Load the delta neutral divis into the database
+    def load_deltaneutral_divis(self, stk_list):
+        # this part uploads the splits
+        in_fname = '{0:s}/dividends.csv'.format(self.sh_dir)
+        out_fname = '{0:s}/stockdivis.txt'.format(self.upload_dir)
+        with open(in_fname, 'r') as csvfile:
+            with open(out_fname, 'w') as dbfile:
+                frdr = csv.reader(csvfile)
+                for row in frdr:
+                    stk, divi = row[0].strip(), float(row[2])
+                    if (stk_list and stk not in stk_list) or divi == 0:
+                        continue
+                    dt = str(datetime.strptime(row[1], '%m/%d/%Y').date())
+                    if dt < '2001-01-01' or dt > '2016-12-01':
+                        continue
+                    try:
+                        res = stxdb.db_read_cmd("select c from {0:s} where "
+                                                "stk='{1:s}' and dt='{2:s}'".
+                                                format(self.eod_tbl, stk, dt))
+                        cc = float(res[0][0])
+                        # Cannot handle cases when there is a split
+                        # and a dividend payment on the same date
+                        res = stxdb.db_read_cmd("select * from {0:s} where "
+                                                "stk='{1:s}' and dt='{2:s}'".
+                                                format(self.split_tbl, stk,
+                                                       dt))
+                        if res:
+                            print('Cannot upload {0:s}, because there is '
+                                  'already a split on that date: {1:s}'.
+                                  format(str(row), str(res)))
+                        else:
+                            dbfile.write('{0:s}\t{1:s}\t{2:.4f}\t2\n'.
+                                         format(stk, dt, 1 - divi / cc))
+                    except:
+                        print('Failed to process {0:s}, error: {1:s}'.
+                              format(str(row), str(sys.exc_info()[1])))
+        try:
+            stxdb.db_upload_file(out_fname, self.split_tbl, 2)
+            print('Uploaded delta neutral splits')
+        except:
+            print('Failed to upload splits, error {0:s}'.
+                  format(str(sys.exc_info()[1])))
+
     # Load data from EODData data source in the database. There is a
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
     # overlap of 5 days with the previous reconciliation interval
