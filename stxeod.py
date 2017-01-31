@@ -226,7 +226,8 @@ class StxEOD:
                     stk, divi = row[0].strip(), float(row[2])
                     if (stk_list and stk not in stk_list) or divi == 0:
                         continue
-                    dt = str(datetime.strptime(row[1], '%m/%d/%Y').date())
+                    dt = stxcal.prev_busday(
+                        str(datetime.strptime(row[1], '%m/%d/%Y').date()))
                     if dt < '2001-01-01' or dt > '2016-12-01':
                         continue
                     try:
