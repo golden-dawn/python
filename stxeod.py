@@ -298,6 +298,19 @@ class StxEOD:
                     continue
                 ofile.write('{0:s}\n'.format('\t'.join(tokens)))
 
+    # Load data from the market archive. Back out splits and dividends
+    # Data is located in three different directories (AMEX, NASDAQ and NYSE)
+    def load_marketdata_file(self, ofile, ifname):
+        df = pd.read_csv(ifname)
+        df['R'] = df['Close'] / df['Adj Close']
+        df['R_1'] = df['R'].shift()
+        df['RR'] = round(df['R'] / df['R_1'], 4)
+        df['V20'] = df['Volume'].rolling(20).mean()
+        df['V20_20'] = df['V20'].shift(-20)
+        df['VR'] = round(df['V20'] / df['V20_20'], 4)
+        splits_divis = df.query('RR<0.998 | RR>1.002')
+        print(splits_divis[['Date', 'RR', 'VR']])
+
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
     # interval.  Then, reconcile for each underlier
