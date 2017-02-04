@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from shutil import rmtree
 import stxdb
 import zipfile
 
@@ -36,15 +37,23 @@ class OptEOD:
 
     def load_opts(self, start_year, end_year):
         for year in range(start_year, end_year + 1):
+            y_spots, y_opts = 0, 0
             for month in range(1, 13):
                 zip_fname = '{0:s}/bb_{1:d}_{2:s}.zip'.\
                         format(self.in_dir, year, self.month_names[month])
                 if os.path.exists(zip_fname):
-                    self.load_opts_archive(zip_fname)
+                    m_spots, m_opts = self.load_opts_archive(zip_fname)
+                    y_spots += m_spots
+                    y_opts += m_opts
+            print('{0:10d}\t{1:5d}\t{2:6d}'.format(year, y_spots, y_opts))
 
     def load_opts_archive(self, zip_fname):
+        # remove the tmp directory (if it already exists, and recreate it
         tmp_dir = '{0:s}/tmp'.format(self.in_dir)
-        # TODO: remove the tmp directory (if it already exists, and recreate it
+        if os.path.exists(tmp_dir):
+            rmtree(tmp_dir)
+        os.makedirs(tmp_dir)
+        m_spots, m_opts = 0, 0
         print('Unzipping {0:s} into {1:s}'.format(zip_fname, tmp_dir))
         with zipfile.ZipFile(zip_fname, 'r') as zip_file:
             zip_file.extractall(tmp_dir)
@@ -81,5 +90,7 @@ class OptEOD:
                              inplace=True)
             opt_df.to_sql(self.opt_tbl, stxdb.db_get_cnx(), flavor='mysql',
                           if_exists='append')
-        # TODO: remove the tmp directory after we are done with the
-        # current archive
+        # Remove the tmp directory after we are done with the current
+        # archive
+        rmtree(tmp_dir)
+        return m_spots, m_opts
