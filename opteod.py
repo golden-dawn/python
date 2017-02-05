@@ -1,6 +1,9 @@
+import csv
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import os
-import pandas as pd
 from shutil import rmtree
+import stxcal
 import stxdb
 import zipfile
 
@@ -42,55 +45,87 @@ class OptEOD:
                 zip_fname = '{0:s}/bb_{1:d}_{2:s}.zip'.\
                         format(self.in_dir, year, self.month_names[month])
                 if os.path.exists(zip_fname):
-                    m_spots, m_opts = self.load_opts_archive(zip_fname)
+                    m_spots, m_opts = self.load_opts_archive(zip_fname, year,
+                                                             month)
                     y_spots += m_spots
                     y_opts += m_opts
-            print('{0:10d}\t{1:5d}\t{2:6d}'.format(year, y_spots, y_opts))
+            print('{0:s}\t{1:10d}\t{2:5d}\t{3:6d}'.
+                  format(stxcal.print_current_time(), year, y_spots, y_opts))
 
-    def load_opts_archive(self, zip_fname):
+    def load_opts_archive(self, zip_fname, year, month):
         # remove the tmp directory (if it already exists, and recreate it
         tmp_dir = '{0:s}/tmp'.format(self.in_dir)
         if os.path.exists(tmp_dir):
             rmtree(tmp_dir)
         os.makedirs(tmp_dir)
         m_spots, m_opts = 0, 0
-        print('Unzipping {0:s} into {1:s}'.format(zip_fname, tmp_dir))
         with zipfile.ZipFile(zip_fname, 'r') as zip_file:
             zip_file.extractall(tmp_dir)
         daily_opt_files = os.listdir(tmp_dir)
         for opt_file in daily_opt_files:
-            print('  Processing {0:s}'.format(opt_file))
-            opt_df = pd.read_csv(os.path.join(tmp_dir, opt_file),
-                                 parse_dates=['Expiration', 'DataDate'],
-                                 infer_datetime_format='%m/%d/%Y')
-            # TODO: round the strike and the spot to 2 significant digits
-
-            # replace 'call' and 'put' with 'c' and 'p'
-            # TODO: apply the function to the cp column (not Type),
-            # after renaming the column
-            def cpfun(x):
-                return x['Type'][:1]
-            opt_df['cp'] = opt_df.apply(cpfun, axis=1)
-            opt_df.drop(['Exchange', 'OptionRoot', 'OptionExt', 'Type', 'Last',
-                         'OpenInterest', 'T1OpenInterest', 'Volume'], axis=1,
-                        inplace=True)
-            opt_df.columns = ['und', 'spot', 'exp', 'dt', 'strike',
-                              'bid', 'ask', 'cp']
-            # TODO: calculate the next 6 monthly expiries, and filter
-            # the dataframe to only include those expiries
-            # TODO: round the strikes and spots, as well as change
-            # call and put after filtering
-            spot_df = opt_df[['und', 'spot', 'dt']].drop_duplicates()
-            spot_df.columns = ['stk', 'spot', 'dt']
-            spot_df.set_index(['stk', 'dt'], inplace=True)
-            spot_df.to_sql(self.spot_tbl, stxdb.db_get_cnx(), flavor='mysql',
-                           if_exists='append')
-            opt_df.drop(['spot'], axis=1, inplace=True)
-            opt_df.set_index(['exp', 'und', 'cp', 'strike', 'dt'],
-                             inplace=True)
-            opt_df.to_sql(self.opt_tbl, stxdb.db_get_cnx(), flavor='mysql',
-                          if_exists='append')
+            d_spots, d_opts = self.load_opts_daily(os.path.join(tmp_dir,
+                                                                opt_file))
+            m_spots += d_spots
+            m_opts += d_opts
         # Remove the tmp directory after we are done with the current
         # archive
         rmtree(tmp_dir)
+        print('{0:s}\t{1:7d}-{2:02d}\t{3:5d}\t{4:6d}'.format
+              (stxcal.print_current_time(), year, month, m_spots, m_opts))
         return m_spots, m_opts
+
+    def load_opts_daily(self, opt_fname):
+        # print('{0:s} -load_opts_daily'.format(stxcal.print_current_time()))
+        dt = '{0:s}-{1:s}-{2:s}'.format(opt_fname[-12:-8], opt_fname[-8:-6],
+                                        opt_fname[-6:-4])
+        sdt = datetime.strptime(dt, '%Y-%m-%d')
+        edt = sdt + relativedelta(months=+7)
+        sdt = str(sdt.date())[:-3]
+        edt = str(edt.date())[:-3]
+        exps = {exp: '' for exp in stxcal.expiries(sdt, edt)}
+        spot_dct, opt_dct, spots, opts = {}, {}, [], []
+        with open(opt_fname) as csvfile:
+            frdr = csv.reader(csvfile)
+            for row in frdr:
+                stk = row[0]
+                try:
+                    spot = round(float(row[1]), 2)
+                    cp = row[5][:1]
+                    exp = str(datetime.strptime(row[6], '%m/%d/%Y').date())
+                    strike = round(float(row[8]), 2)
+                    bid = round(float(row[10]), 2)
+                    ask = round(float(row[11]), 2)
+                except:
+                    continue
+                if exp not in exps or ask == 0:
+                    continue
+                if stk not in spot_dct:
+                    spot_dct[stk] = spot
+                    spots.append([stk, dt, spot])
+                opt_key = ':'.join([exp, stk, cp, str(strike)])
+                if opt_key not in opt_dct:
+                    opt_dct[opt_key] = [bid, ask]
+                    opts.append([exp, stk, cp, strike, dt, bid, ask])
+        spots_upload_file = '{0:s}/spots.txt'.format(self.upload_dir)
+        opts_upload_file = '{0:s}/opts.txt'.format(self.upload_dir)
+        with open(spots_upload_file, 'w') as spots_file:
+            for s in spots:
+                spots_file.write('{0:s}\t{1:s}\t{2:2f}\n'.
+                                 format(s[0], s[1], s[2]))
+        with open(opts_upload_file, 'w') as opts_file:
+            for o in opts:
+                opts_file.write('{0:s}\t{1:s}\t{2:s}\t{3:2f}\t{4:s}\t{5:2f}\t'
+                                '{6:2f}\n'.format(o[0], o[1], o[2], o[3],
+                                                  o[4], o[5], o[6]))
+        stxdb.db_upload_file(spots_upload_file, self.spot_tbl, 2)
+        stxdb.db_upload_file(opts_upload_file, self.opt_tbl, 5)
+        d_spots, d_opts = len(spots), len(opts)
+        print('{0:s}\t{1:s}\t{2:5d}\t{3:6d}'.format
+              (stxcal.print_current_time(), dt, d_spots, d_opts))
+        return d_spots, d_opts
+
+
+if __name__ == '__main__':
+    opt_eod = OptEOD(opt_tbl='opt_test', spot_tbl='spot_test')
+    opt_eod.load_opts_archive('{0:s}/bb_2002_April.zip'.format(opt_eod.in_dir),
+                              2002, 4)
