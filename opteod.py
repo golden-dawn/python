@@ -21,6 +21,7 @@ class OptEOD:
                       '`dt` date NOT NULL,'\
                       '`bid` decimal(9, 2) NOT NULL,'\
                       '`ask` decimal(9, 2) NOT NULL,'\
+                      '`volume` int(11) NOT NULL,'\
                       'PRIMARY KEY (`exp`,`und`,`cp`,`strike`,`dt`)'\
                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
     sql_create_spots = 'CREATE TABLE `{0:s}` ('\
@@ -95,6 +96,7 @@ class OptEOD:
                     strike = round(float(row[8]), 2)
                     bid = round(float(row[10]), 2)
                     ask = round(float(row[11]), 2)
+                    volume = int(row[12])
                 except:
                     continue
                 if exp not in exps or ask == 0:
@@ -104,8 +106,8 @@ class OptEOD:
                     spots.append([stk, dt, spot])
                 opt_key = ':'.join([exp, stk, cp, str(strike)])
                 if opt_key not in opt_dct:
-                    opt_dct[opt_key] = [bid, ask]
-                    opts.append([exp, stk, cp, strike, dt, bid, ask])
+                    opt_dct[opt_key] = [bid, ask, volume]
+                    opts.append([exp, stk, cp, strike, dt, bid, ask, volume])
         spots_upload_file = '{0:s}/spots.txt'.format(self.upload_dir)
         opts_upload_file = '{0:s}/opts.txt'.format(self.upload_dir)
         with open(spots_upload_file, 'w') as spots_file:
@@ -115,8 +117,9 @@ class OptEOD:
         with open(opts_upload_file, 'w') as opts_file:
             for o in opts:
                 opts_file.write('{0:s}\t{1:s}\t{2:s}\t{3:2f}\t{4:s}\t{5:2f}\t'
-                                '{6:2f}\n'.format(o[0], o[1], o[2], o[3],
-                                                  o[4], o[5], o[6]))
+                                '{6:2f}\t{7:d}\n'.format(o[0], o[1], o[2],
+                                                         o[3], o[4], o[5],
+                                                         o[6], o[7]))
         stxdb.db_upload_file(spots_upload_file, self.spot_tbl, 2)
         stxdb.db_upload_file(opts_upload_file, self.opt_tbl, 5)
         d_spots, d_opts = len(spots), len(opts)
@@ -126,6 +129,7 @@ class OptEOD:
 
 
 if __name__ == '__main__':
-    opt_eod = OptEOD(opt_tbl='opt_test', spot_tbl='spot_test')
-    opt_eod.load_opts_archive('{0:s}/bb_2002_April.zip'.format(opt_eod.in_dir),
-                              2002, 4)
+    opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots')
+    opt_eod.load_opts(2002, 2003)
+    # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
+    #                           format(opt_eod.in_dir), 2016, 4)
