@@ -130,6 +130,6 @@ class OptEOD:
 
 if __name__ == '__main__':
     opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots')
-    opt_eod.load_opts(2002, 2003)
+    opt_eod.load_opts(2013, 2016)
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)

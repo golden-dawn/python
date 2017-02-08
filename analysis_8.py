@@ -122,7 +122,7 @@ def get_trade_opts(stk, exp, cp, cc, rg, dt, rg_fctr=0):
     trd_opts = opts[opts['strike'] == strike]
     t_opts = collections.OrderedDict()
     for row in trd_opts.iterrows():
-        t_opts[row[1][1]] = [row[1].bid, row[1].ask]
+        t_opts[str(row[1][1])] = [row[1].bid, row[1].ask]
     return t_opts, strike
 
 
@@ -135,7 +135,8 @@ def trade(ts, cp, sl, rg, stp):
     if t_opts.get(crt_dt) is None or t_opts[crt_dt][1] == 0:
         return None
     num = int(6 / t_opts[crt_dt][1]) * 100
-    opt_in = OptEntry(crt_dt, ts.current('c'), t_opts[crt_dt][1])
+    opt_in = OptEntry(crt_dt, ts.current('c'), t_opts[crt_dt][1],
+                      1 - t_opts[crt_dt][0] / t_opts[crt_dt][1])
     return Trade(ts.stk, cp, exp, exp_bd, strike, opt_in, num, sl, None,
                  None, t_opts, stp)
 
@@ -269,7 +270,6 @@ def analyze(ts, calls, puts, fname, fmode):
                     trd.opts, strike = get_trade_opts(
                         ts.stk, trd.exp, trd.cp, trd.strike, trd.avg_range,
                         next_bd, 0.1 / trd.avg_range)
-                    # print(trd.opts)
     with open(fname, fmode, newline='') as fp:
         wrtr = csv.writer(fp, delimiter=',')
         if fmode == 'w':

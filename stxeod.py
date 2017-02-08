@@ -308,7 +308,7 @@ class StxEOD:
         df['V20'] = df['Volume'].rolling(20).mean()
         df['V20_20'] = df['V20'].shift(-20)
         df['VR'] = round(df['V20'] / df['V20_20'], 4)
-        splits_divis = df.query('RR<0.998 | RR>1.002')
+        splits_divis = df.query('RR<0.999 | RR>1.001')
         print(splits_divis[['Date', 'RR', 'VR']])
 
     # Perform reconciliation with the option spots.  First get all the
