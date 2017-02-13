@@ -221,13 +221,16 @@ class StxTS:
     def rel_strength(self, dt, w):
         if self.current_date() != dt:
             self.set_day(dt)
-        start_ix = ts.pos - w
-        if start_ix < ts.start:
-            start_ix = ts.start
-        rs_w = ts.pos - start_ix
+        start_ix = self.pos - w
+        if start_ix < self.start:
+            start_ix = self.start
+        rs_w = self.pos - start_ix
         if rs_w < 20:
             return 0
-        return 40 * (ts.current('c')/
+        cc = self.current('c')
+        return 40 * (cc / self.ix(self.pos + 1 - rs_w // 4).c - 1) + \
+            30 * (cc / self.ix(self.pos + 1 - rs_w // 2).c - 1) + \
+            30 * (cc / self.ix(start_ix + 1).c - 1)
 
     @staticmethod
     def gen_tdf(sd, ed):
