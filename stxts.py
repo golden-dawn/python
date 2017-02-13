@@ -215,6 +215,20 @@ class StxTS:
     def current(self, col_name):
         return self.df.ix[self.pos][col_name]
 
+    def ix(self, ixx):
+        return self.df.ix[ixx]
+
+    def rel_strength(self, dt, w):
+        if self.current_date() != dt:
+            self.set_day(dt)
+        start_ix = ts.pos - w
+        if start_ix < ts.start:
+            start_ix = ts.start
+        rs_w = ts.pos - start_ix
+        if rs_w < 20:
+            return 0
+        return 40 * (ts.current('c')/
+
     @staticmethod
     def gen_tdf(sd, ed):
         tdf = pd.DataFrame(data={'dt': pd.date_range(sd, ed,
