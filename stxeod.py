@@ -312,14 +312,40 @@ class StxEOD:
     # For each marketdata file, back out splits and dividends
     def load_marketdata_file(self, ofile, ifname):
         df = pd.read_csv(ifname)
+        stk = ifname[ifname.rfind('/')+1:ifname.rfind('.')]
         df['R'] = df['Close'] / df['Adj Close']
         df['R_1'] = df['R'].shift()
         df['RR'] = round(df['R'] / df['R_1'], 4)
-        df['V20'] = df['Volume'].rolling(20).mean()
-        df['V20_20'] = df['V20'].shift(-20)
-        df['VR'] = round(df['V20'] / df['V20_20'], 4)
+        # df['V20'] = df['Volume'].rolling(20).mean()
+        # df['V20_20'] = df['V20'].shift(-20)
+        # df['VR'] = round(df['V20'] / df['V20_20'], 4)
         splits_divis = df.query('RR<0.999 | RR>1.001')
-        print(splits_divis[['Date', 'RR', 'VR']])
+        print(splits_divis[['Date', 'RR']])
+        sd_dict = {}
+        for row in splits_divis.iterrows():
+            lst = []
+            dt = stxcal.prev_busday(row[1]['Date'])
+            ratio = row[1]['RR']
+            lst.append(ratio)
+            sd_type = 0 if ratio <= 0.95 or ratio >= 1.05 else 2
+            validations = []
+            for tbl in ['dn_split', 'splits', 'split']:
+                sql = "select * from {0:s} where stk='{1:s}' and dt='{2:s}'".\
+                                                      format(tbl, stk, dt)
+                res = stxdb.db_read_cmd(sql)
+                if len(res) > 0:
+                    tbl_sd_type = res[0][3]
+                    if tbl_sd_type == 1:
+                        tbl_sd_type = 0
+                    validations.append(tbl)
+                    if tbl_sd_type != sd_type:
+                        sd_type = tbl_sd_type + 3
+            if len(validations) == 0:
+                sd_type += 6
+            lst.append(sd_type)
+            lst.append(','.join(validations))
+            sd_dict[dt] = lst
+        # print(splits_divis[['Date', 'RR', 'VR']])
 
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
