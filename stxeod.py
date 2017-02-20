@@ -298,8 +298,18 @@ class StxEOD:
                     continue
                 ofile.write('{0:s}\n'.format('\t'.join(tokens)))
 
-    # Load data from the market archive. Back out splits and dividends
-    # Data is located in three different directories (AMEX, NASDAQ and NYSE)
+    # Load data from the market archive.  Data is located in three
+    # different directories (AMEX, NASDAQ and NYSE)
+    def load_marketdata_files(self, sd='1962-01-02', ed='2016-12-31'):
+        dirs = ['{0:s}/AMEX'.format(self.in_dir),
+                '{0:s}/NASDAQ'.format(self.in_dir),
+                '{0:s}/NYSE'.format(self.in_dir)]
+        for exch_dir in dirs:
+            files = os.listdir(exch_dir)
+            for fn in files:
+                self.load_marketdata_file('{0:s}/{1:s}'.format(exch_dir, fn))
+
+    # For each marketdata file, back out splits and dividends
     def load_marketdata_file(self, ofile, ifname):
         df = pd.read_csv(ifname)
         df['R'] = df['Close'] / df['Adj Close']
