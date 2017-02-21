@@ -301,34 +301,41 @@ class StxEOD:
     # Load data from the market archive.  Data is located in three
     # different directories (AMEX, NASDAQ and NYSE)
     def load_marketdata_files(self, sd='1962-01-02', ed='2016-12-31'):
+        log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
+                                                    strftime('%Y%m%d%H%M%S'))
         dirs = ['{0:s}/AMEX'.format(self.in_dir),
                 '{0:s}/NASDAQ'.format(self.in_dir),
                 '{0:s}/NYSE'.format(self.in_dir)]
-        for exch_dir in dirs:
-            files = os.listdir(exch_dir)
-            for fn in files:
-                self.load_marketdata_file('{0:s}/{1:s}'.format(exch_dir, fn))
+        with open(log_fname, 'w') as logfile:
+            for exch_dir in dirs:
+                files = os.listdir(exch_dir)
+                for fname in files:
+                    self.load_marketdata_file('{0:s}/{1:s}'.format(exch_dir,
+                                                                   fname),
+                                              logfile)
 
-    # For each marketdata file, back out splits and dividends
-    def load_marketdata_file(self, ofile, ifname):
+    # For each marketdata file, back out splits and dividends; adjust
+    # volume for splits (but not dividends).  Update the database with
+    # the splits / divis, and the eod data
+    def load_marketdata_file(self, ifname, logfile):
         df = pd.read_csv(ifname)
+        dt_dict = {}
+        for row in df.iterrows():
+            dt_dict[row[1][0]] = row[0]
         stk = ifname[ifname.rfind('/')+1:ifname.rfind('.')]
         df['R'] = df['Close'] / df['Adj Close']
         df['R_1'] = df['R'].shift()
         df['RR'] = round(df['R'] / df['R_1'], 4)
-        # df['V20'] = df['Volume'].rolling(20).mean()
-        # df['V20_20'] = df['V20'].shift(-20)
-        # df['VR'] = round(df['V20'] / df['V20_20'], 4)
-        splits_divis = df.query('RR<0.999 | RR>1.001')
-        print(splits_divis[['Date', 'RR']])
-        sd_dict = {}
+        df['RR_1'] = df['RR'].shift(-1)
+        df['IRR'] = round(df['R_1'] / df['R'], 4)
+        df['IRR_1'] = df['IRR'].shift(-1)
+        splits_divis = df.query('RR_1<0.999 | RR_1>1.001')
+        splits_dict = {}
         for row in splits_divis.iterrows():
-            lst = []
-            dt = stxcal.prev_busday(row[1]['Date'])
-            ratio = row[1]['RR']
-            lst.append(ratio)
+            dt = row[1]['Date']
+            ratio, iratio = row[1]['RR_1'], row[1]['IRR_1']
             sd_type = 0 if ratio <= 0.95 or ratio >= 1.05 else 2
-            validations = []
+            validation = ''
             for tbl in ['dn_split', 'splits', 'split']:
                 sql = "select * from {0:s} where stk='{1:s}' and dt='{2:s}'".\
                                                       format(tbl, stk, dt)
@@ -337,15 +344,31 @@ class StxEOD:
                     tbl_sd_type = res[0][3]
                     if tbl_sd_type == 1:
                         tbl_sd_type = 0
-                    validations.append(tbl)
+                    validation = tbl
                     if tbl_sd_type != sd_type:
                         sd_type = tbl_sd_type + 3
-            if len(validations) == 0:
+                    break
+            if validation == '':
                 sd_type += 6
-            lst.append(sd_type)
-            lst.append(','.join(validations))
-            sd_dict[dt] = lst
-        # print(splits_divis[['Date', 'RR', 'VR']])
+            if sd_type in [0, 3, 6]:
+                splits_dict[dt] = iratio
+            logfile.write('{0:s},{1:s},{2:f},{3:f},{4:d},{5:s}\n'.
+                          format(stk, dt, ratio, iratio, sd_type, validation))
+            stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "
+                               "{3:f}, {4:d})".
+                               format(self.split_tbl, stk, dt, ratio, sd_type))
+        for dt in reversed(sorted(splits_dict.keys())):
+            s_ix, e_ix = 0, dt_dict[dt]
+            df.loc[s_ix:e_ix, 'Volume'] = df['Volume'] / splits_dict[dt]
+        upload_fname = '{0:s}/eod.txt'.format(self.upload_dir)
+        with open(upload_fname, 'w') as ofile:
+            for r in df.iterrows():
+                ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
+                            '{5:.2f}\t{6:.0f}\n'.
+                            format(stk, r[1]['Date'], r[1]['Open'],
+                                   r[1]['High'], r[1]['Low'], r[1]['Close'],
+                                   r[1]['Volume']))
+        stxdb.db_upload_file(upload_fname, self.eod_tbl, 2)
 
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
@@ -777,13 +800,18 @@ class StxEOD:
 if __name__ == '__main__':
     # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
     # ed_eod.load_eoddata_files()
-    s_date = '2001-01-01'
-    e_date = '2012-12-31'
-    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
-                    'reconciliation')
+    md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciilation')
+    log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
+                                                strftime('%Y%m%d%H%M%S'))
+    with open(log_fname, 'w') as logfile:
+        md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
+    # s_date = '2001-01-01'
+    # e_date = '2012-12-31'
+    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
+    #                 'reconciliation')
     # my_eod.load_my_files()
-    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
-                    'reconciliation')
+    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
+    #                 'reconciliation')
     # dn_eod.load_deltaneutral_files()
     # my_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
@@ -791,8 +819,8 @@ if __name__ == '__main__':
     # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
     # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    eod = StxEOD('', 'eod', 'split', 'reconciliation')
-    eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
-                                                  'dn_split'])
+    # my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    # eod = StxEOD('', 'eod', 'split', 'reconciliation')
+    # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
+    #                                               'dn_split'])
