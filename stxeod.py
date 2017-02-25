@@ -303,16 +303,24 @@ class StxEOD:
     def load_marketdata_files(self, sd='1962-01-02', ed='2016-12-31'):
         log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
                                                     strftime('%Y%m%d%H%M%S'))
-        dirs = ['{0:s}/AMEX'.format(self.in_dir),
-                '{0:s}/NASDAQ'.format(self.in_dir),
-                '{0:s}/NYSE'.format(self.in_dir)]
+        exchanges = ['AMEX', 'NASDAQ', 'NYSE']
         with open(log_fname, 'w') as logfile:
-            for exch_dir in dirs:
+            for exchange in exchanges:
+                exch_dir = '{0:s}/{1:s}'.format(self.in_dir, exchange)
+                num = 0
                 files = os.listdir(exch_dir)
+                total = len(files)
+                print('{0:s} uploading {1:d} {2:s} stocks'.
+                      format(stxcal.print_current_time(), total, exchange))
                 for fname in files:
                     self.load_marketdata_file('{0:s}/{1:s}'.format(exch_dir,
                                                                    fname),
                                               logfile)
+                    num += 1
+                    if num % 250 == 0 or num == total:
+                        print('{0:s} uploaded {1:4d}/{2:4d} {3:s} stocks'.
+                              format(stxcal.print_current_time(), num, total,
+                                     exchange))
 
     # For each marketdata file, back out splits and dividends; adjust
     # volume for splits (but not dividends).  Update the database with
@@ -363,6 +371,10 @@ class StxEOD:
         upload_fname = '{0:s}/eod.txt'.format(self.upload_dir)
         with open(upload_fname, 'w') as ofile:
             for r in df.iterrows():
+                if pd.isnull(r[1]['Date']) or pd.isnull(r[1]['Open']) or \
+                   pd.isnull(r[1]['High']) or pd.isnull(r[1]['Low']) or \
+                   pd.isnull(r[1]['Close']) or pd.isnull(r[1]['Volume']):
+                    continue
                 ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
                             '{5:.2f}\t{6:.0f}\n'.
                             format(stk, r[1]['Date'], r[1]['Open'],
@@ -804,7 +816,8 @@ if __name__ == '__main__':
     log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
                                                 strftime('%Y%m%d%H%M%S'))
     with open(log_fname, 'w') as logfile:
-        md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
+        md_eod.load_marketdata_files()
+        # md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
     # s_date = '2001-01-01'
     # e_date = '2012-12-31'
     # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
