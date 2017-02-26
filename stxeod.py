@@ -313,9 +313,13 @@ class StxEOD:
                 print('{0:s} uploading {1:d} {2:s} stocks'.
                       format(stxcal.print_current_time(), total, exchange))
                 for fname in files:
-                    self.load_marketdata_file('{0:s}/{1:s}'.format(exch_dir,
-                                                                   fname),
-                                              logfile)
+                    try:
+                        self.load_marketdata_file('{0:s}/{1:s}'.
+                                                  format(exch_dir, fname),
+                                                  logfile)
+                    except:
+                        print('Failed to load {0:s}: {1:s}'.
+                              format(fname, str(sys.exc_info()[1])))
                     num += 1
                     if num % 250 == 0 or num == total:
                         print('{0:s} uploaded {1:4d}/{2:4d} {3:s} stocks'.
