@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 import os
 import unittest
@@ -176,8 +177,8 @@ class Test3StxTS(unittest.TestCase):
         ts.set_day('2012-10-04')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and
-                        (res2.c == 34.12) and (res2.v == 38796800))
+        self.assertTrue((res1.c == 8.65) and (res1.v == 39762200) and
+                        (res2.c == 34.12) and (res2.v == 38797400))
 
     def test_3_set_day_split(self):
         stk = 'VXX'
@@ -187,8 +188,8 @@ class Test3StxTS(unittest.TestCase):
         ts.set_day('2012-10-05')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and
-                        (res2.c == 34.12) and (res2.v == 38796800))
+        self.assertTrue((res1.c == 34.60) and (res1.v == 9940550) and
+                        (res2.c == 34.12) and (res2.v == 38797400))
 
     def test_4_set_day_split(self):
         stk = 'VXX'
@@ -199,8 +200,8 @@ class Test3StxTS(unittest.TestCase):
         ts.set_day('2012-10-04')
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        self.assertTrue((res1.c == 8.65) and (res1.v == 9939200) and
-                        (res2.c == 34.12) and (res2.v == 38796800))
+        self.assertTrue((res1.c == 8.65) and (res1.v == 39762200) and
+                        (res2.c == 34.12) and (res2.v == 38797400))
 
     def test_5_next_day_split(self):
         stk = 'VXX'
@@ -212,8 +213,8 @@ class Test3StxTS(unittest.TestCase):
         ts.next_day()
         res1 = ts.df.ix['2012-10-04']
         res2 = ts.df.ix['2012-10-05']
-        self.assertTrue((res1.c == 34.60) and (res1.v == 2484800) and
-                        (res2.c == 34.12) and (res2.v == 38796800))
+        self.assertTrue((res1.c == 34.60) and (res1.v == 9940550) and
+                        (res2.c == 34.12) and (res2.v == 38797400))
 
 
 class Test4StxEOD(unittest.TestCase):
@@ -221,13 +222,17 @@ class Test4StxEOD(unittest.TestCase):
     def setUp(self):
         self.my_eod_tbl = 'my_eod_test'
         self.dn_eod_tbl = 'dn_eod_test'
+        self.md_eod_tbl = 'md_eod_test'
         self.my_split_tbl = 'my_split_test'
         self.dn_split_tbl = 'dn_split_test'
+        self.md_split_tbl = 'md_split_test'
         self.recon_tbl = 'reconciliation_test'
         self.my_in_dir = 'C:/goldendawn/my_test'
         self.dn_in_dir = 'C:/goldendawn/dn_test'
+        self.md_in_dir = 'C:/goldendawn'
         self.my_dir = 'C:/goldendawn/bkp'
         self.dn_dir = 'C:/goldendawn/dn'
+        self.md_dir = 'C:/goldendawn/md'
         self.stx = 'AEOS,EXPE,NFLX,TIE'
         self.sd = '2002-02-01'
         self.ed = '2012-12-31'
@@ -330,14 +335,17 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, my_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 "
                                  "order by stk, dt".format(self.my_split_tbl))
+        print('test_4_reconcile_my_data')
+        print(res1)
+        print(res2)
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
-                                    '2007-01-26', 0, 97.73, 0.0009, 0) and
+                                    '2007-01-26', 2, 97.73, 0.0016, 0) and
                         res1[1] == ('EXPE', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2012-12-31', '2002-02-01',
-                                    '2012-12-31', 1, 100.0, 0.0001, 0) and
+                                    '2012-12-31', 1, 100.0, 0.0012, 0) and
                         res1[2] == ('NFLX', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-12-11', '2012-12-31', '2002-05-29',
@@ -345,7 +353,7 @@ class Test4StxEOD(unittest.TestCase):
                         res1[3] == ('TIE', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-04',
-                                    '2012-12-31', 2, 100.0, 0.001, 0) and
+                                    '2012-12-31', 2, 100.0, 0.0011, 0) and
                         res2[0] == ('EXPE', '2003-03-10', Decimal('0.5000'),
                                     1) and
                         res2[1] == ('TIE', '2006-02-16', Decimal('0.5000'),
@@ -361,6 +369,9 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, dn_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 order"
                                  " by stk, dt".format(self.dn_split_tbl))
+        print('test_5_reconcile_dn_data')
+        print(res1)
+        print(res2)
         self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
@@ -388,6 +399,8 @@ class Test4StxEOD(unittest.TestCase):
                                      ['splits', 'my_split_test'])
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
                                 .format(dn_eod.split_tbl, 'AEOS'))
+        print('test_6_split_recon')
+        print(res)
         self.assertTrue(
             res[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1) and
             res[1] == ('AEOS', '2006-12-19', Decimal('0.6700'), 0))
@@ -452,15 +465,42 @@ class Test4StxEOD(unittest.TestCase):
                         res5[2] == ('NFLX', 1) and
                         res5[3] == ('TIE', 2))
 
-    def test_8_teardown(self):
+    def test_8_load_md_data(self):
+        md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
+                        self.recon_tbl)
+        log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.now().
+                                                      strftime('%Y%m%d%H%M%S'))
+        with open(log_fname, 'w') as logfile:
+            md_eod.load_marketdata_file('{0:s}/NASDAQ/EXPE.csv'.
+                                        format(self.md_in_dir), logfile)
+            md_eod.load_marketdata_file('{0:s}/NASDAQ/NFLX.csv'.
+                                        format(self.md_in_dir), logfile)
+        os.remove(log_fname)
+        res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.md_eod_tbl))
+        res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.md_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.md_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'EXPE') group by stk order by stk".
+                                 format(self.md_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 2
+                        and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
+                        res4[1][0] == 'NFLX' and res4[1][1] == 3616)
+
+    def test_9_teardown(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
                         self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
                         self.recon_tbl)
         my_eod.cleanup()
         my_eod.cleanup_data_folder()
         dn_eod.cleanup()
         dn_eod.cleanup_data_folder()
+        md_eod.cleanup()
         stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_test))
         stxdb.db_write_cmd('drop table {0:s}'.format(self.split_test))
         stxdb.db_write_cmd('drop table {0:s}'.format(self.recon_tbl))
@@ -478,9 +518,14 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.split_test))
         res7 = stxdb.db_read_cmd("show tables like '{0:s}'".
                                  format(self.recon_tbl))
+        res8 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.md_eod_tbl))
+        res9 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.md_split_tbl))
         self.assertTrue((not res1) and (not res2) and (not res3) and
                         (not res4) and (not res5) and (not res6) and
-                        (not res7) and (not os.path.exists(self.my_in_dir))
+                        (not res7) and (not res8) and (not res9) and
+                        (not os.path.exists(self.my_in_dir))
                         and (not os.path.exists(self.dn_in_dir)))
 
 
