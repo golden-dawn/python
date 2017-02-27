@@ -77,8 +77,14 @@ class OptEOD:
 
     def load_opts_daily(self, opt_fname):
         # print('{0:s} -load_opts_daily'.format(stxcal.print_current_time()))
+        invalid_days = ['2002-02-01', '2002-02-04', '2002-02-05', '2002-02-06',
+                        '2002-02-07', '2002-05-30', '2002-05-31', '2002-06-14',
+                        '2002-06-17', '2002-12-02', '2002-12-03', '2002-12-04',
+                        '2002-12-05', '2002-12-06', '2002-12-09', '2002-12-10']
         dt = '{0:s}-{1:s}-{2:s}'.format(opt_fname[-12:-8], opt_fname[-8:-6],
                                         opt_fname[-6:-4])
+        if dt in invalid_days:
+            return
         sdt = datetime.strptime(dt, '%Y-%m-%d')
         edt = sdt + relativedelta(months=+7)
         sdt = str(sdt.date())[:-3]
@@ -137,10 +143,16 @@ class OptEOD:
                        "'2002-12-02', '2002-12-03', '2002-12-04', "\
                        "'2002-12-05', '2002-12-06', '2002-12-09', "\
                        "'2002-12-10')"
-        stxdb.db_write_cmd('delete from opt_spots where dt in {0:s}'.
-                           format(invalid_days))
-        stxdb.db_write_cmd('delete from opts where dt in {0:s}'.
-                           format(invalid_days))
+        print('{0:s}: removing invalid days from opt_spots and opts tables.'.
+              format(stxcal.print_current_time()))
+        stxdb.db_write_cmd('delete from {0:s} where dt in {1:s}'.
+                           format(self.spot_tbl, invalid_days))
+        print('{0:s}: removed invalid days from {1:s} table.'.
+              format(stxcal.print_current_time(), self.spot_tbl))
+        stxdb.db_write_cmd('delete from {0:s} where dt in {1:s}'.
+                           format(self.opt_tbl, invalid_days))
+        print('{0:s}: removed invalid days from {1:s} table.'.
+              format(stxcal.print_current_time(), self.opt_tbl))
 
 if __name__ == '__main__':
     opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots')
