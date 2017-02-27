@@ -341,7 +341,7 @@ class Test4StxEOD(unittest.TestCase):
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
-                                    '2007-01-26', 2, 97.73, 0.0016, 0) and
+                                    '2007-01-26', 0, 97.73, 0.0016, 0) and
                         res1[1] == ('EXPE', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2012-12-31', '2002-02-01',
@@ -375,7 +375,7 @@ class Test4StxEOD(unittest.TestCase):
         self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
-                                    '2007-03-09', 1, 100.0, 0.0011, 0) and
+                                    '2007-03-09', 1, 100.0, 0.0017, 0) and
                         res1[1] == ('EXPE', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2012-12-31', '2005-07-21',
@@ -383,7 +383,7 @@ class Test4StxEOD(unittest.TestCase):
                         res1[2] == ('NFLX', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-12-11', '2012-12-31', '2002-05-23',
-                                    '2012-12-31', 0, 100.0, 0.0013, 0) and
+                                    '2012-12-31', 0, 100.0, 0.0012, 0) and
                         res1[3] == ('TIE', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-01',
@@ -403,7 +403,7 @@ class Test4StxEOD(unittest.TestCase):
         print(res)
         self.assertTrue(
             res[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1) and
-            res[1] == ('AEOS', '2006-12-19', Decimal('0.6700'), 0))
+            res[1] == ('AEOS', '2006-12-18', Decimal('0.6700'), 0))
 
     def test_7_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
