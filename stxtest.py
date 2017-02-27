@@ -236,6 +236,8 @@ class Test4StxEOD(unittest.TestCase):
         self.stx = 'AEOS,EXPE,NFLX,TIE'
         self.sd = '2002-02-01'
         self.ed = '2012-12-31'
+        self.sd_1 = '2013-01-02'
+        self.ed_1 = '2013-11-15'
         self.eod_test = 'eod_test'
         self.split_test = 'split_test'
         stk_list = self.stx.split(',')
@@ -335,9 +337,6 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, my_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 "
                                  "order by stk, dt".format(self.my_split_tbl))
-        print('test_4_reconcile_my_data')
-        print(res1)
-        print(res2)
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
@@ -369,9 +368,6 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, dn_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 order"
                                  " by stk, dt".format(self.dn_split_tbl))
-        print('test_5_reconcile_dn_data')
-        print(res1)
-        print(res2)
         self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
@@ -399,8 +395,6 @@ class Test4StxEOD(unittest.TestCase):
                                      ['splits', 'my_split_test'])
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
                                 .format(dn_eod.split_tbl, 'AEOS'))
-        print('test_6_split_recon')
-        print(res)
         self.assertTrue(
             res[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1) and
             res[1] == ('AEOS', '2006-12-18', Decimal('0.6700'), 0))
@@ -489,7 +483,26 @@ class Test4StxEOD(unittest.TestCase):
                         and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
                         res4[1][0] == 'NFLX' and res4[1][1] == 3616)
 
-    def test_9_teardown(self):
+    def test_9_load_ed_data(self):
+        ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
+                        self.recon_tbl)
+        ed_eod.load_eoddata_files(stks=self.ed_stx)
+        res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.ed_eod_tbl))
+        res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
+                                 format(self.ed_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.ed_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'VXX', 'EXPE') group by stk order "
+                                 "by stk".format(self.ed_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
+                        res4[3][0] == 'TIE' and res4[3][1] == 3017)
+
+    def test_10_teardown(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
                         self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
