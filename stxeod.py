@@ -262,7 +262,7 @@ class StxEOD:
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
-    def load_eoddata_files(self, sd='2013-01-01', ed='2012-12-21'):
+    def load_eoddata_files(self, sd='2013-01-01', ed='2012-12-21', stks=''):
         dt = stxcal.move_busdays(sd, -25)
         fnames = [self.in_dir + '/AMEX_{0:s}.txt',
                   self.in_dir + '/NASDAQ_{0:s}.txt',
@@ -271,7 +271,8 @@ class StxEOD:
             dtc = dt.replace('-', '')
             with open(self.eod_name, 'w') as ofile:
                 for fname in fnames:
-                    self.load_eoddata_file(ofile, fname.format(dtc), dt, dtc)
+                    self.load_eoddata_file(ofile, fname.format(dtc), dt, dtc,
+                                           stks)
             try:
                 stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
                 print('{0:s}: uploaded eods'.format(dt))
@@ -283,11 +284,16 @@ class StxEOD:
     # Load data from a single EODData file in the database Perform
     # some quality checks on the data: do not upload days where volume
     # is 0, or where the open/close are outside the [low, high] range.
-    def load_eoddata_file(self, ofile, ifname, dt, dtc):
+    def load_eoddata_file(self, ofile, ifname, dt, dtc, stks=''):
+        stk_list = [] if stks == '' else stks.split(',')
         with open(ifname, 'r') as ifile:
             lines = ifile.readlines()
             for line in lines[1:]:
                 tokens = line.replace(dtc, dt).strip().split(',')
+                stk = tokens[0].strip()
+                if (stk_list and stk not in stk_list) or ('/' in stk) or \
+                   ('*' in stk) or (stk in ['AUX', 'PRN']):
+                    continue
                 o = float(tokens[2])
                 h = float(tokens[3])
                 l = float(tokens[4])
