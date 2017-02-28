@@ -262,8 +262,9 @@ class StxEOD:
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
-    def load_eoddata_files(self, sd='2013-01-01', ed='2012-12-21', stks=''):
-        dt = stxcal.move_busdays(sd, -25)
+    def load_eoddata_files(self, sd='2013-01-02', ed='2013-11-15', stks=''):
+        dt = sd
+        # dt = stxcal.move_busdays(sd, -25)
         fnames = [self.in_dir + '/AMEX_{0:s}.txt',
                   self.in_dir + '/NASDAQ_{0:s}.txt',
                   self.in_dir + '/NYSE_{0:s}.txt']
