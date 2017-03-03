@@ -821,14 +821,6 @@ class StxEOD:
 
 
 if __name__ == '__main__':
-    # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
-    # ed_eod.load_eoddata_files()
-    md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciilation')
-    log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
-                                                strftime('%Y%m%d%H%M%S'))
-    with open(log_fname, 'w') as logfile:
-        md_eod.load_marketdata_files()
-        # md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
     # s_date = '2001-01-01'
     # e_date = '2012-12-31'
     # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
@@ -848,3 +840,34 @@ if __name__ == '__main__':
     # eod = StxEOD('', 'eod', 'split', 'reconciliation')
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split'])
+    #
+    # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
+    # ed_eod.load_eoddata_files()
+    #
+    # md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciilation')
+    # log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
+    #                                             strftime('%Y%m%d%H%M%S'))
+    # with open(log_fname, 'w') as logfile:
+    #     md_eod.load_marketdata_files()
+    # md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
+
+    s_date = '2013-01-02'
+    e_date = '2013-11-15'
+    ed_eod = StxEOD('c:/goldendawn', 'ed_eod', 'ed_split', 'reconciliation')
+    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
+                    'reconciliation')
+    md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciliation')
+    ed_eod.reconcile_spots(s_date, e_date)
+    md_eod.reconcile_spots(s_date, e_date)
+    dn_eod.reconcile_spots(s_date, e_date)
+    # To debug a reconciliation:
+    # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    ed_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    md_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    ed_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    md_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    eod = StxEOD('', 'eod', 'split', 'reconciliation')
+    eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
+                                                  'dn_split', 'md_split'])
