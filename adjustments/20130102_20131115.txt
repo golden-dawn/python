@@ -1,0 +1,23 @@
+insert into split values ('ADVS', '2013-07-09', 0.7446, 2)
+insert into split values ('ALVR', '2013-04-01', 10, 0)
+insert into split values ('ANTH', '2013-07-12', 7.3333, 0)
+insert into split values ('ASTM', '2013-10-15', 20, 0)
+insert into split values ('CBRX', '2013-08-08', 8.1944, 0)
+update split set ratio=0.8371 where stk='CIG' and dt='2013-05-01'
+insert into split values ('CXW', '2013-04-16', 0.8373, 2)
+insert into split values ('FBN', '2013-05-28', 6.8687, 0)
+insert into split values ('FBNI', '2013-05-28', 6.8687, 0)
+insert into split values ('FBNIQ', '2013-05-28', 6.8687, 0)
+insert into split values ('GASX', '2013-08-19', 4, 0)
+insert into split values ('HDY', '2013-06-28', 7.6170, 0)
+insert into split values ('KCG', '2013-07-03', 3.4489, 0)
+insert into split values ('NRGY', '2013-06-18', 0.6, 0)
+insert into split values ('NWS', '2013-06-28', 0.4717, 2)
+insert into split values ('NWSA', '2013-06-28', 0.4785, 2)
+insert into split values ('OTEL', '2013-05-24', 5.2301, 0)
+insert into split values ('PULS', '2013-05-21', 10, 0)
+insert into split values ('SYNM', '2013-04-11', 10, 0)
+insert into split values ('USU', '2013-07-01', 25, 0)
+delete from eod where stk='WEX' and dt<'2013-04-16'
+insert into split values ('ZLCS', '2013-10-02', 5, 0)
+update split set ratio=1.3158 where stk='UNTD' and dt='2013-10-31'
