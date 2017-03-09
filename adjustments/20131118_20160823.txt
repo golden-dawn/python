@@ -1,24 +1,50 @@
-stxdb.db_write_cmd("insert into split values ('ACI', '2016-01-11', 23.3735, 0)")
-stxdb.db_write_cmd("delete from split where stk='ATLS' and dt in('2013-11-15', '2015-02-04')")
-stxdb.db_write_cmd("insert into split values ('BF.A', '2016-08-18', 0.5, 0)")
-stxdb.db_write_cmd("insert into split values ('BF.B', '2016-08-18', 0.50, 0)")
-stxdb.db_write_cmd("insert into split values ('BKS', '2015-07-31', 0.6588, 0)")
-stxdb.db_write_cmd("insert into split values ('BODYD', '2014-09-08', 11.3429, 0)")
-stxdb.db_write_cmd("delete from eod where stk='BRE' and dt>'2014-04-01'")
-stxdb.db_write_cmd("insert into split values ('BTE', '2014-11-26', 0.8595, 2)")
-stxdb.db_write_cmd("delete from split where stk='CDXC'")
-stxdb.db_write_cmd("delete from eod where stk='CIS' and dt>'2014-04-03'")
-stxdb.db_write_cmd("delete from eod where stk='CODE' and dt>'2013-11-11'")
-stxdb.db_write_cmd("delete from eod where stk='CVD' and dt='2015-02-23'")
-stxdb.db_write_cmd("insert into split values ('CVO', '2016-07-13', 8.0, 0)")
-stxdb.db_write_cmd("insert into split values ('CYCC', '2016-05-27', 12, 0)")
-stxdb.db_write_cmd("insert into split values ('EGLE', '2014-10-15', 20, 0)")
-stxdb.db_write_cmd("insert into split values ('ENR', '2015-06-11', 0.25, 0)")
-stxdb.db_write_cmd("delete from eod where stk='ENTR' and dt>'2015-04-30'")
-stxdb.db_write_cmd("delete from eod where stk='EQU' and dt>'2014-06-19'")
-stxdb.db_write_cmd("delete from split where stk='FTAG' and dt='2016-05-02'")
-stxdb.db_write_cmd("insert into split values ('GCI', '2015-06-26', 0.3781, 0)")
-stxdb.db_write_cmd("delete from eod where stk='GIVN' and dt>'2014-02-27'")
-stxdb.db_write_cmd("delete from eod where stk='HCT'")
-stxdb.db_write_cmd("insert into split values ('HEROQ', '2015-11-09', 250, 0)")
-stxdb.db_write_cmd("delete from eod where stk='HILL' and dt>'2015-10-05'")
+insert into split values ('ACI', '2016-01-11', 23.3735, 0)
+delete from split where stk='ATLS' and dt in('2013-11-15', '2015-02-04')
+insert into split values ('BF.A', '2016-08-18', 0.5, 0)
+insert into split values ('BF.B', '2016-08-18', 0.50, 0)
+insert into split values ('BKS', '2015-07-31', 0.6588, 0)
+insert into split values ('BODYD', '2014-09-08', 11.3429, 0)
+delete from eod where stk='BRE' and dt>'2014-04-01'
+insert into split values ('BTE', '2014-11-26', 0.8595, 2)
+delete from split where stk='CDXC'
+delete from eod where stk='CIS' and dt>'2014-04-03'
+delete from eod where stk='CODE' and dt>'2013-11-11'
+delete from eod where stk='CVD' and dt='2015-02-23'
+insert into split values ('CVO', '2016-07-13', 8.0, 0)
+insert into split values ('CYCC', '2016-05-27', 12, 0)
+insert into split values ('EGLE', '2014-10-15', 20, 0)
+insert into split values ('ENR', '2015-06-11', 0.25, 0)
+delete from eod where stk='ENTR' and dt>'2015-04-30'
+delete from eod where stk='EQU' and dt>'2014-06-19'
+delete from split where stk='FTAG' and dt='2016-05-02'
+insert into split values ('GCI', '2015-06-26', 0.3781, 0)
+delete from eod where stk='GIVN' and dt>'2014-02-27'
+delete from eod where stk='HCT'
+insert into split values ('HEROQ', '2015-11-09', 250, 0)
+delete from eod where stk='HILL' and dt>'2015-10-05'
+insert into split values ('HTZ', '2016-06-30', 4.0, 0)
+insert into split values ('IO', '2016-02-04', 16, 0)
+delete from eod where stk='IPCM' and dt>'2015-11-23'
+insert into split values ('KLAC', '2014-11-25', 0.8022, 2)
+delete from eod where stk='KMR' and dt>'2014-11-26'
+delete from eod where stk='KYTH' and dt>'2015-09-30'
+delete from eod where stk='LIFE' and dt>'2014-02-03'
+delete from eod where stk='LIN' and dt>'2014-12-19'
+insert into split values ('MSG', '2015-09-30', 2.0335, 8)
+insert into split values ('NYLD', '2015-05-14', 0.5211, 0)
+delete from eod where stk='OCAT' and dt<'2014-08-28'
+delete from eod where stk='ORB' and dt>'2015-02-09'
+delete from split  where stk='PACD' and dt='2016-05-26'
+update split set dt='2016-05-24' where stk='PACD' and dt='2016-05-25'
+delete from split where stk='PGLC'
+insert into split values ('PNK', '2016-04-28', 0.2939, 8)
+delete from eod where stk='RCPT' and dt>'2015-08-28'
+update split set dt='2015-08-31' where stk='RSO' and dt='2015-09-01'
+insert into split values ('SMT', '2016-05-11', 10.0000, 0)
+insert into split values ('SNTA', '2016-07-22', 25, 0)
+update split set dt='2014-11-19' where stk='TRIL' and dt='2014-11-20'
+update split set dt='2016-07-22' where stk='UXI' and dt='2016-07-25'
+delete from split where stk='VIPS'
+delete from eod where stk='VTSS' and dt>'2015-04-27'
+insert into split values ('WPP', '2016-01-21', 10.2217, 8)
+insert into split values ('Z', '2015-07-31', 0.3333, 0)
