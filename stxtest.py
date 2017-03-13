@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 import os
 import unittest
@@ -14,7 +14,7 @@ class Test1StxDB(unittest.TestCase):
         self.tbl_name = 'eod_test'
         self.sql_create_tbl = 'CREATE TABLE `{0:s}` ('\
                               '`stk` varchar(8) NOT NULL,'\
-                              '`dt` varchar(10) NOT NULL,'\
+                              '`dt` date NOT NULL,'\
                               '`o` decimal(9,2) DEFAULT NULL,'\
                               '`h` decimal(9,2) DEFAULT NULL,'\
                               '`l` decimal(9,2) DEFAULT NULL,'\
@@ -358,11 +358,12 @@ class Test4StxEOD(unittest.TestCase):
                                     '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-04',
                                     '2012-12-31', 2, 100.0, 0.0011, 0) and
-                        res2[0] == ('EXPE', '2003-03-10', Decimal('0.5000'),
-                                    1) and
-                        res2[1] == ('TIE', '2006-02-16', Decimal('0.5000'),
-                                    1) and
-                        res2[2] == ('TIE', '2006-05-15', Decimal('0.5000'), 1))
+                        res2[0] == ('EXPE', datetime.date(2003, 3, 10),
+                                    Decimal('0.5000'), 1) and
+                        res2[1] == ('TIE', datetime.date(2006, 2, 16),
+                                    Decimal('0.5000'), 1) and
+                        res2[2] == ('TIE', datetime.date(2006, 5, 15),
+                                    Decimal('0.5000'), 1))
 
     def test_05_reconcile_dn_data(self):
         dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
@@ -389,8 +390,8 @@ class Test4StxEOD(unittest.TestCase):
                                     '20020201_20121231',
                                     '2005-10-03', '2012-12-31', '2002-02-01',
                                     '2012-12-31', 0, 100.0, 0.0041, 0) and
-                        res2[0] == ('AEOS', '2005-03-07', Decimal('0.4999'),
-                                    1))
+                        res2[0] == ('AEOS', datetime.date(2005, 3, 7),
+                                    Decimal('0.4999'), 1))
 
     def test_06_split_recon(self):
         # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
@@ -401,8 +402,10 @@ class Test4StxEOD(unittest.TestCase):
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
                                 .format(dn_eod.split_tbl, 'AEOS'))
         self.assertTrue(
-            res[0] == ('AEOS', '2005-03-07', Decimal('0.4999'), 1) and
-            res[1] == ('AEOS', '2006-12-18', Decimal('0.6700'), 0))
+            res[0] == ('AEOS', datetime.date(2005, 3, 7), Decimal('0.4999'),
+                       1) and
+            res[1] == ('AEOS', datetime.date(2006, 12, 18), Decimal('0.6700'),
+                       0))
 
     def test_07_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
@@ -457,8 +460,8 @@ class Test4StxEOD(unittest.TestCase):
                         res3[1][4] == Decimal('34.80') and
                         res3[1][5] == Decimal('37.96') and
                         res3[1][6] == 11771300 and
-                        res4[0][1] == '2003-08-08' and
-                        res4[1][1] == '2005-07-21' and
+                        res4[0][1] == datetime.date(2003, 8, 8) and
+                        res4[1][1] == datetime.date(2005, 7, 21) and
                         res5[0] == ('AEOS', 6) and
                         res5[1] == ('EXPE', 1) and
                         res5[2] == ('NFLX', 1) and
@@ -467,7 +470,7 @@ class Test4StxEOD(unittest.TestCase):
     def test_08_load_md_data(self):
         md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
                         self.recon_tbl)
-        log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.now().
+        log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
                                                       strftime('%Y%m%d%H%M%S'))
         with open(log_fname, 'w') as logfile:
             md_eod.load_marketdata_file('{0:s}/NASDAQ/EXPE.csv'.
@@ -544,9 +547,8 @@ class Test4StxEOD(unittest.TestCase):
                                          ['splits'])
         res = stxdb.db_read_cmd("select * from {0:s}"
                                 .format(ed_eod.split_tbl))
-        print('test_11_split_recon')
-        print(res)
-        self.assertTrue(res[0] == ('VXX', '2013-11-07', Decimal('4.0000'), 0))
+        self.assertTrue(res[0] == ('VXX', datetime.date(2013, 11, 7),
+                                   Decimal('4.0000'), 0))
 
     def test_12_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
@@ -605,8 +607,8 @@ class Test4StxEOD(unittest.TestCase):
                         res3[1][4] == Decimal('34.80') and
                         res3[1][5] == Decimal('37.96') and
                         res3[1][6] == 11771300 and
-                        res4[0][1] == '2003-08-08' and
-                        res4[1][1] == '2005-07-21' and
+                        res4[0][1] == datetime.date(2003, 8, 8) and
+                        res4[1][1] == datetime.date(2005, 7, 21) and
                         res5[0] == ('AEOS', 6) and
                         res5[1] == ('EXPE', 1) and
                         res5[2] == ('NFLX', 1) and

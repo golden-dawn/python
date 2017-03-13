@@ -15,10 +15,24 @@ class StxEOD:
     sh_dir = 'C:/goldendawn/stockhistory'
     upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
     ed_dir = 'C:/goldendawn/EODData'
+    dload_dir = 'C:/users/const/Downloads'
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
+    # when changing the dt column from varchar(10) to date need to do this:
+    # alter table ed_eod modify dt date;
+    # delete from my_eod where char_length(dt) < 10;
+    # alter table my_eod modify dt date;
+    # alter table md_eod modify dt date;
+    # alter table dn_eod modify dt date;
+    # alter table eod modify dt date;
+    # alter table splits modify dt date;    
+    # alter table ed_split modify dt date;
+    # alter table md_split modify dt date;
+    # alter table my_split modify dt date;
+    # alter table dn_split modify dt date;
+    # alter table split modify dt date;
     sql_create_eod = 'CREATE TABLE `{0:s}` ('\
                      '`stk` varchar(8) NOT NULL,'\
-                     '`dt` varchar(10) NOT NULL,'\
+                     '`dt` date NOT NULL,'\
                      '`o` decimal(9,2) DEFAULT NULL,'\
                      '`h` decimal(9,2) DEFAULT NULL,'\
                      '`l` decimal(9,2) DEFAULT NULL,'\
@@ -28,11 +42,22 @@ class StxEOD:
                      ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
     sql_create_split = 'CREATE TABLE `{0:s}` ('\
                        '`stk` varchar(8) NOT NULL,'\
-                       '`dt` varchar(10) NOT NULL,'\
+                       '`dt` date NOT NULL,'\
                        '`ratio` decimal(8,4) DEFAULT NULL,'\
                        '`implied` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
                        ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+    sql_create_fxs = 'CREATE TABLE `{0:s}` ('\
+                     '`stk` varchar(8) NOT NULL,'\
+                     '`dt` date NOT NULL,'\
+                     '`o` decimal(9,2) DEFAULT NULL,'\
+                     '`h` decimal(9,2) DEFAULT NULL,'\
+                     '`l` decimal(9,2) DEFAULT NULL,'\
+                     '`c` decimal(9,2) DEFAULT NULL,'\
+                     '`v` int(11) DEFAULT NULL,'\
+                     '`oi` int(11) DEFAULT NULL,'\
+                     'PRIMARY KEY (`stk`,`dt`)'\
+                     ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
     sql_create_recon = 'CREATE TABLE `{0:s}` ('\
                        '`stk` varchar(8) NOT NULL,'\
                        '`recon_name` varchar(16) NOT NULL,'\
@@ -819,6 +844,83 @@ class StxEOD:
         # av2/av1
         pass
 
+    def parseeodfiles(self, s_date, e_date):
+        dt = s_date
+        while dt < e_date:
+            with open('{0:s}/{1:s}_d.prn'.format
+                      (self.dload_dir, dt.replace('-', ''))) as ifile:
+                # with open(
+                lines = ifile.readlines()
+                for line in lines:
+                    self.parseeodline(line)
+            dt = stxcal.next_busday(dt)
+
+    #         int l= 0;
+    #         for( String line: lines) {
+    #             if( ++l== 1) continue;
+    #             try {
+    #                 String [] t= line.split( ",");
+    #     	    String stk= t[ 0].trim(); stk= stk.replace( "-.", ".P.");
+    #     	    stk= stk.replace( "_", "."); stk= stk.replace( ".US", "");
+    #     	    Long v=(long)0; try{v=Long.parseLong(t[7]);}catch(Exception e){}
+    #     	    if( stk.startsWith( "^")) v/= 1000;
+    #                 String str= String.format( "%s %s %s %s %s %d", dt, t[ 3],
+    #                                            t[ 4], t[ 5], t[ 6], v);
+    #                 TreeMap<String, StxRec> crt_ht= exch_data.get( stk);
+    #                 if( crt_ht== null) crt_ht= new TreeMap<String, StxRec>();
+    #                 crt_ht.put( dt, new StxRec( str));
+    #                 exch_data.put( stk, crt_ht);
+    #             } catch( Exception ex) { 
+    #                 ex.printStackTrace( System.err); 
+    #             }
+    #         }
+    #         System.err.println( "Parsed "+ dt);
+    #     }
+    #     return exch_data;
+    # }
+
+    # private TreeMap<String, TreeMap<String, Float>>
+    #     parseSplits( String s_date) {
+    #     TreeMap<String, TreeMap<String, Float>> splits=
+    #         new TreeMap<String, TreeMap<String, Float>>();
+    #     for( String dt= s_date; StxCal.cmp( dt, end_date)> -1;
+    #          dt= StxCal.nextBusDay( dt)) {
+    #         File split_f= new File( StxFile.EodDir+ "splits/splits_"+
+    #                                 StxCal.ymd2idd( dt)+ ".txt");
+    #         try { 
+    #             List<String> ls= Files.readAllLines( split_f.toPath(), 
+    #                                                  Charset.defaultCharset());
+    #             for( String line: ls) {
+    #                 if( line.startsWith( "Exchange")) continue;
+    #                 String[] t= line.split( "\t");
+    #                 String se= t[ 0].trim(), sd= StxCal.us2ymd( t[ 2].trim());
+    #                 if( !sd.equals( dt)) continue;
+    #                 if( !se.equals( "AMEX")&& !se.equals( "NASDAQ")&&
+    #                     !se.equals( "NYSE")) continue;
+    #                 String stk= t[ 1].trim(), sr= t[ 3].trim();
+    #                 TreeMap<String, Float> stk_s= splits.get( stk);
+    #                 if( stk_s== null) stk_s= new TreeMap<String, Float>();
+    #                 float split_factor= 0;
+    #                 String [] split_factors= sr.split( "-");
+    #                 try {
+    #                     split_factor= ( Float.parseFloat( split_factors[ 1])/
+    #                                     Float.parseFloat( split_factors[ 0]));
+    #                 } catch( Exception e) {
+    #                     e.printStackTrace( System.err);
+    #                     split_factor= 0;
+    #                 }
+    #                 if( split_factor!= 0) {
+    #                     stk_s.put( dt, split_factor);
+    #                     splits.put( stk, stk_s);
+    #                 }
+    #             }
+    #         } catch( Exception e) {
+    #             e.printStackTrace( System.err);
+    #         }
+    #     }
+    #     return splits;
+    # }
+    
 
 if __name__ == '__main__':
     # s_date = '2001-01-01'
@@ -872,20 +974,20 @@ if __name__ == '__main__':
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split', 'md_split'])
 
-
-    s_date = '2013-11-18'
-    e_date = '2016-08-23'
-    dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
-                    'reconciliation')
-    md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciliation')
-    md_eod.reconcile_spots(s_date, e_date)
-    dn_eod.reconcile_spots(s_date, e_date)
-    # To debug a reconciliation:
-    # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    md_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    md_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    eod = StxEOD('', 'eod', 'split', 'reconciliation')
-    eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
-                                                  'dn_split', 'md_split'])
+    # s_date = '2013-11-18'
+    # e_date = '2016-08-23'
+    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
+    #                 'reconciliation')
+    # md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciliation')
+    # md_eod.reconcile_spots(s_date, e_date)
+    # dn_eod.reconcile_spots(s_date, e_date)
+    # # To debug a reconciliation:
+    # # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    # md_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    # md_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    # eod = StxEOD('', 'eod', 'split', 'reconciliation')
+    # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
+    #                                               'dn_split', 'md_split'])
+    pass
