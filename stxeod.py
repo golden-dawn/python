@@ -24,7 +24,7 @@ class StxEOD:
     # alter table md_eod modify dt date;
     # alter table dn_eod modify dt date;
     # alter table eod modify dt date;
-    # alter table splits modify dt date;    
+    # alter table splits modify dt date;
     # alter table ed_split modify dt date;
     # alter table md_split modify dt date;
     # alter table my_split modify dt date;
@@ -76,18 +76,18 @@ class StxEOD:
     status_ok = 1
     status_ko = 2
 
-    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl,
+    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl, fx_tbl='',
                  extension='.txt'):
         self.in_dir = in_dir
         self.eod_tbl = eod_tbl
         self.rec_name = eod_tbl
         self.split_tbl = split_tbl
+        self.fx_tbl = fx_tbl
         self.recon_tbl = recon_tbl
         self.extension = extension
         stxdb.db_create_missing_table(eod_tbl, self.sql_create_eod)
-        # print('EOD DB table: {0:s}'.format(eod_tbl))
         stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
-        # print('Split DB table: {0:s}'.format(split_tbl))
+        stxdb.db_create_missing_table(fx_tbl, self.sql_create_fxs)
         stxdb.db_create_missing_table(recon_tbl, self.sql_create_recon)
 
     # Load my historical data.  Load each stock and accumulate splits.
@@ -844,6 +844,69 @@ class StxEOD:
         # av2/av1
         pass
 
+    def load_stooq_files(self, sd, ed):
+        dirs = ['{0:s}/bonds'.format(self.in_dir),
+                '{0:s}/commodities'.format(self.in_dir),
+                '{0:s}/currencies/major'.format(self.in_dir),
+                '{0:s}/indices'.format(self.in_dir),
+                '{0:s}/lme'.format(self.in_dir),
+                '{0:s}/money_market'.format(self.in_dir)]
+        for instr_dir in dirs:
+            files = os.listdir(instr_dir)
+            instr_name = instr_dir[instr_dir.rfind('/') + 1:]
+            print('{0:s} uploading {1:s}'.format(stxcal.print_current_time(),
+                                                 instr_dir))
+            for fname in files:
+                symbol = fname[:-4].upper()
+                with open('{0:s}/{1:s}'.format(instr_dir, fname),
+                          'r') as ifile:
+                    lines = ifile.readlines()
+                ofname = '{0:s}/eod.txt'.format(self.upload_dir)
+                self.load_stooq_history(symbol, lines[1:], instr_name, sd, ed,
+                                        ofname)
+
+    def load_stooq_history(self, symbol, lines, instr_name, sd, ed, ofname):
+        with open(ofname, 'w') as ofile:
+            for line in lines:
+                try:
+                    dt, o, h, l, c, v, oi = line.split(',')
+                    dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
+                    if dt < sd or dt > ed:
+                        continue
+                    o = float(o)
+                    h = float(h)
+                    l = float(l)
+                    c = float(c)
+                    v = int(v)
+                    oi = int(oi)
+                    if symbol.startswith('^'):
+                        v //= 1000
+                    if v == 0:
+                        v = 1
+                    if instr_name in ['bonds', 'money_market', 'major'] or \
+                       symbol.endswith('.B') or symbol.endswith('6.F'):
+                        o *= 10000
+                        h *= 10000
+                        l *= 10000
+                        c *= 10000
+                    if symbol in ['HO.F', 'NG.F', 'RB.F']:
+                        o *= 100
+                        h *= 100
+                        l *= 100
+                        c *= 100
+                    oline = '{0:s}\t{1:s}\t{2:f}\t{3:f}\t{4:f}\t{5:f}\t{6:d}'.\
+                            format(symbol, dt, o, h, l, c, v)
+                    oline = '{0:s}\t{1:d}\n'.format(oline, oi) \
+                            if instr_name == 'commodities' else \
+                            '{0:s}\n'.format(oline)
+                    ofile.write(oline)
+                except:
+                    e = sys.exc_info()[1]
+                    print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
+                          format(symbol, line, str(e)))
+        tbl_name = self.fx_tbl if instr_name == 'commodities' else self.eod_tbl
+        stxdb.db_upload_file(ofname, tbl_name, 2)
+
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
         while dt < e_date:
@@ -855,28 +918,28 @@ class StxEOD:
                     self.parseeodline(line)
             dt = stxcal.next_busday(dt)
 
-    #         int l= 0;
-    #         for( String line: lines) {
-    #             if( ++l== 1) continue;
-    #             try {
-    #                 String [] t= line.split( ",");
-    #     	    String stk= t[ 0].trim(); stk= stk.replace( "-.", ".P.");
-    #     	    stk= stk.replace( "_", "."); stk= stk.replace( ".US", "");
-    #     	    Long v=(long)0; try{v=Long.parseLong(t[7]);}catch(Exception e){}
-    #     	    if( stk.startsWith( "^")) v/= 1000;
-    #                 String str= String.format( "%s %s %s %s %s %d", dt, t[ 3],
-    #                                            t[ 4], t[ 5], t[ 6], v);
-    #                 TreeMap<String, StxRec> crt_ht= exch_data.get( stk);
-    #                 if( crt_ht== null) crt_ht= new TreeMap<String, StxRec>();
-    #                 crt_ht.put( dt, new StxRec( str));
-    #                 exch_data.put( stk, crt_ht);
-    #             } catch( Exception ex) { 
-    #                 ex.printStackTrace( System.err); 
-    #             }
-    #         }
-    #         System.err.println( "Parsed "+ dt);
-    #     }
-    #     return exch_data;
+    #     int l= 0;
+    #     for( String line: lines) {
+    #         if( ++l== 1) continue;
+    #         try {
+    #             String [] t= line.split( ",");
+    #             String stk= t[ 0].trim(); stk= stk.replace( "-.", ".P.");
+    #     	  stk= stk.replace( "_", "."); stk= stk.replace( ".US", "");
+    #     	  Long v=(long)0; try{v=Long.parseLong(t[7]);}catch(Exception e){}
+    #     	  if( stk.startsWith( "^")) v/= 1000;
+    #               String str= String.format( "%s %s %s %s %s %d", dt, t[ 3],
+    #                                          t[ 4], t[ 5], t[ 6], v);
+    #               TreeMap<String, StxRec> crt_ht= exch_data.get( stk);
+    #               if( crt_ht== null) crt_ht= new TreeMap<String, StxRec>();
+    #               crt_ht.put( dt, new StxRec( str));
+    #               exch_data.put( stk, crt_ht);
+    #           } catch( Exception ex) {
+    #               ex.printStackTrace( System.err);
+    #           }
+    #       }
+    #       System.err.println( "Parsed "+ dt);
+    #   }
+    #   return exch_data;
     # }
 
     # private TreeMap<String, TreeMap<String, Float>>
@@ -887,13 +950,13 @@ class StxEOD:
     #          dt= StxCal.nextBusDay( dt)) {
     #         File split_f= new File( StxFile.EodDir+ "splits/splits_"+
     #                                 StxCal.ymd2idd( dt)+ ".txt");
-    #         try { 
-    #             List<String> ls= Files.readAllLines( split_f.toPath(), 
+    #         try {
+    #             List<String> ls= Files.readAllLines( split_f.toPath(),
     #                                                  Charset.defaultCharset());
     #             for( String line: ls) {
     #                 if( line.startsWith( "Exchange")) continue;
     #                 String[] t= line.split( "\t");
-    #                 String se= t[ 0].trim(), sd= StxCal.us2ymd( t[ 2].trim());
+    #                 String se= t[ 0].trim(), sd= StxCal.us2ymd( t[ 2].trim())
     #                 if( !sd.equals( dt)) continue;
     #                 if( !se.equals( "AMEX")&& !se.equals( "NASDAQ")&&
     #                     !se.equals( "NYSE")) continue;
@@ -904,7 +967,7 @@ class StxEOD:
     #                 String [] split_factors= sr.split( "-");
     #                 try {
     #                     split_factor= ( Float.parseFloat( split_factors[ 1])/
-    #                                     Float.parseFloat( split_factors[ 0]));
+    #                                     Float.parseFloat( split_factors[ 0]))
     #                 } catch( Exception e) {
     #                     e.printStackTrace( System.err);
     #                     split_factor= 0;
@@ -920,7 +983,7 @@ class StxEOD:
     #     }
     #     return splits;
     # }
-    
+
 
 if __name__ == '__main__':
     # s_date = '2001-01-01'
@@ -990,4 +1053,6 @@ if __name__ == '__main__':
     # eod = StxEOD('', 'eod', 'split', 'reconciliation')
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split', 'md_split'])
-    pass
+    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
+                    'sq_split', 'reconciliation', 'sq_fxs')
+    sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
