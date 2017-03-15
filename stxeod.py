@@ -907,6 +907,33 @@ class StxEOD:
         tbl_name = self.fx_tbl if instr_name == 'commodities' else self.eod_tbl
         stxdb.db_upload_file(ofname, tbl_name, 2)
 
+
+    def parseeodline(self, line, dt0):
+        stk_list = []
+        future_list = []
+        try:
+            stk, _, dt, o, h, l, c, v, oi = line.split(',')
+            dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
+            # if the date is 2 days ago, need to update volume and
+            # open interest for futures
+            #
+            # if the date is one day ago, need to update prices for
+            # futures, as well as volumes for indices
+            #
+            # if the date is same as dt0, need to determine the type
+            # of quote, make any adjustments, and insert into either
+            # the stk_list or the future list
+            o = float(o)
+            h = float(h)
+            l = float(l)
+            c = float(c)
+            v = int(v)
+            oi = int(oi)
+        except:
+            e = sys.exc_info()[1]
+            print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
+                  format(stk_list, line, str(e)))
+
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
         while dt < e_date:
@@ -914,8 +941,8 @@ class StxEOD:
                       (self.dload_dir, dt.replace('-', ''))) as ifile:
                 # with open(
                 lines = ifile.readlines()
-                for line in lines:
-                    self.parseeodline(line)
+            for line in lines:
+                self.parseeodline(line)
             dt = stxcal.next_busday(dt)
 
     #     int l= 0;
