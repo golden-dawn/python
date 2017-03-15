@@ -907,32 +907,56 @@ class StxEOD:
         tbl_name = self.fx_tbl if instr_name == 'commodities' else self.eod_tbl
         stxdb.db_upload_file(ofname, tbl_name, 2)
 
+    def multiply_prices(self, o, h, l, c, factor):
+        return o * factor, h * factor, l * factor, c * factor
 
     def parseeodline(self, line, dt0):
-        stk_list = []
-        future_list = []
+        is_future = False
+        res = None
         try:
             stk, _, dt, o, h, l, c, v, oi = line.split(',')
             dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
-            # if the date is 2 days ago, need to update volume and
-            # open interest for futures
-            #
-            # if the date is one day ago, need to update prices for
-            # futures, as well as volumes for indices
-            #
-            # if the date is same as dt0, need to determine the type
-            # of quote, make any adjustments, and insert into either
-            # the stk_list or the future list
-            o = float(o)
-            h = float(h)
-            l = float(l)
-            c = float(c)
-            v = int(v)
-            oi = int(oi)
+            o, h, l, c = float(o), float(h), float(l), float(c)
+            # TODO: validate the input: o <= h, c <= h, o >= l c >= l, v > 0
+            v, oi = int(v), int(oi)
+            # determine the instrument type, make any adjustments, and
+            # return data to insert in database
+            # update futures volume and open interest from 2 days ago
+            # update index volumes from a day ago
+            if dt == dt0:
+                if stk.endswith('.US'):  # it is a stock
+                    stk = stk[:-3].replace("-.", ".P.").replace("_", ".")
+                elif stk.endswith('.B'):  # it is a bond
+                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+                    v = 1
+                elif stk.endswith('6.F'):  # currency future, needs adjustment
+                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+                    is_future = True
+                    v = 1
+                elif stk in ['HO.F', 'NG.F', 'RB.F']:  # express in cents
+                    o, h, l, c = self.multiply_prices(o, h, l, c, 100)
+                    is_future = True
+                    v = 1
+                elif stk.endswith('_3.F') or stk.endswith('_C.F'):  # LME
+                    v = 1
+                elif stk.endswith('.F'):  # it is a future
+                    is_future = True
+                    v = 1
+                elif stk.startswith('^'):  # it is an index
+                    v = 1 if v == 0 else v // 1000
+                elif '.' not in stk:  # it's either FX or Money Market
+                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+                    v = 1
+                if is_future:
+                    res = '{0:s}\t{1:s}\t{2:2f}\t{3:2f}\t{4:2f}\t{5:2f}\t'\
+                        '{6:d}\t{7:d}\n'.format(stk, dt, o, h, l, c, v, oi)
+                else:
+                    res = '{0:s}\t{1:s}\t{2:2f}\t{3:2f}\t{4:2f}\t{5:2f}\t'\
+                        '{6:d}\n'.format(stk, dt, o, h, l, c, v)
         except:
-            e = sys.exc_info()[1]
-            print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
-                  format(stk_list, line, str(e)))
+            print('Failed to parse {0:s}: {1:s}'.
+                  format(line, str(sys.exc_info()[1])))
+        return is_future, res
 
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
