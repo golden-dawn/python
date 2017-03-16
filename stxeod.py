@@ -910,53 +910,47 @@ class StxEOD:
     def multiply_prices(self, o, h, l, c, factor):
         return o * factor, h * factor, l * factor, c * factor
 
-    def parseeodline(self, line, dt0):
+    def parseeodline(self, line):
         is_future = False
-        res = None
-        try:
-            stk, _, dt, o, h, l, c, v, oi = line.split(',')
-            dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
-            o, h, l, c = float(o), float(h), float(l), float(c)
-            # TODO: validate the input: o <= h, c <= h, o >= l c >= l, v > 0
-            v, oi = int(v), int(oi)
-            # determine the instrument type, make any adjustments, and
-            # return data to insert in database
-            # update futures volume and open interest from 2 days ago
-            # update index volumes from a day ago
-            if dt == dt0:
-                if stk.endswith('.US'):  # it is a stock
-                    stk = stk[:-3].replace("-.", ".P.").replace("_", ".")
-                elif stk.endswith('.B'):  # it is a bond
-                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
-                    v = 1
-                elif stk.endswith('6.F'):  # currency future, needs adjustment
-                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
-                    is_future = True
-                    v = 1
-                elif stk in ['HO.F', 'NG.F', 'RB.F']:  # express in cents
-                    o, h, l, c = self.multiply_prices(o, h, l, c, 100)
-                    is_future = True
-                    v = 1
-                elif stk.endswith('_3.F') or stk.endswith('_C.F'):  # LME
-                    v = 1
-                elif stk.endswith('.F'):  # it is a future
-                    is_future = True
-                    v = 1
-                elif stk.startswith('^'):  # it is an index
-                    v = 1 if v == 0 else v // 1000
-                elif '.' not in stk:  # it's either FX or Money Market
-                    o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
-                    v = 1
-                if is_future:
-                    res = '{0:s}\t{1:s}\t{2:2f}\t{3:2f}\t{4:2f}\t{5:2f}\t'\
-                        '{6:d}\t{7:d}\n'.format(stk, dt, o, h, l, c, v, oi)
-                else:
-                    res = '{0:s}\t{1:s}\t{2:2f}\t{3:2f}\t{4:2f}\t{5:2f}\t'\
-                        '{6:d}\n'.format(stk, dt, o, h, l, c, v)
-        except:
-            print('Failed to parse {0:s}: {1:s}'.
-                  format(line, str(sys.exc_info()[1])))
-        return is_future, res
+        stk, _, dt, o, h, l, c, v, oi = line.split(',')
+        dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
+        if not stxcal.is_busday(dt):
+            raise Exception('{0:s} is not a business day'.format(dt))
+        o, h, l, c = float(o), float(h), float(l), float(c)
+        if o > h or c > h or o < l or c < l:
+            raise Exception('Inconsistent quote: open/close outside [lo; hi]')
+        v, oi = int(v), int(oi)
+        if stk.endswith('.US'):  # proces stock tickers, volume must be > 0
+            stk = stk[:-3].replace("-.", ".P.").replace("_", ".")
+            if v == 0:
+                raise Exception('Zero volume for stock')
+            if len(stk) > 8:
+                raise Exception('Ticker {0:s} too long'.format(stk))
+        elif stk.endswith('.B'):  # multiply bond prices by 10000
+            o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+        elif stk.endswith('6.F'):  # multiply currency future prices by 10000
+            o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+        elif stk in ['HO.F', 'NG.F', 'RB.F']:  # express prices in cents
+            o, h, l, c = self.multiply_prices(o, h, l, c, 100)
+        elif stk.startswith('^'):  # divide index volumes by 1000
+            v = 1 if v == 0 else v // 1000
+        elif '.' not in stk and 'XAG' not in stk and 'XAU' not in stk:
+            # multiply FX/Money Market prices by 10000
+            o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+        # all tickers ending in .F are futures, except the LME tickers
+        if stk.endswith('.F') and (stk[-4:-2] not in ['_3', '_C']):
+            is_future = True
+        v = 1 if v == 0 else v
+        tbl = self.fx_tbl if is_future else self.eod_tbl
+        db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},"\
+                 "{5:2f},{6:2f},{7:d},{8:d}) on duplicate key update "\
+                 "v={9:d}, oi={10:d}".format(tbl, stk, dt, o, h, l, c, v, oi,
+                                             v, oi)\
+            if is_future else \
+            "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},{5:2f},"\
+            "{6:2f},{7:d}) on duplicate key update v={8:d}".\
+            format(tbl, stk, dt, o, h, l, c, v, v)
+        stxdb.db_write_cmd(db_cmd)
 
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
@@ -966,32 +960,11 @@ class StxEOD:
                 # with open(
                 lines = ifile.readlines()
             for line in lines:
-                self.parseeodline(line)
+                try:
+                    self.parseeodline(line)
+                except Exception as ex:
+                    print('Error with line {0:s}: {1:s}'.format(line, str(ex)))
             dt = stxcal.next_busday(dt)
-
-    #     int l= 0;
-    #     for( String line: lines) {
-    #         if( ++l== 1) continue;
-    #         try {
-    #             String [] t= line.split( ",");
-    #             String stk= t[ 0].trim(); stk= stk.replace( "-.", ".P.");
-    #     	  stk= stk.replace( "_", "."); stk= stk.replace( ".US", "");
-    #     	  Long v=(long)0; try{v=Long.parseLong(t[7]);}catch(Exception e){}
-    #     	  if( stk.startsWith( "^")) v/= 1000;
-    #               String str= String.format( "%s %s %s %s %s %d", dt, t[ 3],
-    #                                          t[ 4], t[ 5], t[ 6], v);
-    #               TreeMap<String, StxRec> crt_ht= exch_data.get( stk);
-    #               if( crt_ht== null) crt_ht= new TreeMap<String, StxRec>();
-    #               crt_ht.put( dt, new StxRec( str));
-    #               exch_data.put( stk, crt_ht);
-    #           } catch( Exception ex) {
-    #               ex.printStackTrace( System.err);
-    #           }
-    #       }
-    #       System.err.println( "Parsed "+ dt);
-    #   }
-    #   return exch_data;
-    # }
 
     # private TreeMap<String, TreeMap<String, Float>>
     #     parseSplits( String s_date) {
@@ -1104,6 +1077,9 @@ if __name__ == '__main__':
     # eod = StxEOD('', 'eod', 'split', 'reconciliation')
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split', 'md_split'])
-    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
-                    'sq_split', 'reconciliation', 'sq_fxs')
-    sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
+    # sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
+    #                 'sq_split', 'reconciliation', 'sq_fxs')
+    # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
+    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'eod_sq',
+                    'split_sq', 'reconciliation', 'fxs_sq')
+    sq_eod.parseeodfiles('2016-08-24', '2016-09-23')
