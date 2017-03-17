@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+import logging
 from math import trunc
 import os
 import pandas as pd
@@ -917,8 +918,9 @@ class StxEOD:
         if not stxcal.is_busday(dt):
             raise Exception('{0:s} is not a business day'.format(dt))
         o, h, l, c = float(o), float(h), float(l), float(c)
-        if o > h or c > h or o < l or c < l:
-            raise Exception('Inconsistent quote: open/close outside [lo; hi]')
+        # Make sure o and c are in the interval [l, h]
+        o = o if o <= h and o >= l else (h if o > h else l)
+        c = c if c <= h and c >= l else (h if c > h else l)
         v, oi = int(v), int(oi)
         if stk.endswith('.US'):  # proces stock tickers, volume must be > 0
             stk = stk[:-3].replace("-.", ".P.").replace("_", ".")
@@ -956,60 +958,33 @@ class StxEOD:
         dt = s_date
         while dt < e_date:
             with open('{0:s}/{1:s}_d.prn'.format
-                      (self.dload_dir, dt.replace('-', ''))) as ifile:
-                # with open(
+                      (self.in_dir, dt.replace('-', ''))) as ifile:
                 lines = ifile.readlines()
             for line in lines:
                 try:
                     self.parseeodline(line)
                 except Exception as ex:
-                    print('Error with line {0:s}: {1:s}'.format(line, str(ex)))
+                    logging.info('Error with line {0:s}: {1:s}'.format
+                                 (line.strip(), str(ex)))
             dt = stxcal.next_busday(dt)
 
-    # private TreeMap<String, TreeMap<String, Float>>
-    #     parseSplits( String s_date) {
-    #     TreeMap<String, TreeMap<String, Float>> splits=
-    #         new TreeMap<String, TreeMap<String, Float>>();
-    #     for( String dt= s_date; StxCal.cmp( dt, end_date)> -1;
-    #          dt= StxCal.nextBusDay( dt)) {
-    #         File split_f= new File( StxFile.EodDir+ "splits/splits_"+
-    #                                 StxCal.ymd2idd( dt)+ ".txt");
-    #         try {
-    #             List<String> ls= Files.readAllLines( split_f.toPath(),
-    #                                                  Charset.defaultCharset());
-    #             for( String line: ls) {
-    #                 if( line.startsWith( "Exchange")) continue;
-    #                 String[] t= line.split( "\t");
-    #                 String se= t[ 0].trim(), sd= StxCal.us2ymd( t[ 2].trim())
-    #                 if( !sd.equals( dt)) continue;
-    #                 if( !se.equals( "AMEX")&& !se.equals( "NASDAQ")&&
-    #                     !se.equals( "NYSE")) continue;
-    #                 String stk= t[ 1].trim(), sr= t[ 3].trim();
-    #                 TreeMap<String, Float> stk_s= splits.get( stk);
-    #                 if( stk_s== null) stk_s= new TreeMap<String, Float>();
-    #                 float split_factor= 0;
-    #                 String [] split_factors= sr.split( "-");
-    #                 try {
-    #                     split_factor= ( Float.parseFloat( split_factors[ 1])/
-    #                                     Float.parseFloat( split_factors[ 0]))
-    #                 } catch( Exception e) {
-    #                     e.printStackTrace( System.err);
-    #                     split_factor= 0;
-    #                 }
-    #                 if( split_factor!= 0) {
-    #                     stk_s.put( dt, split_factor);
-    #                     splits.put( stk, stk_s);
-    #                 }
-    #             }
-    #         } catch( Exception e) {
-    #             e.printStackTrace( System.err);
-    #         }
-    #     }
-    #     return splits;
-    # }
+    def parse_ed_splits(self, split_file):
+        # curl
+        # 'http://ichart.finance.yahoo.com/x?s=IBM&a=00&b=2&c=2011&d=04&e=25&f=2017&g=v&y=0&z=30000'
+        with open('{0:s}/{1:s}'.format(self.in_dir, split_file), 'r') as ifile:
+            lines = ifile.readlines()
+        for line in lines[1:]:
+            exch, stk, dt, ratio = line.split()
+            if exch not in ['AMEX', 'NASDAQ', 'NYSE']:
+                continue
+            dt = str(datetime.strptime(dt, '%m/%d/%Y').date())
+            denom, num = ratio.split('-')
+            ratio = float(num) / float(denom)
+            print('{0:s}\t{1:s}\t{2:4f}'.format(stk, dt, ratio))
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='stxeod.log', level=logging.INFO)
     # s_date = '2001-01-01'
     # e_date = '2012-12-31'
     # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
@@ -1080,6 +1055,7 @@ if __name__ == '__main__':
     # sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
     #                 'sq_split', 'reconciliation', 'sq_fxs')
     # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
-    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'eod_sq',
-                    'split_sq', 'reconciliation', 'fxs_sq')
+    sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
+                    'fxs_sq')
     sq_eod.parseeodfiles('2016-08-24', '2016-09-23')
+    sq_eod.parse_ed_splits('splits_20160928.txt')
