@@ -1,0 +1,9254 @@
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2010
+	
+Friday
+	
+New Years Day
+ 18 Jan 2010
+	
+Monday
+	
+Martin Luther King Day
+ 15 Feb 2010
+	
+Monday
+	
+Washingtons Birthday
+ 02 Apr 2010
+	
+Friday
+	
+Good Friday Day
+ 31 May 2010
+	
+Monday
+	
+Memorial Day
+ 05 Jul 2010
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 2010
+	
+Monday
+	
+Labor Day
+ 25 Nov 2010
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 2010
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2009
+	
+Thursday
+	
+New Years Day
+ 19 Jan 2009
+	
+Monday
+	
+Martin Luther King Day
+ 16 Feb 2009
+	
+Monday
+	
+Washingtons Birthday
+ 10 Apr 2009
+	
+Friday
+	
+Good Friday Day
+ 25 May 2009
+	
+Monday
+	
+Memorial Day
+ 03 Jul 2009
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 2009
+	
+Monday
+	
+Labor Day
+ 26 Nov 2009
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2009
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2008
+	
+Tuesday
+	
+New Years Day
+ 21 Jan 2008
+	
+Monday
+	
+Martin Luther King Day
+ 18 Feb 2008
+	
+Monday
+	
+Washingtons Birthday
+ 21 Mar 2008
+	
+Friday
+	
+Good Friday Day
+ 26 May 2008
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2008
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 2008
+	
+Monday
+	
+Labor Day
+ 27 Nov 2008
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2008
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2007
+	
+Monday
+	
+New Years Day
+ 02 Jan 2007
+	
+Tuesday
+	
+Day Of Mourning - Gerald Ford
+ 15 Jan 2007
+	
+Monday
+	
+Martin Luther King Day
+ 19 Feb 2007
+	
+Monday
+	
+Washingtons Birthday
+ 06 Apr 2007
+	
+Friday
+	
+Good Friday Day
+ 28 May 2007
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2007
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 2007
+	
+Monday
+	
+Labor Day
+ 22 Nov 2007
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2007
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 2006
+	
+Monday
+	
+New Years Day (observed)
+ 16 Jan 2006
+	
+Monday
+	
+Martin Luther King Day
+ 20 Feb 2006
+	
+Monday
+	
+Washingtons Birthday
+ 14 Apr 2006
+	
+Friday
+	
+Good Friday Day
+ 29 May 2006
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2006
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 2006
+	
+Monday
+	
+Labor Day
+ 23 Nov 2006
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2006
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 17 Jan 2005
+	
+Monday
+	
+Martin Luther King Day
+ 21 Feb 2005
+	
+Monday
+	
+Washingtons Birthday
+ 25 Mar 2005
+	
+Friday
+	
+Good Friday Day
+ 30 May 2005
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2005
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 2005
+	
+Monday
+	
+Labor Day
+ 24 Nov 2005
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 2005
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2004
+	
+Thursday
+	
+New Years Day
+ 19 Jan 2004
+	
+Monday
+	
+Martin Luther King Day
+ 16 Feb 2004
+	
+Monday
+	
+Washingtons Birthday
+ 09 Apr 2004
+	
+Friday
+	
+Good Friday Day
+ 31 May 2004
+	
+Monday
+	
+Memorial Day
+ 11 Jun 2004
+	
+Friday
+	
+PresidentialFuneral-RonaldReagan
+ 05 Jul 2004
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 2004
+	
+Monday
+	
+Labor Day
+ 25 Nov 2004
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 2004
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2003
+	
+Wednesday
+	
+New Years Day
+ 20 Jan 2003
+	
+Monday
+	
+Martin Luther King Day
+ 17 Feb 2003
+	
+Monday
+	
+Washingtons Birthday
+ 18 Apr 2003
+	
+Friday
+	
+Good Friday Day
+ 26 May 2003
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2003
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 2003
+	
+Monday
+	
+Labor Day
+ 27 Nov 2003
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2003
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2002
+	
+Tuesday
+	
+New Years Day
+ 21 Jan 2002
+	
+Monday
+	
+Martin Luther King Day
+ 18 Feb 2002
+	
+Monday
+	
+Washingtons Birthday
+ 29 Mar 2002
+	
+Friday
+	
+Good Friday Day
+ 27 May 2002
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2002
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 2002
+	
+Monday
+	
+Labor Day
+ 28 Nov 2002
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2002
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 2001
+	
+Monday
+	
+New Years Day
+ 15 Jan 2001
+	
+Monday
+	
+Martin Luther King Day
+ 19 Feb 2001
+	
+Monday
+	
+Washingtons Birthday
+ 13 Apr 2001
+	
+Friday
+	
+Good Friday Day
+ 28 May 2001
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2001
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 2001
+	
+Monday
+	
+Labor Day
+ 11 Sep 2001
+	
+Tuesday
+	
+WorldTradeCenterEvent
+ 12 Sep 2001
+	
+Wednesday
+	
+WorldTradeCenterEvent
+ 13 Sep 2001
+	
+Thursday
+	
+WorldTradeCenterEvent
+ 14 Sep 2001
+	
+Friday
+	
+WorldTradeCenterEvent
+ 22 Nov 2001
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2001
+	
+Tuesday
+	
+Christmas
+
+Date
+	
+WeekDay
+	
+Holiday
+ 17 Jan 2000
+	
+Monday
+	
+Martin Luther King Day
+ 21 Feb 2000
+	
+Monday
+	
+Washingtons Birthday
+ 21 Apr 2000
+	
+Friday
+	
+Good Friday Day
+ 29 May 2000
+	
+Monday
+	
+Memorial Day
+ 04 Jul 2000
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 2000
+	
+Monday
+	
+Labor Day
+ 23 Nov 2000
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 2000
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1999
+	
+Friday
+	
+New Years Day
+ 18 Jan 1999
+	
+Monday
+	
+Martin Luther King Day
+ 15 Feb 1999
+	
+Monday
+	
+Washingtons Birthday
+ 02 Apr 1999
+	
+Friday
+	
+Good Friday Day
+ 31 May 1999
+	
+Monday
+	
+Memorial Day
+ 05 Jul 1999
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1999
+	
+Monday
+	
+Labor Day
+ 25 Nov 1999
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1999
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1998
+	
+Thursday
+	
+New Years Day
+ 19 Jan 1998
+	
+Monday
+	
+Martin Luther King Day
+ 16 Feb 1998
+	
+Monday
+	
+Washingtons Birthday
+ 10 Apr 1998
+	
+Friday
+	
+Good Friday Day
+ 25 May 1998
+	
+Monday
+	
+Memorial Day
+ 03 Jul 1998
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1998
+	
+Monday
+	
+Labor Day
+ 26 Nov 1998
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1998
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1997
+	
+Wednesday
+	
+New Years Day
+ 17 Feb 1997
+	
+Monday
+	
+Washingtons Birthday
+ 28 Mar 1997
+	
+Friday
+	
+Good Friday Day
+ 26 May 1997
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1997
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1997
+	
+Monday
+	
+Labor Day
+ 27 Nov 1997
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1997
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1996
+	
+Monday
+	
+New Years Day
+ 19 Feb 1996
+	
+Monday
+	
+Washingtons Birthday
+ 05 Apr 1996
+	
+Friday
+	
+Good Friday Day
+ 27 May 1996
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1996
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1996
+	
+Monday
+	
+Labor Day
+ 28 Nov 1996
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1996
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1995
+	
+Monday
+	
+New Years Day (observed)
+ 20 Feb 1995
+	
+Monday
+	
+Washingtons Birthday
+ 14 Apr 1995
+	
+Friday
+	
+Good Friday Day
+ 29 May 1995
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1995
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1995
+	
+Monday
+	
+Labor Day
+ 23 Nov 1995
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1995
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 21 Feb 1994
+	
+Monday
+	
+Washingtons Birthday
+ 01 Apr 1994
+	
+Friday
+	
+Good Friday Day
+ 27 Apr 1994
+	
+Wednesday
+	
+PresidentialFuneral-RichardNixon
+ 30 May 1994
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1994
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1994
+	
+Monday
+	
+Labor Day
+ 24 Nov 1994
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1994
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1993
+	
+Friday
+	
+New Years Day
+ 15 Feb 1993
+	
+Monday
+	
+Washingtons Birthday
+ 09 Apr 1993
+	
+Friday
+	
+Good Friday Day
+ 31 May 1993
+	
+Monday
+	
+Memorial Day
+ 05 Jul 1993
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1993
+	
+Monday
+	
+Labor Day
+ 25 Nov 1993
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1993
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1992
+	
+Wednesday
+	
+New Years Day
+ 17 Feb 1992
+	
+Monday
+	
+Washingtons Birthday
+ 17 Apr 1992
+	
+Friday
+	
+Good Friday Day
+ 25 May 1992
+	
+Monday
+	
+Memorial Day
+ 03 Jul 1992
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1992
+	
+Monday
+	
+Labor Day
+ 26 Nov 1992
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1992
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1991
+	
+Tuesday
+	
+New Years Day
+ 18 Feb 1991
+	
+Monday
+	
+Washingtons Birthday
+ 29 Mar 1991
+	
+Friday
+	
+Good Friday Day
+ 27 May 1991
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1991
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1991
+	
+Monday
+	
+Labor Day
+ 28 Nov 1991
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1991
+	
+Wednesday
+	
+Christmas
+
+ Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1990
+	
+Monday
+	
+New Years Day
+ 19 Feb 1990
+	
+Monday
+	
+Washingtons Birthday
+ 13 Apr 1990
+	
+Friday
+	
+Good Friday Day
+ 28 May 1990
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1990
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1990
+	
+Monday
+	
+Labor Day
+ 22 Nov 1990
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1990
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1989
+	
+Monday
+	
+New Years Day (observed)
+ 20 Feb 1989
+	
+Monday
+	
+Washingtons Birthday
+ 24 Mar 1989
+	
+Friday
+	
+Good Friday Day
+ 29 May 1989
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1989
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1989
+	
+Monday
+	
+Labor Day
+ 23 Nov 1989
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1989
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1988
+	
+Friday
+	
+New Years Day
+ 15 Feb 1988
+	
+Monday
+	
+Washingtons Birthday
+ 01 Apr 1988
+	
+Friday
+	
+Good Friday Day
+ 30 May 1988
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1988
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1988
+	
+Monday
+	
+Labor Day
+ 24 Nov 1988
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1988
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1987
+	
+Thursday
+	
+New Years Day
+ 16 Feb 1987
+	
+Monday
+	
+Washingtons Birthday
+ 17 Apr 1987
+	
+Friday
+	
+Good Friday Day
+ 25 May 1987
+	
+Monday
+	
+Memorial Day
+ 03 Jul 1987
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1987
+	
+Monday
+	
+Labor Day
+ 26 Nov 1987
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1987
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1986
+	
+Wednesday
+	
+New Years Day
+ 17 Feb 1986
+	
+Monday
+	
+Washingtons Birthday
+ 28 Mar 1986
+	
+Friday
+	
+Good Friday Day
+ 26 May 1986
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1986
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1986
+	
+Monday
+	
+Labor Day
+ 27 Nov 1986
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1986
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1985
+	
+Tuesday
+	
+New Years Day
+ 18 Feb 1985
+	
+Monday
+	
+Washingtons Birthday
+ 05 Apr 1985
+	
+Friday
+	
+Good Friday Day
+ 27 May 1985
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1985
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1985
+	
+Monday
+	
+Labor Day
+ 27 Sep 1985
+	
+Friday
+	
+Weather-HurricaneGloria
+ 28 Nov 1985
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1985
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1984
+	
+Monday
+	
+New Years Day (observed)
+ 20 Feb 1984
+	
+Monday
+	
+Washingtons Birthday
+ 20 Apr 1984
+	
+Friday
+	
+Good Friday Day
+ 28 May 1984
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1984
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1984
+	
+Monday
+	
+Labor Day
+ 22 Nov 1984
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1984
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 21 Feb 1983
+	
+Monday
+	
+Washingtons Birthday
+ 01 Apr 1983
+	
+Friday
+	
+Good Friday Day
+ 30 May 1983
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1983
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1983
+	
+Monday
+	
+Labor Day
+ 24 Nov 1983
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1983
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1982
+	
+Friday
+	
+New Years Day
+ 15 Feb 1982
+	
+Monday
+	
+Washingtons Birthday
+ 09 Apr 1982
+	
+Friday
+	
+Good Friday Day
+ 31 May 1982
+	
+Monday
+	
+Memorial Day
+ 05 Jul 1982
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1982
+	
+Monday
+	
+Labor Day
+ 25 Nov 1982
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1982
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1981
+	
+Thursday
+	
+New Years Day
+ 16 Feb 1981
+	
+Monday
+	
+Washingtons Birthday
+ 17 Apr 1981
+	
+Friday
+	
+Good Friday Day
+ 25 May 1981
+	
+Monday
+	
+Memorial Day
+ 03 Jul 1981
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1981
+	
+Monday
+	
+Labor Day
+ 26 Nov 1981
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1981
+	
+Friday
+	
+Christmas
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1980
+	
+Tuesday
+	
+New Years Day
+ 18 Feb 1980
+	
+Monday
+	
+Washingtons Birthday
+ 04 Apr 1980
+	
+Friday
+	
+Good Friday Day
+ 26 May 1980
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1980
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1980
+	
+Monday
+	
+Labor Day
+ 04 Nov 1980
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1980
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1980
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1979
+	
+Monday
+	
+New Years Day
+ 19 Feb 1979
+	
+Monday
+	
+Washingtons Birthday
+ 13 Apr 1979
+	
+Friday
+	
+Good Friday Day
+ 28 May 1979
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1979
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1979
+	
+Monday
+	
+Labor Day
+ 22 Nov 1979
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1979
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1978
+	
+Monday
+	
+New Years Day (observed)
+ 20 Feb 1978
+	
+Monday
+	
+Washingtons Birthday
+ 24 Mar 1978
+	
+Friday
+	
+Good Friday Day
+ 29 May 1978
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1978
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1978
+	
+Monday
+	
+Labor Day
+ 23 Nov 1978
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1978
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 21 Feb 1977
+	
+Monday
+	
+Washingtons Birthday
+ 08 Apr 1977
+	
+Friday
+	
+Good Friday Day
+ 30 May 1977
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1977
+	
+Monday
+	
+IndependenceDay
+ 14 Jul 1977
+	
+Thursday
+	
+NewYorkCityBlackout
+ 05 Sep 1977
+	
+Monday
+	
+Labor Day
+ 24 Nov 1977
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1977
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1976
+	
+Thursday
+	
+New Years Day
+ 16 Feb 1976
+	
+Monday
+	
+Washingtons Birthday
+ 16 Apr 1976
+	
+Friday
+	
+Good Friday Day
+ 31 May 1976
+	
+Monday
+	
+Memorial Day
+ 05 Jul 1976
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1976
+	
+Monday
+	
+Labor Day
+ 02 Nov 1976
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1976
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1976
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1975
+	
+Wednesday
+	
+New Years Day
+ 17 Feb 1975
+	
+Monday
+	
+Washingtons Birthday
+ 28 Mar 1975
+	
+Friday
+	
+Good Friday Day
+ 26 May 1975
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1975
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1975
+	
+Monday
+	
+Labor Day
+ 27 Nov 1975
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1975
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1974
+	
+Tuesday
+	
+New Years Day
+ 18 Feb 1974
+	
+Monday
+	
+Washingtons Birthday
+ 12 Apr 1974
+	
+Friday
+	
+Good Friday Day
+ 27 May 1974
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1974
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1974
+	
+Monday
+	
+Labor Day
+ 28 Nov 1974
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1974
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1973
+	
+Monday
+	
+New Years Day
+ 25 Jan 1973
+	
+Thursday
+	
+PresidentialFuneral-LyndonJohnson
+ 19 Feb 1973
+	
+Monday
+	
+Washingtons Birthday
+ 20 Apr 1973
+	
+Friday
+	
+Good Friday Day
+ 28 May 1973
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1973
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1973
+	
+Monday
+	
+Labor Day
+ 22 Nov 1973
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1973
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 21 Feb 1972
+	
+Monday
+	
+Washingtons Birthday
+ 31 Mar 1972
+	
+Friday
+	
+Good Friday Day
+ 29 May 1972
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1972
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1972
+	
+Monday
+	
+Labor Day
+ 07 Nov 1972
+	
+Tuesday
+	
+ElectionDay
+ 23 Nov 1972
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1972
+	
+Monday
+	
+Christmas
+ 28 Dec 1972
+	
+Thursday
+	
+PresidentialFuneral-HarryTruman
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1971
+	
+Friday
+	
+New Years Day
+ 15 Feb 1971
+	
+Monday
+	
+Washingtons Birthday
+ 09 Apr 1971
+	
+Friday
+	
+Good Friday Day
+ 31 May 1971
+	
+Monday
+	
+Memorial Day
+ 05 Jul 1971
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1971
+	
+Monday
+	
+Labor Day
+ 25 Nov 1971
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1971
+	
+Friday
+	
+Christmas (observed)
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1970
+	
+Thursday
+	
+New Years Day
+ 23 Feb 1970
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 27 Mar 1970
+	
+Friday
+	
+Good Friday Day
+ 29 May 1970
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1970
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1970
+	
+Monday
+	
+Labor Day
+ 26 Nov 1970
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1970
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1969
+	
+Wednesday
+	
+New Years Day
+ 10 Feb 1969
+	
+Monday
+	
+Weather-Snow
+ 21 Feb 1969
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 31 Mar 1969
+	
+Monday
+	
+PresidentialFuneral-DwightEisenhower
+ 04 Apr 1969
+	
+Friday
+	
+Good Friday Day
+ 30 May 1969
+	
+Friday
+	
+Memorial Day
+ 04 Jul 1969
+	
+Friday
+	
+IndependenceDay
+ 21 Jul 1969
+	
+Monday
+	
+FirstLunarLanding
+ 01 Sep 1969
+	
+Monday
+	
+Labor Day
+ 27 Nov 1969
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1969
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1968
+	
+Monday
+	
+New Years Day
+ 12 Feb 1968
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1968
+	
+Thursday
+	
+Washingtons Birthday
+ 09 Apr 1968
+	
+Tuesday
+	
+DayOfMourning-MartinLutherKing
+ 12 Apr 1968
+	
+Friday
+	
+Good Friday Day
+ 30 May 1968
+	
+Thursday
+	
+Memorial Day
+ 12 Jun 1968
+	
+Wednesday
+	
+PaperCrisis
+ 19 Jun 1968
+	
+Wednesday
+	
+PaperCrisis
+ 26 Jun 1968
+	
+Wednesday
+	
+PaperCrisis
+ 03 Jul 1968
+	
+Wednesday
+	
+PaperCrisis
+ 04 Jul 1968
+	
+Thursday
+	
+IndependenceDay
+ 05 Jul 1968
+	
+Friday
+	
+DayAfterIndependenceDay
+ 10 Jul 1968
+	
+Wednesday
+	
+PaperCrisis
+ 17 Jul 1968
+	
+Wednesday
+	
+PaperCrisis
+ 24 Jul 1968
+	
+Wednesday
+	
+PaperCrisis
+ 31 Jul 1968
+	
+Wednesday
+	
+PaperCrisis
+ 07 Aug 1968
+	
+Wednesday
+	
+PaperCrisis
+ 14 Aug 1968
+	
+Wednesday
+	
+PaperCrisis
+ 21 Aug 1968
+	
+Wednesday
+	
+PaperCrisis
+ 28 Aug 1968
+	
+Wednesday
+	
+PaperCrisis
+ 02 Sep 1968
+	
+Monday
+	
+Labor Day
+ 04 Sep 1968
+	
+Wednesday
+	
+PaperCrisis
+ 11 Sep 1968
+	
+Wednesday
+	
+PaperCrisis
+ 18 Sep 1968
+	
+Wednesday
+	
+PaperCrisis
+ 25 Sep 1968
+	
+Wednesday
+	
+PaperCrisis
+ 02 Oct 1968
+	
+Wednesday
+	
+PaperCrisis
+ 09 Oct 1968
+	
+Wednesday
+	
+PaperCrisis
+ 16 Oct 1968
+	
+Wednesday
+	
+PaperCrisis
+ 23 Oct 1968
+	
+Wednesday
+	
+PaperCrisis
+ 30 Oct 1968
+	
+Wednesday
+	
+PaperCrisis
+ 05 Nov 1968
+	
+Tuesday
+	
+ElectionDay
+ 06 Nov 1968
+	
+Wednesday
+	
+PaperCrisis
+ 13 Nov 1968
+	
+Wednesday
+	
+PaperCrisis
+ 20 Nov 1968
+	
+Wednesday
+	
+PaperCrisis
+ 27 Nov 1968
+	
+Wednesday
+	
+PaperCrisis
+ 28 Nov 1968
+	
+Thursday
+	
+Thanks giving
+ 04 Dec 1968
+	
+Wednesday
+	
+PaperCrisis
+ 11 Dec 1968
+	
+Wednesday
+	
+PaperCrisis
+ 18 Dec 1968
+	
+Wednesday
+	
+PaperCrisis
+ 25 Dec 1968
+	
+Wednesday
+	
+PaperCrisis
+ 25 Dec 1968
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1967
+	
+Monday
+	
+New Years Day (observed)
+ 22 Feb 1967
+	
+Wednesday
+	
+Washingtons Birthday
+ 24 Mar 1967
+	
+Friday
+	
+Good Friday Day
+ 30 May 1967
+	
+Tuesday
+	
+Memorial Day
+ 04 Jul 1967
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1967
+	
+Monday
+	
+Labor Day
+ 07 Nov 1967
+	
+Tuesday
+	
+ElectionDay
+ 23 Nov 1967
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1967
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 22 Feb 1966
+	
+Tuesday
+	
+Washingtons Birthday
+ 08 Apr 1966
+	
+Friday
+	
+Good Friday Day
+ 30 May 1966
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1966
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1966
+	
+Monday
+	
+Labor Day
+ 08 Nov 1966
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1966
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1966
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1965
+	
+Friday
+	
+New Years Day
+ 22 Feb 1965
+	
+Monday
+	
+Washingtons Birthday
+ 16 Apr 1965
+	
+Friday
+	
+Good Friday Day
+ 31 May 1965
+	
+Monday
+	
+Memorial Day (observed)
+ 05 Jul 1965
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1965
+	
+Monday
+	
+Labor Day
+ 02 Nov 1965
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1965
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1965
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1964
+	
+Wednesday
+	
+New Years Day
+ 21 Feb 1964
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 27 Mar 1964
+	
+Friday
+	
+Good Friday Day
+ 29 May 1964
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1964
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1964
+	
+Monday
+	
+Labor Day
+ 03 Nov 1964
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1964
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1964
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1963
+	
+Tuesday
+	
+New Years Day
+ 22 Feb 1963
+	
+Friday
+	
+Washingtons Birthday
+ 12 Apr 1963
+	
+Friday
+	
+Good Friday Day
+ 30 May 1963
+	
+Thursday
+	
+Memorial Day
+ 04 Jul 1963
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1963
+	
+Monday
+	
+Labor Day
+ 05 Nov 1963
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1963
+	
+Monday
+	
+PresidentialFuneral-JohnKennedy
+ 28 Nov 1963
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1963
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1962
+	
+Monday
+	
+New Years Day
+ 22 Feb 1962
+	
+Thursday
+	
+Washingtons Birthday
+ 20 Apr 1962
+	
+Friday
+	
+Good Friday Day
+ 30 May 1962
+	
+Wednesday
+	
+Memorial Day
+ 04 Jul 1962
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1962
+	
+Monday
+	
+Labor Day
+ 06 Nov 1962
+	
+Tuesday
+	
+ElectionDay
+ 22 Nov 1962
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1962
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1961
+	
+Monday
+	
+New Years Day (observed)
+ 22 Feb 1961
+	
+Wednesday
+	
+Washingtons Birthday
+ 31 Mar 1961
+	
+Friday
+	
+Good Friday Day
+ 29 May 1961
+	
+Monday
+	
+DayBeforeDecorationDay
+ 30 May 1961
+	
+Tuesday
+	
+Memorial Day
+ 04 Jul 1961
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1961
+	
+Monday
+	
+Labor Day
+ 07 Nov 1961
+	
+Tuesday
+	
+ElectionDay
+ 23 Nov 1961
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1961
+	
+Monday
+	
+Christmas
+
+ Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1960
+	
+Friday
+	
+New Years Day
+ 22 Feb 1960
+	
+Monday
+	
+Washingtons Birthday
+ 15 Apr 1960
+	
+Friday
+	
+Good Friday Day
+ 30 May 1960
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1960
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1960
+	
+Monday
+	
+Labor Day
+ 08 Nov 1960
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1960
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1960
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1959
+	
+Thursday
+	
+New Years Day
+ 23 Feb 1959
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 27 Mar 1959
+	
+Friday
+	
+Good Friday Day
+ 29 May 1959
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1959
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1959
+	
+Monday
+	
+Labor Day
+ 03 Nov 1959
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1959
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1959
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1958
+	
+Wednesday
+	
+New Years Day
+ 21 Feb 1958
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 04 Apr 1958
+	
+Friday
+	
+Good Friday Day
+ 30 May 1958
+	
+Friday
+	
+Memorial Day
+ 04 Jul 1958
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1958
+	
+Monday
+	
+Labor Day
+ 04 Nov 1958
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1958
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1958
+	
+Thursday
+	
+Christmas
+ 26 Dec 1958
+	
+Friday
+	
+DayAfterChrismas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1957
+	
+Tuesday
+	
+New Years Day
+ 22 Feb 1957
+	
+Friday
+	
+Washingtons Birthday
+ 19 Apr 1957
+	
+Friday
+	
+Good Friday Day
+ 30 May 1957
+	
+Thursday
+	
+Memorial Day
+ 04 Jul 1957
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1957
+	
+Monday
+	
+Labor Day
+ 05 Nov 1957
+	
+Tuesday
+	
+ElectionDay
+ 28 Nov 1957
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1957
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1956
+	
+Monday
+	
+New Years Day (observed)
+ 22 Feb 1956
+	
+Wednesday
+	
+Washingtons Birthday
+ 30 Mar 1956
+	
+Friday
+	
+Good Friday Day
+ 30 May 1956
+	
+Wednesday
+	
+Memorial Day
+ 04 Jul 1956
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1956
+	
+Monday
+	
+Labor Day
+ 06 Nov 1956
+	
+Tuesday
+	
+ElectionDay
+ 22 Nov 1956
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1956
+	
+Monday
+	
+ChristmasEve
+ 25 Dec 1956
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1954
+	
+Friday
+	
+New Years Day (observed)
+ 22 Feb 1955
+	
+Tuesday
+	
+Washingtons Birthday
+ 08 Apr 1955
+	
+Friday
+	
+Good Friday Day
+ 30 May 1955
+	
+Monday
+	
+Memorial Day
+ 04 Jul 1955
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1955
+	
+Monday
+	
+Labor Day
+ 08 Nov 1955
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1955
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1955
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1954
+	
+Friday
+	
+New Years Day
+ 22 Feb 1954
+	
+Monday
+	
+Washingtons Birthday
+ 16 Apr 1954
+	
+Friday
+	
+Good Friday Day
+ 31 May 1954
+	
+Monday
+	
+Memorial Day (observed)
+ 05 Jul 1954
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1954
+	
+Monday
+	
+Labor Day
+ 02 Nov 1954
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1954
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1954
+	
+Friday
+	
+ChristmasEve
+ 24 Dec 1954
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1953
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1953
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1953
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 03 Apr 1953
+	
+Friday
+	
+Good Friday Day
+ 29 May 1953
+	
+Friday
+	
+Memorial Day (observed)
+ 15 Jun 1953
+	
+Monday
+	
+FlagDay (observed)
+ 03 Jul 1953
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1953
+	
+Monday
+	
+Labor Day
+ 12 Oct 1953
+	
+Monday
+	
+ColumbusDay
+ 03 Nov 1953
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1953
+	
+Wednesday
+	
+VeteransDay
+ 26 Nov 1953
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1953
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1952
+	
+Tuesday
+	
+New Years Day
+ 12 Feb 1952
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1952
+	
+Friday
+	
+Washingtons Birthday
+ 11 Apr 1952
+	
+Friday
+	
+Good Friday Day
+ 30 May 1952
+	
+Friday
+	
+Memorial Day
+ 31 May 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 07 Jun 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Jun 1952
+	
+Friday
+	
+FlagDay (observed)
+ 14 Jun 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Jun 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 28 Jun 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1952
+	
+Friday
+	
+IndependenceDay
+ 05 Jul 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Jul 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 19 Jul 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Jul 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 02 Aug 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 09 Aug 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 16 Aug 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 23 Aug 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 30 Aug 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 01 Sep 1952
+	
+Monday
+	
+Labor Day
+ 06 Sep 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Sep 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 20 Sep 1952
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Oct 1952
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1952
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1952
+	
+Tuesday
+	
+VeteransDay
+ 27 Nov 1952
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1952
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1951
+	
+Monday
+	
+New Years Day
+ 12 Feb 1951
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1951
+	
+Thursday
+	
+Washingtons Birthday
+ 23 Mar 1951
+	
+Friday
+	
+Good Friday Day
+ 30 May 1951
+	
+Wednesday
+	
+Memorial Day
+ 02 Jun 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 09 Jun 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jun 1951
+	
+Thursday
+	
+FlagDay
+ 16 Jun 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 23 Jun 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 30 Jun 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1951
+	
+Wednesday
+	
+IndependenceDay
+ 07 Jul 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jul 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Jul 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 28 Jul 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Aug 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 11 Aug 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 18 Aug 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 25 Aug 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 01 Sep 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 03 Sep 1951
+	
+Monday
+	
+Labor Day
+ 08 Sep 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 15 Sep 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 22 Sep 1951
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Oct 1951
+	
+Friday
+	
+ColumbusDay
+ 06 Nov 1951
+	
+Tuesday
+	
+ElectionDay
+ 12 Nov 1951
+	
+Monday
+	
+VeteransDay (observed)
+ 22 Nov 1951
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1951
+	
+Tuesday
+	
+Christmas
+
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1950
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1950
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1950
+	
+Wednesday
+	
+Washingtons Birthday
+ 07 Apr 1950
+	
+Friday
+	
+Good Friday Day
+ 30 May 1950
+	
+Tuesday
+	
+Memorial Day
+ 03 Jun 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 10 Jun 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jun 1950
+	
+Wednesday
+	
+FlagDay
+ 17 Jun 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 24 Jun 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 01 Jul 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1950
+	
+Tuesday
+	
+IndependenceDay
+ 08 Jul 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 15 Jul 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 22 Jul 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 29 Jul 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 05 Aug 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Aug 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 19 Aug 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Aug 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 02 Sep 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Sep 1950
+	
+Monday
+	
+Labor Day
+ 09 Sep 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 16 Sep 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 23 Sep 1950
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Oct 1950
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1950
+	
+Tuesday
+	
+ElectionDay
+ 10 Nov 1950
+	
+Friday
+	
+VeteransDay (observed)
+ 23 Nov 1950
+	
+Thursday
+	
+Thanks giving
+ 12 Dec 1950
+	
+Tuesday
+	
+Saturdayurday-Before-ChristmasEve
+ 25 Dec 1950
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1948
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1949
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1949
+	
+Tuesday
+	
+Washingtons Birthday
+ 15 Apr 1949
+	
+Friday
+	
+Good Friday Day
+ 28 May 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 30 May 1949
+	
+Monday
+	
+Memorial Day
+ 04 Jun 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 11 Jun 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jun 1949
+	
+Tuesday
+	
+FlagDay
+ 18 Jun 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 25 Jun 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 02 Jul 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1949
+	
+Monday
+	
+IndependenceDay
+ 09 Jul 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 16 Jul 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 23 Jul 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 30 Jul 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 06 Aug 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Aug 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 20 Aug 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 27 Aug 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 03 Sep 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 05 Sep 1949
+	
+Monday
+	
+Labor Day
+ 10 Sep 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 17 Sep 1949
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Oct 1949
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1949
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1949
+	
+Friday
+	
+VeteransDay
+ 24 Nov 1949
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1949
+	
+Saturday
+	
+ChristmasEve
+ 26 Dec 1949
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1948
+	
+Thursday
+	
+New Years Day
+ 03 Jan 1948
+	
+Saturday
+	
+Weather-SevereConditions
+ 12 Feb 1948
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1948
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 26 Mar 1948
+	
+Friday
+	
+Good Friday Day
+ 29 May 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 31 May 1948
+	
+Monday
+	
+Memorial Day (observed)
+ 05 Jun 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Jun 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jun 1948
+	
+Monday
+	
+FlagDay
+ 19 Jun 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Jun 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 03 Jul 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 05 Jul 1948
+	
+Monday
+	
+Independence Day (observed)
+ 10 Jul 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 17 Jul 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 24 Jul 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 31 Jul 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 07 Aug 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Aug 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Aug 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 28 Aug 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Sep 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 06 Sep 1948
+	
+Monday
+	
+Labor Day
+ 11 Sep 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 18 Sep 1948
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Oct 1948
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1948
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1948
+	
+Thursday
+	
+VeteransDay
+ 25 Nov 1948
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1948
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1947
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1947
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1947
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 04 Apr 1947
+	
+Friday
+	
+Good Friday Day
+ 30 May 1947
+	
+Friday
+	
+Memorial Day
+ 31 May 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 07 Jun 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Jun 1947
+	
+Friday
+	
+FlagDay (observed)
+ 14 Jun 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Jun 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 28 Jun 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1947
+	
+Friday
+	
+IndependenceDay
+ 05 Jul 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Jul 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 19 Jul 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Jul 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 02 Aug 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 09 Aug 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 16 Aug 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 23 Aug 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 30 Aug 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 01 Sep 1947
+	
+Monday
+	
+Labor Day
+ 06 Sep 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Sep 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 20 Sep 1947
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Oct 1947
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1947
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1947
+	
+Tuesday
+	
+VeteransDay
+ 27 Nov 1947
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1947
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1946
+	
+Tuesday
+	
+New Years Day
+ 12 Feb 1946
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1946
+	
+Friday
+	
+Washingtons Birthday
+ 23 Feb 1946
+	
+Saturday
+	
+Saturdayurday-After-Washingtons Birthday
+ 19 Apr 1946
+	
+Friday
+	
+Good Friday Day
+ 25 May 1946
+	
+Saturday
+	
+RailroadStrike
+ 30 May 1946
+	
+Thursday
+	
+Memorial Day
+ 01 Jun 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 08 Jun 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jun 1946
+	
+Friday
+	
+FlagDay
+ 15 Jun 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 22 Jun 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 29 Jun 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Jul 1946
+	
+Thursday
+	
+IndependenceDay
+ 06 Jul 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 13 Jul 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 20 Jul 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 27 Jul 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 03 Aug 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 10 Aug 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 17 Aug 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 24 Aug 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 31 Aug 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 02 Sep 1946
+	
+Monday
+	
+Labor Day
+ 07 Sep 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Sep 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Sep 1946
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 11 Oct 1946
+	
+Friday
+	
+ColumbusDay (observed)
+ 05 Nov 1946
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1946
+	
+Monday
+	
+VeteransDay
+ 28 Nov 1946
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1946
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1945
+	
+Monday
+	
+New Years Day
+ 12 Feb 1945
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1945
+	
+Thursday
+	
+Washingtons Birthday
+ 30 Mar 1945
+	
+Friday
+	
+Good Friday Day
+ 14 Apr 1945
+	
+Saturday
+	
+DayOfMourning-FranklinRoosevelt
+ 30 May 1945
+	
+Wednesday
+	
+Memorial Day
+ 14 Jun 1945
+	
+Thursday
+	
+FlagDay
+ 04 Jul 1945
+	
+Wednesday
+	
+IndependenceDay
+ 07 Jul 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 14 Jul 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 21 Jul 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 28 Jul 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Aug 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 11 Aug 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 15 Aug 1945
+	
+Wednesday
+	
+VictoryOverJapanDay
+ 16 Aug 1945
+	
+Thursday
+	
+VictoryOverJapanDay
+ 18 Aug 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 25 Aug 1945
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 03 Sep 1945
+	
+Monday
+	
+Labor Day
+ 12 Oct 1945
+	
+Friday
+	
+ColumbusDay
+ 13 Oct 1945
+	
+Saturday
+	
+Saturdayurday-After-ColumbusDay
+ 27 Oct 1945
+	
+Saturday
+	
+NavyDay
+ 06 Nov 1945
+	
+Tuesday
+	
+ElectionDay
+ 12 Nov 1945
+	
+Monday
+	
+VeteransDay (observed)
+ 22 Nov 1945
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1945
+	
+Monday
+	
+ChristmasEve
+ 25 Dec 1945
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1943
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1944
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1944
+	
+Tuesday
+	
+Washingtons Birthday
+ 07 Apr 1944
+	
+Friday
+	
+Good Friday Day
+ 30 May 1944
+	
+Tuesday
+	
+Memorial Day
+ 14 Jun 1944
+	
+Wednesday
+	
+FlagDay
+ 04 Jul 1944
+	
+Tuesday
+	
+IndependenceDay
+ 19 Aug 1944
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Aug 1944
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Sep 1944
+	
+Monday
+	
+Labor Day
+ 12 Oct 1944
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1944
+	
+Tuesday
+	
+ElectionDay
+ 10 Nov 1944
+	
+Friday
+	
+VeteransDay (observed)
+ 23 Nov 1944
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1944
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1943
+	
+Friday
+	
+New Years Day
+ 12 Feb 1943
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1943
+	
+Monday
+	
+Washingtons Birthday
+ 23 Apr 1943
+	
+Friday
+	
+Good Friday Day
+ 31 May 1943
+	
+Monday
+	
+Memorial Day (observed)
+ 14 Jun 1943
+	
+Monday
+	
+FlagDay
+ 05 Jul 1943
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1943
+	
+Monday
+	
+Labor Day
+ 12 Oct 1943
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1943
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1943
+	
+Thursday
+	
+VeteransDay
+ 25 Nov 1943
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1943
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1942
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1942
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1942
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 03 Apr 1942
+	
+Friday
+	
+Good Friday Day
+ 29 May 1942
+	
+Friday
+	
+Memorial Day (observed)
+ 15 Jun 1942
+	
+Monday
+	
+FlagDay (observed)
+ 03 Jul 1942
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1942
+	
+Monday
+	
+Labor Day
+ 12 Oct 1942
+	
+Monday
+	
+ColumbusDay
+ 03 Nov 1942
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1942
+	
+Wednesday
+	
+VeteransDay
+ 26 Nov 1942
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1942
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1941
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1941
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1941
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 11 Apr 1941
+	
+Friday
+	
+Good Friday Day
+ 30 May 1941
+	
+Friday
+	
+Memorial Day
+ 13 Jun 1941
+	
+Friday
+	
+FlagDay (observed)
+ 04 Jul 1941
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1941
+	
+Monday
+	
+Labor Day
+ 13 Oct 1941
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1941
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1941
+	
+Tuesday
+	
+VeteransDay
+ 27 Nov 1941
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1941
+	
+Thursday
+	
+Christmas
+
+ Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1940
+	
+Monday
+	
+New Years Day
+ 12 Feb 1940
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1940
+	
+Thursday
+	
+Washingtons Birthday
+ 22 Mar 1940
+	
+Friday
+	
+Good Friday Day
+ 30 May 1940
+	
+Thursday
+	
+Memorial Day
+ 14 Jun 1940
+	
+Friday
+	
+FlagDay
+ 04 Jul 1940
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1940
+	
+Monday
+	
+Labor Day
+ 11 Oct 1940
+	
+Friday
+	
+ColumbusDay (observed)
+ 05 Nov 1940
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1940
+	
+Monday
+	
+VeteransDay
+ 28 Nov 1940
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1940
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1939
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1939
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1939
+	
+Wednesday
+	
+Washingtons Birthday
+ 07 Apr 1939
+	
+Friday
+	
+Good Friday Day
+ 30 May 1939
+	
+Tuesday
+	
+Memorial Day
+ 14 Jun 1939
+	
+Wednesday
+	
+FlagDay
+ 04 Jul 1939
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1939
+	
+Monday
+	
+Labor Day
+ 12 Oct 1939
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1939
+	
+Tuesday
+	
+ElectionDay
+ 10 Nov 1939
+	
+Friday
+	
+VeteransDay (observed)
+ 30 Nov 1939
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1939
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1937
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1938
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1938
+	
+Tuesday
+	
+Washingtons Birthday
+ 15 Apr 1938
+	
+Friday
+	
+Good Friday Day
+ 30 May 1938
+	
+Monday
+	
+Memorial Day
+ 14 Jun 1938
+	
+Tuesday
+	
+FlagDay
+ 04 Jul 1938
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1938
+	
+Monday
+	
+Labor Day
+ 12 Oct 1938
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1938
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1938
+	
+Friday
+	
+VeteransDay
+ 24 Nov 1938
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1938
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1937
+	
+Friday
+	
+New Years Day
+ 12 Feb 1937
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1937
+	
+Monday
+	
+Washingtons Birthday
+ 26 Mar 1937
+	
+Friday
+	
+Good Friday Day
+ 29 May 1937
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 31 May 1937
+	
+Monday
+	
+Memorial Day (observed)
+ 14 Jun 1937
+	
+Monday
+	
+FlagDay
+ 03 Jul 1937
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 05 Jul 1937
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1937
+	
+Monday
+	
+Labor Day
+ 12 Oct 1937
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1937
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1937
+	
+Thursday
+	
+VeteransDay
+ 25 Nov 1937
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1937
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1936
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1936
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1936
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 10 Apr 1936
+	
+Friday
+	
+Good Friday Day
+ 29 May 1936
+	
+Friday
+	
+Memorial Day (observed)
+ 15 Jun 1936
+	
+Monday
+	
+FlagDay (observed)
+ 03 Jul 1936
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1936
+	
+Monday
+	
+Labor Day
+ 12 Oct 1936
+	
+Monday
+	
+ColumbusDay
+ 03 Nov 1936
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1936
+	
+Wednesday
+	
+VeteransDay
+ 26 Nov 1936
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1936
+	
+Friday
+	
+Christmas
+ 26 Dec 1936
+	
+Saturday
+	
+Saturdayurday-After-Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1935
+	
+Tuesday
+	
+New Years Day
+ 12 Feb 1935
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1935
+	
+Friday
+	
+Washingtons Birthday
+ 19 Apr 1935
+	
+Friday
+	
+Good Friday Day
+ 30 May 1935
+	
+Thursday
+	
+Memorial Day
+ 14 Jun 1935
+	
+Friday
+	
+FlagDay
+ 04 Jul 1935
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1935
+	
+Monday
+	
+Labor Day
+ 11 Oct 1935
+	
+Friday
+	
+ColumbusDay (observed)
+ 05 Nov 1935
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1935
+	
+Monday
+	
+VeteransDay
+ 28 Nov 1935
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1935
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1934
+	
+Monday
+	
+New Years Day
+ 12 Feb 1934
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1934
+	
+Thursday
+	
+Washingtons Birthday
+ 30 Mar 1934
+	
+Friday
+	
+Good Friday Day
+ 30 May 1934
+	
+Wednesday
+	
+Memorial Day
+ 14 Jun 1934
+	
+Thursday
+	
+FlagDay
+ 04 Jul 1934
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1934
+	
+Monday
+	
+Labor Day
+ 12 Oct 1934
+	
+Friday
+	
+ColumbusDay
+ 06 Nov 1934
+	
+Tuesday
+	
+ElectionDay
+ 12 Nov 1934
+	
+Monday
+	
+VeteransDay (observed)
+ 29 Nov 1934
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1934
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1933
+	
+Monday
+	
+New Years Day (observed)
+ 07 Jan 1933
+	
+Saturday
+	
+PresidentialFuneral-CalvinCoolidge
+ 13 Feb 1933
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1933
+	
+Wednesday
+	
+Washingtons Birthday
+ 04 Mar 1933
+	
+Saturday
+	
+StateBankingHoliday
+ 06 Mar 1933
+	
+Monday
+	
+NationalBankingHoliday
+ 07 Mar 1933
+	
+Tuesday
+	
+NationalBankingHoliday
+ 08 Mar 1933
+	
+Wednesday
+	
+NationalBankingHoliday
+ 09 Mar 1933
+	
+Thursday
+	
+NationalBankingHoliday
+ 10 Mar 1933
+	
+Friday
+	
+NationalBankingHoliday
+ 11 Mar 1933
+	
+Saturday
+	
+NationalBankingHoliday
+ 13 Mar 1933
+	
+Monday
+	
+NationalBankingHoliday
+ 14 Apr 1933
+	
+Friday
+	
+Good Friday Day
+ 30 May 1933
+	
+Tuesday
+	
+Memorial Day
+ 14 Jun 1933
+	
+Wednesday
+	
+FlagDay
+ 04 Jul 1933
+	
+Tuesday
+	
+IndependenceDay
+ 29 Jul 1933
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 05 Aug 1933
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 12 Aug 1933
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 19 Aug 1933
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 26 Aug 1933
+	
+Saturday
+	
+Saturdayurday-Summertime
+ 04 Sep 1933
+	
+Monday
+	
+Labor Day
+ 12 Oct 1933
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1933
+	
+Tuesday
+	
+ElectionDay
+ 30 Nov 1933
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1933
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1932
+	
+Friday
+	
+New Years Day
+ 12 Feb 1932
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1932
+	
+Monday
+	
+Washingtons Birthday
+ 25 Mar 1932
+	
+Friday
+	
+Good Friday Day
+ 30 May 1932
+	
+Monday
+	
+Memorial Day
+ 14 Jun 1932
+	
+Tuesday
+	
+FlagDay
+ 02 Jul 1932
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 04 Jul 1932
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1932
+	
+Monday
+	
+Labor Day
+ 12 Oct 1932
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1932
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1932
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1932
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1931
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1931
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1931
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 03 Apr 1931
+	
+Friday
+	
+Good Friday Day
+ 29 May 1931
+	
+Friday
+	
+Memorial Day (observed)
+ 15 Jun 1931
+	
+Monday
+	
+FlagDay (observed)
+ 03 Jul 1931
+	
+Friday
+	
+Independence Day (observed)
+ 05 Sep 1931
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 07 Sep 1931
+	
+Monday
+	
+Labor Day
+ 12 Oct 1931
+	
+Monday
+	
+ColumbusDay
+ 03 Nov 1931
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1931
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1931
+	
+Friday
+	
+Christmas
+ 26 Dec 1931
+	
+Saturday
+	
+Saturdayurday-After-Christmas
+
+ Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1930
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1930
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1930
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 18 Apr 1930
+	
+Friday
+	
+Good Friday Day
+ 19 Apr 1930
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1930
+	
+Friday
+	
+Memorial Day
+ 31 May 1930
+	
+Saturday
+	
+Saturdayurday-After-DecorationDay
+ 13 Jun 1930
+	
+Friday
+	
+FlagDay (observed)
+ 04 Jul 1930
+	
+Friday
+	
+IndependenceDay
+ 05 Jul 1930
+	
+Saturday
+	
+Saturdayurday-After-IndependenceDay
+ 30 Aug 1930
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 01 Sep 1930
+	
+Monday
+	
+Labor Day
+ 13 Oct 1930
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1930
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1930
+	
+Thursday
+	
+Thanks giving
+ 29 Nov 1930
+	
+Saturday
+	
+ClericalBacklogRelief
+ 25 Dec 1930
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1929
+	
+Tuesday
+	
+New Years Day
+ 09 Feb 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 12 Feb 1929
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1929
+	
+Friday
+	
+Washingtons Birthday
+ 23 Feb 1929
+	
+Saturday
+	
+Saturdayurday-After-Washingtons Birthday
+ 29 Mar 1929
+	
+Friday
+	
+Good Friday Day
+ 30 Mar 1929
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1929
+	
+Thursday
+	
+Memorial Day
+ 14 Jun 1929
+	
+Friday
+	
+FlagDay
+ 04 Jul 1929
+	
+Thursday
+	
+IndependenceDay
+ 31 Aug 1929
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 02 Sep 1929
+	
+Monday
+	
+Labor Day
+ 11 Oct 1929
+	
+Friday
+	
+ColumbusDay (observed)
+ 01 Nov 1929
+	
+Friday
+	
+ClericalBacklogRelief
+ 02 Nov 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 05 Nov 1929
+	
+Tuesday
+	
+ElectionDay
+ 09 Nov 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 16 Nov 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 23 Nov 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 28 Nov 1929
+	
+Thursday
+	
+Thanks giving
+ 30 Nov 1929
+	
+Saturday
+	
+ClericalBacklogRelief
+ 25 Dec 1929
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1928
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1928
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1928
+	
+Wednesday
+	
+Washingtons Birthday
+ 06 Apr 1928
+	
+Friday
+	
+Good Friday Day
+ 07 Apr 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 21 Apr 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 05 May 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 12 May 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 19 May 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 26 May 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 30 May 1928
+	
+Wednesday
+	
+Memorial Day
+ 14 Jun 1928
+	
+Thursday
+	
+FlagDay
+ 04 Jul 1928
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1928
+	
+Monday
+	
+Labor Day
+ 12 Oct 1928
+	
+Friday
+	
+ColumbusDay
+ 06 Nov 1928
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1928
+	
+Saturday
+	
+ClericalBacklogRelief
+ 29 Nov 1928
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1928
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1926
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1927
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1927
+	
+Tuesday
+	
+Washingtons Birthday
+ 15 Apr 1927
+	
+Friday
+	
+Good Friday Day
+ 30 May 1927
+	
+Monday
+	
+Memorial Day
+ 13 Jun 1927
+	
+Monday
+	
+Parade-CharlesLindbergh
+ 14 Jun 1927
+	
+Tuesday
+	
+FlagDay
+ 04 Jul 1927
+	
+Monday
+	
+IndependenceDay
+ 05 Sep 1927
+	
+Monday
+	
+Labor Day
+ 12 Oct 1927
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1927
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1927
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1927
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1926
+	
+Friday
+	
+New Years Day
+ 12 Feb 1926
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1926
+	
+Monday
+	
+Washingtons Birthday
+ 02 Apr 1926
+	
+Friday
+	
+Good Friday Day
+ 29 May 1926
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 31 May 1926
+	
+Monday
+	
+Memorial Day (observed)
+ 14 Jun 1926
+	
+Monday
+	
+FlagDay
+ 03 Jul 1926
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 05 Jul 1926
+	
+Monday
+	
+Independence Day (observed)
+ 04 Sep 1926
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 06 Sep 1926
+	
+Monday
+	
+Labor Day
+ 12 Oct 1926
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1926
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1926
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1926
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1925
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1925
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1925
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 10 Apr 1925
+	
+Friday
+	
+Good Friday Day
+ 29 May 1925
+	
+Friday
+	
+Memorial Day (observed)
+ 15 Jun 1925
+	
+Monday
+	
+FlagDay (observed)
+ 03 Jul 1925
+	
+Friday
+	
+Independence Day (observed)
+ 07 Sep 1925
+	
+Monday
+	
+Labor Day
+ 12 Oct 1925
+	
+Monday
+	
+ColumbusDay
+ 03 Nov 1925
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1925
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1925
+	
+Friday
+	
+Christmas
+ 26 Dec 1925
+	
+Saturday
+	
+Saturdayurday-After-Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1924
+	
+Tuesday
+	
+New Years Day
+ 12 Feb 1924
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1924
+	
+Friday
+	
+Washingtons Birthday
+ 18 Apr 1924
+	
+Friday
+	
+Good Friday Day
+ 30 May 1924
+	
+Friday
+	
+Memorial Day
+ 31 May 1924
+	
+Saturday
+	
+Saturdayurday-After-DecorationDay
+ 13 Jun 1924
+	
+Friday
+	
+FlagDay (observed)
+ 04 Jul 1924
+	
+Friday
+	
+IndependenceDay
+ 01 Sep 1924
+	
+Monday
+	
+Labor Day
+ 13 Oct 1924
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1924
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1924
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1924
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1923
+	
+Monday
+	
+New Years Day
+ 12 Feb 1923
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1923
+	
+Thursday
+	
+Washingtons Birthday
+ 30 Mar 1923
+	
+Friday
+	
+Good Friday Day
+ 30 May 1923
+	
+Wednesday
+	
+Memorial Day
+ 14 Jun 1923
+	
+Thursday
+	
+FlagDay
+ 04 Jul 1923
+	
+Wednesday
+	
+IndependenceDay
+ 03 Aug 1923
+	
+Friday
+	
+PresidentialDeath-WarrenHarding
+ 10 Aug 1923
+	
+Friday
+	
+PresidentialFuneral-WarrenHarding
+ 03 Sep 1923
+	
+Monday
+	
+Labor Day
+ 12 Oct 1923
+	
+Friday
+	
+ColumbusDay
+ 06 Nov 1923
+	
+Tuesday
+	
+ElectionDay
+ 29 Nov 1923
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1923
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1922
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1922
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1922
+	
+Wednesday
+	
+Washingtons Birthday
+ 14 Apr 1922
+	
+Friday
+	
+Good Friday Day
+ 30 May 1922
+	
+Tuesday
+	
+Memorial Day
+ 14 Jun 1922
+	
+Wednesday
+	
+FlagDay
+ 04 Jul 1922
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1922
+	
+Monday
+	
+Labor Day
+ 12 Oct 1922
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1922
+	
+Tuesday
+	
+ElectionDay
+ 30 Nov 1922
+	
+Thursday
+	
+Thanks giving
+ 23 Dec 1922
+	
+Saturday
+	
+Saturdayurday-Before-Christmas
+ 25 Dec 1922
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1920
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1921
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1921
+	
+Tuesday
+	
+Washingtons Birthday
+ 25 Mar 1921
+	
+Friday
+	
+Good Friday Day
+ 28 May 1921
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 30 May 1921
+	
+Monday
+	
+Memorial Day
+ 14 Jun 1921
+	
+Tuesday
+	
+FlagDay
+ 02 Jul 1921
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 04 Jul 1921
+	
+Monday
+	
+IndependenceDay
+ 03 Sep 1921
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 05 Sep 1921
+	
+Monday
+	
+Labor Day
+ 12 Oct 1921
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1921
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1921
+	
+Friday
+	
+VeteransDay
+ 24 Nov 1921
+	
+Thursday
+	
+Thanks giving
+ 26 Dec 1921
+	
+Monday
+	
+Christmas (observed)
+
+ Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1920
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1920
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1920
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 02 Apr 1920
+	
+Friday
+	
+Good Friday Day
+ 03 Apr 1920
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 01 May 1920
+	
+Saturday
+	
+RelocationOfBrokerageFirmOffices
+ 31 May 1920
+	
+Monday
+	
+Memorial Day (observed)
+ 14 Jun 1920
+	
+Monday
+	
+FlagDay
+ 03 Jul 1920
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 05 Jul 1920
+	
+Monday
+	
+Independence Day (observed)
+ 04 Sep 1920
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 06 Sep 1920
+	
+Monday
+	
+Labor Day
+ 12 Oct 1920
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1920
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1920
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1920
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1919
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1919
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1919
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 25 Mar 1919
+	
+Tuesday
+	
+HomecomingOf27thDivision
+ 18 Apr 1919
+	
+Friday
+	
+Good Friday Day
+ 06 May 1919
+	
+Tuesday
+	
+Parade-77thDivision
+ 30 May 1919
+	
+Friday
+	
+Memorial Day
+ 31 May 1919
+	
+Saturday
+	
+Saturdayurday-After-DecorationDay
+ 13 Jun 1919
+	
+Friday
+	
+FlagDay (observed)
+ 04 Jul 1919
+	
+Friday
+	
+IndependenceDay
+ 30 Aug 1919
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 01 Sep 1919
+	
+Monday
+	
+Labor Day
+ 10 Sep 1919
+	
+Wednesday
+	
+ReturnOfGeneralJohnPershing
+ 13 Oct 1919
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1919
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1919
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1919
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1918
+	
+Tuesday
+	
+New Years Day
+ 28 Jan 1918
+	
+Monday
+	
+HeatlessDay
+ 04 Feb 1918
+	
+Monday
+	
+HeatlessDay
+ 11 Feb 1918
+	
+Monday
+	
+HeatlessDay
+ 12 Feb 1918
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1918
+	
+Friday
+	
+Washingtons Birthday
+ 29 Mar 1918
+	
+Friday
+	
+Good Friday Day
+ 30 May 1918
+	
+Thursday
+	
+Memorial Day
+ 14 Jun 1918
+	
+Friday
+	
+FlagDay
+ 04 Jul 1918
+	
+Thursday
+	
+IndependenceDay
+ 02 Sep 1918
+	
+Monday
+	
+Labor Day
+ 12 Sep 1918
+	
+Thursday
+	
+DraftRegistrationDay
+ 11 Oct 1918
+	
+Friday
+	
+ColumbusDay (observed)
+ 05 Nov 1918
+	
+Tuesday
+	
+ElectionDay
+ 11 Nov 1918
+	
+Monday
+	
+VeteransDay
+ 28 Nov 1918
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1918
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1917
+	
+Monday
+	
+New Years Day
+ 12 Feb 1917
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1917
+	
+Thursday
+	
+Washingtons Birthday
+ 06 Apr 1917
+	
+Friday
+	
+Good Friday Day
+ 30 May 1917
+	
+Wednesday
+	
+Memorial Day
+ 05 Jun 1917
+	
+Tuesday
+	
+DraftRegistrationDay
+ 14 Jun 1917
+	
+Thursday
+	
+FlagDay
+ 04 Jul 1917
+	
+Wednesday
+	
+IndependenceDay
+ 04 Aug 1917
+	
+Saturday
+	
+Weather-HeatDay
+ 01 Sep 1917
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 03 Sep 1917
+	
+Monday
+	
+Labor Day
+ 12 Oct 1917
+	
+Friday
+	
+ColumbusDay
+ 13 Oct 1917
+	
+Saturday
+	
+Saturdayurday-After-ColumbusDay
+ 06 Nov 1917
+	
+Tuesday
+	
+ElectionDay
+ 29 Nov 1917
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1917
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 31 Dec 1915
+	
+Friday
+	
+New Years Day (observed)
+ 11 Feb 1916
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1916
+	
+Tuesday
+	
+Washingtons Birthday
+ 21 Apr 1916
+	
+Friday
+	
+Good Friday Day
+ 30 May 1916
+	
+Tuesday
+	
+Memorial Day
+ 14 Jun 1916
+	
+Wednesday
+	
+FlagDay
+ 04 Jul 1916
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1916
+	
+Monday
+	
+Labor Day
+ 12 Oct 1916
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1916
+	
+Tuesday
+	
+ElectionDay
+ 30 Nov 1916
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1916
+	
+Monday
+	
+Christmas
+ 30 Dec 1916
+	
+Saturday
+	
+Saturdayurday-Before-New Years Day
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1915
+	
+Friday
+	
+New Years Day
+ 12 Feb 1915
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1915
+	
+Monday
+	
+Washingtons Birthday
+ 02 Apr 1915
+	
+Friday
+	
+Good Friday Day
+ 31 May 1915
+	
+Monday
+	
+Memorial Day (observed)
+ 05 Jul 1915
+	
+Monday
+	
+Independence Day (observed)
+ 06 Sep 1915
+	
+Monday
+	
+Labor Day
+ 12 Oct 1915
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1915
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1915
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1915
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1914
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1914
+	
+Thursday
+	
+LincolnsBirthday
+ 23 Feb 1914
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 10 Apr 1914
+	
+Friday
+	
+Good Friday Day
+ 29 May 1914
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1914
+	
+Friday
+	
+Independence Day (observed)
+ 31 Jul 1914
+	
+Friday
+	
+WorldWar1
+ 01 Aug 1914
+	
+Saturday
+	
+WorldWar1
+ 03 Aug 1914
+	
+Monday
+	
+WorldWar1
+ 04 Aug 1914
+	
+Tuesday
+	
+WorldWar1
+ 05 Aug 1914
+	
+Wednesday
+	
+WorldWar1
+ 06 Aug 1914
+	
+Thursday
+	
+WorldWar1
+ 07 Aug 1914
+	
+Friday
+	
+WorldWar1
+ 08 Aug 1914
+	
+Saturday
+	
+WorldWar1
+ 10 Aug 1914
+	
+Monday
+	
+WorldWar1
+ 11 Aug 1914
+	
+Tuesday
+	
+WorldWar1
+ 12 Aug 1914
+	
+Wednesday
+	
+WorldWar1
+ 13 Aug 1914
+	
+Thursday
+	
+WorldWar1
+ 14 Aug 1914
+	
+Friday
+	
+WorldWar1
+ 15 Aug 1914
+	
+Saturday
+	
+WorldWar1
+ 17 Aug 1914
+	
+Monday
+	
+WorldWar1
+ 18 Aug 1914
+	
+Tuesday
+	
+WorldWar1
+ 19 Aug 1914
+	
+Wednesday
+	
+WorldWar1
+ 20 Aug 1914
+	
+Thursday
+	
+WorldWar1
+ 21 Aug 1914
+	
+Friday
+	
+WorldWar1
+ 22 Aug 1914
+	
+Saturday
+	
+WorldWar1
+ 24 Aug 1914
+	
+Monday
+	
+WorldWar1
+ 25 Aug 1914
+	
+Tuesday
+	
+WorldWar1
+ 26 Aug 1914
+	
+Wednesday
+	
+WorldWar1
+ 27 Aug 1914
+	
+Thursday
+	
+WorldWar1
+ 28 Aug 1914
+	
+Friday
+	
+WorldWar1
+ 29 Aug 1914
+	
+Saturday
+	
+WorldWar1
+ 31 Aug 1914
+	
+Monday
+	
+WorldWar1
+ 01 Sep 1914
+	
+Tuesday
+	
+WorldWar1
+ 02 Sep 1914
+	
+Wednesday
+	
+WorldWar1
+ 03 Sep 1914
+	
+Thursday
+	
+WorldWar1
+ 04 Sep 1914
+	
+Friday
+	
+WorldWar1
+ 05 Sep 1914
+	
+Saturday
+	
+WorldWar1
+ 07 Sep 1914
+	
+Monday
+	
+WorldWar1
+ 07 Sep 1914
+	
+Monday
+	
+Labor Day
+ 08 Sep 1914
+	
+Tuesday
+	
+WorldWar1
+ 09 Sep 1914
+	
+Wednesday
+	
+WorldWar1
+ 10 Sep 1914
+	
+Thursday
+	
+WorldWar1
+ 11 Sep 1914
+	
+Friday
+	
+WorldWar1
+ 12 Sep 1914
+	
+Saturday
+	
+WorldWar1
+ 14 Sep 1914
+	
+Monday
+	
+WorldWar1
+ 15 Sep 1914
+	
+Tuesday
+	
+WorldWar1
+ 16 Sep 1914
+	
+Wednesday
+	
+WorldWar1
+ 17 Sep 1914
+	
+Thursday
+	
+WorldWar1
+ 18 Sep 1914
+	
+Friday
+	
+WorldWar1
+ 19 Sep 1914
+	
+Saturday
+	
+WorldWar1
+ 21 Sep 1914
+	
+Monday
+	
+WorldWar1
+ 22 Sep 1914
+	
+Tuesday
+	
+WorldWar1
+ 23 Sep 1914
+	
+Wednesday
+	
+WorldWar1
+ 24 Sep 1914
+	
+Thursday
+	
+WorldWar1
+ 25 Sep 1914
+	
+Friday
+	
+WorldWar1
+ 26 Sep 1914
+	
+Saturday
+	
+WorldWar1
+ 28 Sep 1914
+	
+Monday
+	
+WorldWar1
+ 29 Sep 1914
+	
+Tuesday
+	
+WorldWar1
+ 30 Sep 1914
+	
+Wednesday
+	
+WorldWar1
+ 01 Oct 1914
+	
+Thursday
+	
+WorldWar1
+ 02 Oct 1914
+	
+Friday
+	
+WorldWar1
+ 03 Oct 1914
+	
+Saturday
+	
+WorldWar1
+ 05 Oct 1914
+	
+Monday
+	
+WorldWar1
+ 06 Oct 1914
+	
+Tuesday
+	
+WorldWar1
+ 07 Oct 1914
+	
+Wednesday
+	
+WorldWar1
+ 08 Oct 1914
+	
+Thursday
+	
+WorldWar1
+ 09 Oct 1914
+	
+Friday
+	
+WorldWar1
+ 10 Oct 1914
+	
+Saturday
+	
+WorldWar1
+ 12 Oct 1914
+	
+Monday
+	
+WorldWar1
+ 12 Oct 1914
+	
+Monday
+	
+ColumbusDay
+ 13 Oct 1914
+	
+Tuesday
+	
+WorldWar1
+ 14 Oct 1914
+	
+Wednesday
+	
+WorldWar1
+ 15 Oct 1914
+	
+Thursday
+	
+WorldWar1
+ 16 Oct 1914
+	
+Friday
+	
+WorldWar1
+ 17 Oct 1914
+	
+Saturday
+	
+WorldWar1
+ 19 Oct 1914
+	
+Monday
+	
+WorldWar1
+ 20 Oct 1914
+	
+Tuesday
+	
+WorldWar1
+ 21 Oct 1914
+	
+Wednesday
+	
+WorldWar1
+ 22 Oct 1914
+	
+Thursday
+	
+WorldWar1
+ 23 Oct 1914
+	
+Friday
+	
+WorldWar1
+ 24 Oct 1914
+	
+Saturday
+	
+WorldWar1
+ 26 Oct 1914
+	
+Monday
+	
+WorldWar1
+ 27 Oct 1914
+	
+Tuesday
+	
+WorldWar1
+ 28 Oct 1914
+	
+Wednesday
+	
+WorldWar1
+ 29 Oct 1914
+	
+Thursday
+	
+WorldWar1
+ 30 Oct 1914
+	
+Friday
+	
+WorldWar1
+ 31 Oct 1914
+	
+Saturday
+	
+WorldWar1
+ 02 Nov 1914
+	
+Monday
+	
+WorldWar1
+ 03 Nov 1914
+	
+Tuesday
+	
+WorldWar1
+ 03 Nov 1914
+	
+Tuesday
+	
+ElectionDay
+ 04 Nov 1914
+	
+Wednesday
+	
+WorldWar1
+ 05 Nov 1914
+	
+Thursday
+	
+WorldWar1
+ 06 Nov 1914
+	
+Friday
+	
+WorldWar1
+ 07 Nov 1914
+	
+Saturday
+	
+WorldWar1
+ 09 Nov 1914
+	
+Monday
+	
+WorldWar1
+ 10 Nov 1914
+	
+Tuesday
+	
+WorldWar1
+ 11 Nov 1914
+	
+Wednesday
+	
+WorldWar1
+ 12 Nov 1914
+	
+Thursday
+	
+WorldWar1
+ 13 Nov 1914
+	
+Friday
+	
+WorldWar1
+ 14 Nov 1914
+	
+Saturday
+	
+WorldWar1
+ 16 Nov 1914
+	
+Monday
+	
+WorldWar1
+ 17 Nov 1914
+	
+Tuesday
+	
+WorldWar1
+ 18 Nov 1914
+	
+Wednesday
+	
+WorldWar1
+ 19 Nov 1914
+	
+Thursday
+	
+WorldWar1
+ 20 Nov 1914
+	
+Friday
+	
+WorldWar1
+ 21 Nov 1914
+	
+Saturday
+	
+WorldWar1
+ 23 Nov 1914
+	
+Monday
+	
+WorldWar1
+ 24 Nov 1914
+	
+Tuesday
+	
+WorldWar1
+ 25 Nov 1914
+	
+Wednesday
+	
+WorldWar1
+ 26 Nov 1914
+	
+Thursday
+	
+WorldWar1
+ 26 Nov 1914
+	
+Thursday
+	
+Thanks giving
+ 27 Nov 1914
+	
+Friday
+	
+WorldWar1
+ 28 Nov 1914
+	
+Saturday
+	
+WorldWar1
+ 30 Nov 1914
+	
+Monday
+	
+WorldWar1
+ 01 Dec 1914
+	
+Tuesday
+	
+WorldWar1
+ 02 Dec 1914
+	
+Wednesday
+	
+WorldWar1
+ 03 Dec 1914
+	
+Thursday
+	
+WorldWar1
+ 04 Dec 1914
+	
+Friday
+	
+WorldWar1
+ 05 Dec 1914
+	
+Saturday
+	
+WorldWar1
+ 07 Dec 1914
+	
+Monday
+	
+WorldWar1
+ 08 Dec 1914
+	
+Tuesday
+	
+WorldWar1
+ 09 Dec 1914
+	
+Wednesday
+	
+WorldWar1
+ 10 Dec 1914
+	
+Thursday
+	
+WorldWar1
+ 11 Dec 1914
+	
+Friday
+	
+WorldWar1
+ 12 Dec 1914
+	
+Saturday
+	
+WorldWar1
+ 25 Dec 1914
+	
+Friday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1913
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1913
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1913
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 21 Mar 1913
+	
+Friday
+	
+Good Friday Day
+ 22 Mar 1913
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1913
+	
+Friday
+	
+Memorial Day
+ 31 May 1913
+	
+Saturday
+	
+Saturdayurday-After-DecorationDay
+ 04 Jul 1913
+	
+Friday
+	
+IndependenceDay
+ 05 Jul 1913
+	
+Saturday
+	
+Saturdayurday-After-IndependenceDay
+ 30 Aug 1913
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 01 Sep 1913
+	
+Monday
+	
+Labor Day
+ 13 Oct 1913
+	
+Monday
+	
+ColumbusDay (observed)
+ 04 Nov 1913
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1913
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1913
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1912
+	
+Monday
+	
+New Years Day
+ 12 Feb 1912
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1912
+	
+Thursday
+	
+Washingtons Birthday
+ 05 Apr 1912
+	
+Friday
+	
+Good Friday Day
+ 30 May 1912
+	
+Thursday
+	
+Memorial Day
+ 04 Jul 1912
+	
+Thursday
+	
+IndependenceDay
+ 31 Aug 1912
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 02 Sep 1912
+	
+Monday
+	
+Labor Day
+ 11 Oct 1912
+	
+Friday
+	
+ColumbusDay (observed)
+ 02 Nov 1912
+	
+Saturday
+	
+PresidentialFuneral-JamesSherman
+ 05 Nov 1912
+	
+Tuesday
+	
+ElectionDay
+ 28 Nov 1912
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1912
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1911
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1911
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1911
+	
+Wednesday
+	
+Washingtons Birthday
+ 14 Apr 1911
+	
+Friday
+	
+Good Friday Day
+ 15 Apr 1911
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1911
+	
+Tuesday
+	
+Memorial Day
+ 04 Jul 1911
+	
+Tuesday
+	
+IndependenceDay
+ 02 Sep 1911
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 04 Sep 1911
+	
+Monday
+	
+Labor Day
+ 12 Oct 1911
+	
+Thursday
+	
+ColumbusDay
+ 07 Nov 1911
+	
+Tuesday
+	
+ElectionDay
+ 30 Nov 1911
+	
+Thursday
+	
+Thanks giving
+ 23 Dec 1911
+	
+Saturday
+	
+Saturdayurday-Before-Christmas
+ 25 Dec 1911
+	
+Monday
+	
+Christmas
+ Date
+	
+WeekDay
+	
+Holiday
+
+	
+	
+ 11 Feb 1910
+	
+Friday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1910
+	
+Tuesday
+	
+Washingtons Birthday
+ 25 Mar 1910
+	
+Friday
+	
+Good Friday Day
+ 28 May 1910
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 30 May 1910
+	
+Monday
+	
+Memorial Day
+ 02 Jul 1910
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 04 Jul 1910
+	
+Monday
+	
+IndependenceDay
+ 03 Sep 1910
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 05 Sep 1910
+	
+Monday
+	
+Labor Day
+ 12 Oct 1910
+	
+Wednesday
+	
+ColumbusDay
+ 08 Nov 1910
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1910
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1910
+	
+Saturday
+	
+Saturdayurday-Before-Christmas
+ 26 Dec 1910
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1909
+	
+Friday
+	
+New Years Day
+ 12 Feb 1909
+	
+Friday
+	
+LincolnsBirthday
+ 13 Feb 1909
+	
+Saturday
+	
+Saturdayurday-After-LincolnsBirthday
+ 22 Feb 1909
+	
+Monday
+	
+Washingtons Birthday
+ 09 Apr 1909
+	
+Friday
+	
+Good Friday Day
+ 10 Apr 1909
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 29 May 1909
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 31 May 1909
+	
+Monday
+	
+Memorial Day (observed)
+ 03 Jul 1909
+	
+Saturday
+	
+Saturdayurday-Before-IndependenceDay
+ 05 Jul 1909
+	
+Monday
+	
+Independence Day (observed)
+ 04 Sep 1909
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 06 Sep 1909
+	
+Monday
+	
+Labor Day
+ 25 Sep 1909
+	
+Saturday
+	
+ReceptionDayOfHudsonFultonCelebration
+ 12 Oct 1909
+	
+Tuesday
+	
+ColumbusDay
+ 02 Nov 1909
+	
+Tuesday
+	
+ElectionDay
+ 25 Nov 1909
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1909
+	
+Friday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1908
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1908
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1908
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 17 Apr 1908
+	
+Friday
+	
+Good Friday Day
+ 18 Apr 1908
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 29 May 1908
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1908
+	
+Friday
+	
+Independence Day (observed)
+ 05 Sep 1908
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 07 Sep 1908
+	
+Monday
+	
+Labor Day
+ 03 Nov 1908
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1908
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1908
+	
+Friday
+	
+Christmas
+ 26 Dec 1908
+	
+Saturday
+	
+Saturdayurday-After-Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1907
+	
+Tuesday
+	
+New Years Day
+ 12 Feb 1907
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1907
+	
+Friday
+	
+Washingtons Birthday
+ 23 Feb 1907
+	
+Saturday
+	
+Saturdayurday-After-Washingtons Birthday
+ 30 Mar 1907
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1907
+	
+Thursday
+	
+Memorial Day
+ 04 Jul 1907
+	
+Thursday
+	
+IndependenceDay
+ 31 Aug 1907
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 02 Sep 1907
+	
+Monday
+	
+Labor Day
+ 05 Nov 1907
+	
+Tuesday
+	
+ElectionDay
+ 28 Nov 1907
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1907
+	
+Wednesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1906
+	
+Monday
+	
+New Years Day
+ 12 Feb 1906
+	
+Monday
+	
+LincolnsBirthday
+ 22 Feb 1906
+	
+Thursday
+	
+Washingtons Birthday
+ 30 May 1906
+	
+Wednesday
+	
+Memorial Day
+ 04 Jul 1906
+	
+Wednesday
+	
+IndependenceDay
+ 03 Sep 1906
+	
+Monday
+	
+Labor Day
+ 06 Nov 1906
+	
+Tuesday
+	
+ElectionDay
+ 29 Nov 1906
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1906
+	
+Tuesday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 02 Jan 1905
+	
+Monday
+	
+New Years Day (observed)
+ 13 Feb 1905
+	
+Monday
+	
+LincolnsBirthday (observed)
+ 22 Feb 1905
+	
+Wednesday
+	
+Washingtons Birthday
+ 21 Apr 1905
+	
+Friday
+	
+Good Friday Day
+ 22 Apr 1905
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1905
+	
+Tuesday
+	
+Memorial Day
+ 04 Jul 1905
+	
+Tuesday
+	
+IndependenceDay
+ 04 Sep 1905
+	
+Monday
+	
+Labor Day
+ 07 Nov 1905
+	
+Tuesday
+	
+ElectionDay
+ 30 Nov 1905
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1905
+	
+Monday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1904
+	
+Friday
+	
+New Years Day
+ 12 Feb 1904
+	
+Friday
+	
+LincolnsBirthday
+ 22 Feb 1904
+	
+Monday
+	
+
+ 01 Apr 1904
+	
+Friday
+	
+Good Friday Day
+ 28 May 1904
+	
+Saturday
+	
+Saturdayurday-Before-DecorationDay
+ 30 May 1904
+	
+Monday
+	
+Memorial Day
+ 02 Jul 1904
+	
+Saturday
+	
+Saturdayurday-Before-IndepedenceDay
+ 04 Jul 1904
+	
+Monday
+	
+IndependenceDay
+ 03 Sep 1904
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 05 Sep 1904
+	
+Monday
+	
+Labor Day
+ 08 Nov 1904
+	
+Tuesday
+	
+ElectionDay
+ 24 Nov 1904
+	
+Thursday
+	
+Thanks giving
+ 24 Dec 1904
+	
+Saturday
+	
+Saturdayurday-Before-Christmas
+ 26 Dec 1904
+	
+Monday
+	
+Christmas (observed)
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1903
+	
+Thursday
+	
+New Years Day
+ 12 Feb 1903
+	
+Thursday
+	
+LincolnsBirthday
+ 21 Feb 1903
+	
+Saturday
+	
+Saturdayurday-Before-Washingtons Birthday
+ 23 Feb 1903
+	
+Monday
+	
+Washingtons Birthday (observed)
+ 10 Apr 1903
+	
+Friday
+	
+Good Friday Day
+ 11 Apr 1903
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 22 Apr 1903
+	
+Wednesday
+	
+NewNYSEBuildingOpened
+ 29 May 1903
+	
+Friday
+	
+Memorial Day (observed)
+ 03 Jul 1903
+	
+Friday
+	
+Independence Day (observed)
+ 05 Sep 1903
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 07 Sep 1903
+	
+Monday
+	
+Labor Day
+ 03 Nov 1903
+	
+Tuesday
+	
+ElectionDay
+ 26 Nov 1903
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1903
+	
+Friday
+	
+Christmas
+ 26 Dec 1903
+	
+Saturday
+	
+Saturdayurday-After-Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1902
+	
+Wednesday
+	
+New Years Day
+ 12 Feb 1902
+	
+Wednesday
+	
+LincolnsBirthday
+ 21 Feb 1902
+	
+Friday
+	
+Washingtons Birthday (observed)
+ 28 Mar 1902
+	
+Friday
+	
+Good Friday Day
+ 29 Mar 1902
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 30 May 1902
+	
+Friday
+	
+Memorial Day
+ 31 May 1902
+	
+Saturday
+	
+Saturdayurday-After-DecorationDay
+ 04 Jul 1902
+	
+Friday
+	
+IndependenceDay
+ 05 Jul 1902
+	
+Saturday
+	
+Saturdayurday-After-IndepedenceDay
+ 09 Aug 1902
+	
+Saturday
+	
+CoronationOfKingEdwardVII
+ 30 Aug 1902
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 01 Sep 1902
+	
+Monday
+	
+Labor Day
+ 04 Nov 1902
+	
+Tuesday
+	
+ElectionDay
+ 27 Nov 1902
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1902
+	
+Thursday
+	
+Christmas
+
+	
+
+	
+
+
+	
+
+	
+
+Date
+	
+WeekDay
+	
+Holiday
+ 01 Jan 1901
+	
+Tuesday
+	
+New Years Day
+ 02 Feb 1901
+	
+Saturday
+	
+FuneralOfQueenVictoria
+ 12 Feb 1901
+	
+Tuesday
+	
+LincolnsBirthday
+ 22 Feb 1901
+	
+Friday
+	
+Washingtons Birthday
+ 05 Apr 1901
+	
+Friday
+	
+Good Friday Day
+ 06 Apr 1901
+	
+Saturday
+	
+Saturdayurday-After-Good Friday Day
+ 27 Apr 1901
+	
+Saturday
+	
+MoveToTemporaryQuartersInProduceExchange
+ 11 May 1901
+	
+Saturday
+	
+EnlargementOfTemporaryQuartersInProduceExchange
+ 30 May 1901
+	
+Thursday
+	
+Memorial Day
+ 04 Jul 1901
+	
+Thursday
+	
+IndependenceDay
+ 05 Jul 1901
+	
+Friday
+	
+DayAfterIndepedenceDay
+ 06 Jul 1901
+	
+Saturday
+	
+Saturdayurday-After-IndepedenceDay
+ 31 Aug 1901
+	
+Saturday
+	
+Saturdayurday-Before-Labor Day
+ 02 Sep 1901
+	
+Monday
+	
+Labor Day
+ 14 Sep 1901
+	
+Saturday
+	
+PresidentialAssassination-WilliamMcKinley
+ 19 Sep 1901
+	
+Thursday
+	
+PresidentialFuneral-WilliamMcKinley
+ 05 Nov 1901
+	
+Tuesday
+	
+ElectionDay
+ 28 Nov 1901
+	
+Thursday
+	
+Thanks giving
+ 25 Dec 1901
+	
+Wednesday
+	
+Christmas
+
