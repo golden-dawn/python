@@ -13,3 +13,9 @@ __pycache__
 
 # Ignore old directory
 old
+
+# Ignore any log files
+*.log
+
+# Ignore db.py file
+db.py
