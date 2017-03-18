@@ -77,18 +77,18 @@ class StxEOD:
     status_ok = 1
     status_ko = 2
 
-    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl, fx_tbl='',
+    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl, ftr_tbl='',
                  extension='.txt'):
         self.in_dir = in_dir
         self.eod_tbl = eod_tbl
         self.rec_name = eod_tbl
         self.split_tbl = split_tbl
-        self.fx_tbl = fx_tbl
+        self.ftr_tbl = ftr_tbl
         self.recon_tbl = recon_tbl
         self.extension = extension
         stxdb.db_create_missing_table(eod_tbl, self.sql_create_eod)
         stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
-        stxdb.db_create_missing_table(fx_tbl, self.sql_create_fxs)
+        stxdb.db_create_missing_table(ftr_tbl, self.sql_create_fxs)
         stxdb.db_create_missing_table(recon_tbl, self.sql_create_recon)
 
     # Load my historical data.  Load each stock and accumulate splits.
@@ -905,7 +905,8 @@ class StxEOD:
                     e = sys.exc_info()[1]
                     print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
                           format(symbol, line, str(e)))
-        tbl_name = self.fx_tbl if instr_name == 'commodities' else self.eod_tbl
+        tbl_name = self.ftr_tbl if instr_name == 'commodities' \
+            else self.eod_tbl
         stxdb.db_upload_file(ofname, tbl_name, 2)
 
     def multiply_prices(self, o, h, l, c, factor):
@@ -943,7 +944,7 @@ class StxEOD:
         if stk.endswith('.F') and (stk[-4:-2] not in ['_3', '_C']):
             is_future = True
         v = 1 if v == 0 else v
-        tbl = self.fx_tbl if is_future else self.eod_tbl
+        tbl = self.ftr_tbl if is_future else self.eod_tbl
         db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},"\
                  "{5:2f},{6:2f},{7:d},{8:d}) on duplicate key update "\
                  "v={9:d}, oi={10:d}".format(tbl, stk, dt, o, h, l, c, v, oi,
@@ -956,7 +957,10 @@ class StxEOD:
 
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
-        while dt < e_date:
+        num_days = stxcal.num_busdays(s_date, e_date)
+        print('Uploading EOD data for {0:d} days'.format(num_days))
+        day_num = 0
+        while dt <= e_date:
             with open('{0:s}/{1:s}_d.prn'.format
                       (self.in_dir, dt.replace('-', ''))) as ifile:
                 lines = ifile.readlines()
@@ -967,10 +971,14 @@ class StxEOD:
                     logging.info('Error with line {0:s}: {1:s}'.format
                                  (line.strip(), str(ex)))
             dt = stxcal.next_busday(dt)
+            day_num += 1
+            if day_num % 20 == 0 or day_num == num_days:
+                print(' Uploaded EOD data for {0:d} days'.format(day_num))
 
     def parse_ed_splits(self, split_file):
         # curl
         # 'http://ichart.finance.yahoo.com/x?s=IBM&a=00&b=2&c=2011&d=04&e=25&f=2017&g=v&y=0&z=30000'
+        num = 0
         with open('{0:s}/{1:s}'.format(self.in_dir, split_file), 'r') as ifile:
             lines = ifile.readlines()
         for line in lines[1:]:
@@ -986,7 +994,8 @@ class StxEOD:
                      "on duplicate key update ratio={4:8.4f}".\
                      format(self.split_tbl, stk, dt, ratio, ratio)
             stxdb.db_write_cmd(db_cmd)
-            print('{0:s}\t{1:s}\t{2:8.4f}'.format(stk, dt, ratio))
+            num += 1
+        print('{0:s}: uploaded/updated {1:d} splits'.format(split_file, num))
 
 
 if __name__ == '__main__':
@@ -1061,10 +1070,18 @@ if __name__ == '__main__':
     # sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
     #                 'sq_split', 'reconciliation', 'sq_fxs')
     # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
+    s_date = '2016-08-24'
+    e_date = '2016-12-31'
     sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
-                    'fxs_sq')
-    sq_eod.parseeodfiles('2016-08-24', '2017-03-17')
-    sq_eod.parse_ed_splits('splits_20160928.txt')
-    sq_eod.parse_ed_splits('splits_20161223.txt')
-    sq_eod.parse_ed_splits('splits_20170102.txt')
-    sq_eod.parse_ed_splits('splits_20170317.txt')
+                    'ftr_sq')
+    sq_eod.parseeodfiles(s_date, e_date)
+    for sdt in ['20160928', '20161223', '20170102', '20170317']:
+        sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
+    sq_eod.reconcile_spots(s_date, e_date)
+    sq_eod.upload_eod('eod', 'split', '', s_date, e_date)
+    sq_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
+    eod = StxEOD('', 'eod', 'split', 'reconciliation', 'ftr')
+    eod.split_reconciliation('', s_date, e_date,
+                             ['splits', 'split_sq', 'dn_split', 'md_split'])
+
+    # e_date = '2017-03-17'
