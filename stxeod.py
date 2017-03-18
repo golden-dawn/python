@@ -980,7 +980,13 @@ class StxEOD:
             dt = str(datetime.strptime(dt, '%m/%d/%Y').date())
             denom, num = ratio.split('-')
             ratio = float(num) / float(denom)
-            print('{0:s}\t{1:s}\t{2:4f}'.format(stk, dt, ratio))
+            if ratio > 9999:
+                continue
+            db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:8.4f},0) "\
+                     "on duplicate key update ratio={4:8.4f}".\
+                     format(self.split_tbl, stk, dt, ratio, ratio)
+            stxdb.db_write_cmd(db_cmd)
+            print('{0:s}\t{1:s}\t{2:8.4f}'.format(stk, dt, ratio))
 
 
 if __name__ == '__main__':
@@ -1057,5 +1063,8 @@ if __name__ == '__main__':
     # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
     sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
                     'fxs_sq')
-    sq_eod.parseeodfiles('2016-08-24', '2016-09-23')
+    sq_eod.parseeodfiles('2016-08-24', '2017-03-17')
     sq_eod.parse_ed_splits('splits_20160928.txt')
+    sq_eod.parse_ed_splits('splits_20161223.txt')
+    sq_eod.parse_ed_splits('splits_20170102.txt')
+    sq_eod.parse_ed_splits('splits_20170317.txt')
