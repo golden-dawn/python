@@ -13,7 +13,7 @@ import sys
 
 class StxEOD:
 
-    sh_dir = 'C:/goldendawn/stockhistory'
+    sh_dir = 'C:/goldendawn/stockhistory_2017'
     upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
     ed_dir = 'C:/goldendawn/EODData'
     dload_dir = 'C:/users/const/Downloads'
@@ -226,13 +226,18 @@ class StxEOD:
             with open(out_fname, 'w') as dbfile:
                 frdr = csv.reader(csvfile)
                 for row in frdr:
+                    print(row)
                     stk = row[0].strip()
                     if stk_list and stk not in stk_list:
                         continue
                     dt = str(datetime.strptime(row[1], '%m/%d/%Y').date())
-                    dbfile.write('{0:s}\t{1:s}\t{2:f}\t0\n'.
+                    sep = ' for ' if row[3].find(' for ') > 0 else ' to '
+                    denom, num = row[3].split(sep)
+                    num = float(num)
+                    denom = float(denom)
+                    dbfile.write('{0:s}\t{1:s}\t{2:8.4f}\t0\n'.
                                  format(stk, stxcal.prev_busday(dt),
-                                        1 / float(row[2])))
+                                        num / denom))
         try:
             stxdb.db_upload_file(out_fname, self.split_tbl, 2)
             print('Uploaded delta neutral splits')
@@ -254,7 +259,7 @@ class StxEOD:
                         continue
                     dt = stxcal.prev_busday(
                         str(datetime.strptime(row[1], '%m/%d/%Y').date()))
-                    if dt < '2001-01-01' or dt > '2016-12-01':
+                    if dt < '2001-01-01':
                         continue
                     try:
                         res = stxdb.db_read_cmd("select c from {0:s} where "
@@ -272,8 +277,8 @@ class StxEOD:
                                   'already a split on that date: {1:s}'.
                                   format(str(row), str(res)))
                         else:
-                            dbfile.write('{0:s}\t{1:s}\t{2:.4f}\t2\n'.
-                                         format(stk, dt, 1 - divi / cc))
+                            dbfile.write('{0:s}\t{1:s}\t{2:8.4f}\t2\n'.
+                                         format(stk, dt, (1 - divi / cc)))
                     except:
                         print('Failed to process {0:s}, error: {1:s}'.
                               format(str(row), str(sys.exc_info()[1])))
@@ -978,7 +983,7 @@ class StxEOD:
     def parse_ed_splits(self, split_file):
         # curl
         # 'http://ichart.finance.yahoo.com/x?s=IBM&a=00&b=2&c=2011&d=04&e=25&f=2017&g=v&y=0&z=30000'
-        num = 0
+        num_splits = 0
         with open('{0:s}/{1:s}'.format(self.in_dir, split_file), 'r') as ifile:
             lines = ifile.readlines()
         for line in lines[1:]:
@@ -994,8 +999,9 @@ class StxEOD:
                      "on duplicate key update ratio={4:8.4f}".\
                      format(self.split_tbl, stk, dt, ratio, ratio)
             stxdb.db_write_cmd(db_cmd)
-            num += 1
-        print('{0:s}: uploaded/updated {1:d} splits'.format(split_file, num))
+            num_splits += 1
+        print('{0:s}: uploaded/updated {1:d} splits'.format(split_file,
+                                                            num_splits))
 
 
 if __name__ == '__main__':
@@ -1070,18 +1076,28 @@ if __name__ == '__main__':
     # sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
     #                 'sq_split', 'reconciliation', 'sq_fxs')
     # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
+    #
+    # This reconciliation is done to check that data from stooq is
+    # consistent with opt_spots.  All the stocks during this time
+    # period passed the reconciilation, as it should be the case. So,
+    # there is no reason to invoke upload_eod. Instead, we will just
+    # upload the stooq data into eod.
+    #
+    # s_date = '2016-08-24'
+    # e_date = '2016-12-31'
+    # sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
+    #                 'ftr_sq')
+    # sq_eod.parseeodfiles(s_date, e_date)
+    # for sdt in ['20160928', '20161223', '20170102', '20170317']:
+    #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
+    # sq_eod.reconcile_spots(s_date, e_date)
     s_date = '2016-08-24'
-    e_date = '2016-12-31'
-    sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
-                    'ftr_sq')
-    sq_eod.parseeodfiles(s_date, e_date)
-    for sdt in ['20160928', '20161223', '20170102', '20170317']:
-        sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
-    sq_eod.reconcile_spots(s_date, e_date)
-    sq_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    sq_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    eod = StxEOD('', 'eod', 'split', 'reconciliation', 'ftr')
-    eod.split_reconciliation('', s_date, e_date,
+    e_date = '2017-03-17'
+    eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
+    # eod.parseeodfiles(s_date, e_date)
+    dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
+                    'reconciliation')
+    dn_eod.load_deltaneutral_splits([])
+    dn_eod.load_deltaneutral_divis([])
+    eod.split_reconciliation(StxEOD.dload_dir, s_date, e_date,
                              ['splits', 'split_sq', 'dn_split', 'md_split'])
-
-    # e_date = '2017-03-17'
