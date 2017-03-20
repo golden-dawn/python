@@ -1091,13 +1091,17 @@ if __name__ == '__main__':
     # for sdt in ['20160928', '20161223', '20170102', '20170317']:
     #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
     # sq_eod.reconcile_spots(s_date, e_date)
-    s_date = '2016-08-24'
+    # s_date = '2016-08-24'
+    # e_date = '2017-03-17'
+    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
+    # eod.parseeodfiles(s_date, e_date)
+    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
+    #                 'reconciliation')
+    # dn_eod.load_deltaneutral_splits([])
+    # dn_eod.load_deltaneutral_divis([])
+    s_date = '2016-08-01'
     e_date = '2017-03-17'
     eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
-    # eod.parseeodfiles(s_date, e_date)
-    dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
-                    'reconciliation')
-    dn_eod.load_deltaneutral_splits([])
-    dn_eod.load_deltaneutral_divis([])
-    eod.split_reconciliation(StxEOD.dload_dir, s_date, e_date,
-                             ['splits', 'split_sq', 'dn_split', 'md_split'])
+    eod.split_reconciliation('', s_date, e_date,
+                             ['splits', 'split_sq', 'dn_split', 'md_split',
+                              'split_dn'])
