@@ -325,6 +325,17 @@ class Test4StxEOD(unittest.TestCase):
                                  "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <="
                                  " '2012-12-31' group by stk order by stk".
                                  format(self.dn_split_tbl))
+        print('test_03_load_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
         self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
                         and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
                         res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
@@ -342,6 +353,11 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, my_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 "
                                  "order by stk, dt".format(self.my_split_tbl))
+        print('test_04_reconcile_my_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
@@ -374,6 +390,11 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.recon_tbl, dn_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where implied=1 order"
                                  " by stk, dt".format(self.dn_split_tbl))
+        print('test_05_reconcile_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
         self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',
@@ -430,6 +451,17 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.eod_test))
         res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
                                  'group by stk'.format(self.split_test))
+        print('test_07_merge_eod_tbls')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
         self.assertTrue(res1[0][2] == Decimal('69.06') and
                         res1[0][3] == Decimal('69.38') and
                         res1[0][4] == Decimal('68.40') and
@@ -577,6 +609,17 @@ class Test4StxEOD(unittest.TestCase):
                                  format(self.eod_test))
         res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
                                  'group by stk'.format(self.split_test))
+        print('test_12_merge_eod_tbls')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
         self.assertTrue(res1[0][2] == Decimal('69.06') and
                         res1[0][3] == Decimal('69.38') and
                         res1[0][4] == Decimal('68.40') and

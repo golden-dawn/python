@@ -22,28 +22,21 @@ class StxTS:
             self.ed = df.index[-1]
         self.sd_str = str(self.sd.date())
         self.ed_str = str(self.ed.date())
-        # print("sd = %s, ed = %s" % (self.sd_str, self.ed_str))
         self.gaps = self.get_gaps(df)
         df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
-        s_lst = stxdb.db_read_cmd("select dt, ratio from {0:s} where "
+        s_lst = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where "
                                   "stk='{1:s}'".format(split_tbl, stk))
-        self.splits = {pd.to_datetime(stxcal.next_busday(s[0])): float(s[1])
-                       for s in s_lst}
-        # q = "select dt, divi from dividend where stk='%s'" % stk
-        # self.divis = pd.read_sql(q, StxTS.cnx, index_col='dt',  \
-        #                          parse_dates=['dt']).to_dict()["divi"]
-        # print("splits = %s, divis = %s" % (self.splits, self.divis))
+        self.splits = {pd.to_datetime(stxcal.next_busday(s[0])):
+                       [float(s[1]), int(s[2])] for s in s_lst}
         self.df = self.fill_gaps(df)
         self.l = len(self.df)
         self.pos = 0
         self.num_gaps = [tuple([self.find(str(x[0].date())),
                                 self.find(str(x[1].date()))])
                          for x in self.gaps]
-        # print("gaps = %s" % self.gaps)
         self.start = self.num_gaps[0][0]
         self.end = self.num_gaps[0][1]
         self.adj_splits = []
-        # print("len = %d df = \n%s" % (self.l, self.df))
 
     def get_gaps(self, df):
         df['prev_dt'] = df.index.shift(-1, freq=StxTS.busday_us)
@@ -124,11 +117,12 @@ class StxTS:
         if new_s != self.start or new_e != self.end:
             sdd = self.df.index[self.start]
             for adj_dt in self.adj_splits:
-                split_ratio = self.splits.get(adj_dt)
+                split_ratio, split_divi = self.splits.get(adj_dt)
                 self.adjust(sdd, stxcal.prev_busday(adj_dt), 1 / split_ratio,
                             ['o', 'h', 'l', 'c'])
-                self.adjust(sdd, stxcal.prev_busday(adj_dt), split_ratio,
-                            ['v'])
+                if split_divi in [0, 1, 3, 6]:
+                    self.adjust(sdd, stxcal.prev_busday(adj_dt), split_ratio,
+                                ['v'])
             self.adj_splits.clear()
             self.start = new_s
             self.end = new_e
@@ -149,15 +143,13 @@ class StxTS:
         edd = self.df.index[e_ix]
         splts = {k: v for k, v in self.splits.items() if sdd < k <= edd}
         for k, v in splts.items():
-            r = v if inv == 0 else 1 / v
-            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'h', 'l', 'c'],
-                        "split")
-            self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['v'], "split")
+            r = v[0] if inv == 0 else 1 / v[0]
+            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'h', 'l', 'c'])
+            if v[1] in [0, 1, 3, 6]:
+                self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['v'])
             self.adj_splits.append(k)
 
-    def adjust(self, s_idx, e_idx, val, col_names, adj_type='split'):
-        ratio = val if adj_type == "split" else \
-                (1 - val / self.df.loc[e_idx].c)
+    def adjust(self, s_idx, e_idx, ratio, col_names):
         for c_name in col_names:
             self.df.loc[s_idx:e_idx, c_name] = self.df[c_name] * ratio
 
