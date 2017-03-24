@@ -59,11 +59,20 @@ def get_cal():
         )
         non_trading_rules.append(presidents_day)
 
-        good_friday = rrule.rrule(
+        good_friday_0 = rrule.rrule(
             rrule.DAILY,
             byeaster=-2,
             cache=True,
             dtstart=start,
+            until=datetime(1906, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(good_friday_0)
+
+        good_friday = rrule.rrule(
+            rrule.DAILY,
+            byeaster=-2,
+            cache=True,
+            dtstart=datetime(1908, 1, 1, tzinfo=pytz.utc),
             until=end
         )
         non_trading_rules.append(good_friday)
