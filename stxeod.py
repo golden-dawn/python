@@ -226,7 +226,6 @@ class StxEOD:
             with open(out_fname, 'w') as dbfile:
                 frdr = csv.reader(csvfile)
                 for row in frdr:
-                    print(row)
                     stk = row[0].strip()
                     if stk_list and stk not in stk_list:
                         continue
@@ -555,11 +554,12 @@ class StxEOD:
         coverage = round(100.0 * ts_days / spot_days, 2)
         # apply the split adjustments
         ts.splits.clear()
-        splits = stxdb.db_read_cmd("select dt, ratio from {0:s} where stk = "
-                                   "'{1:s}' and implied = 1".
+        splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where"
+                                   " stk='{1:s}' and implied = 1".
                                    format(self.split_tbl, ts.stk))
         for s in splits:
-            ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = float(s[1])
+            ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = \
+                [float(s[1]), int(s[2])]
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv=1)
         df.drop(['c'], inplace=True, axis=1)
         df = df.join(ts.df[['c']])
@@ -721,13 +721,14 @@ class StxEOD:
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.splits.clear()
-        impl_splits = stxdb.db_read_cmd("select dt, ratio from {0:s} where "
-                                        "stk='{1:s}' and implied = 1".
+        impl_splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s}"
+                                        " where stk='{1:s}' and implied = 1".
                                         format(self.split_tbl, stk))
         # for implied splits, need to perform a reverse adjustment
         # for the adjustment to work, move the split date to next business day
         for s in impl_splits:
-            ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = float(s[1])
+            ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = \
+                [float(s[1]), int(s[2])]
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv=1)
         with open(self.eod_name, 'w') as ofile:
             for idx, row in ts.df.iterrows():
@@ -1006,10 +1007,10 @@ class StxEOD:
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    # s_date = '2001-01-01'
-    # e_date = '2012-12-31'
-    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
-    #                 'reconciliation')
+    s_date = '2001-01-01'
+    e_date = '2012-12-31'
+    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
+                    'reconciliation')
     # my_eod.load_my_files()
     # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
     #                 'reconciliation')
@@ -1017,7 +1018,7 @@ if __name__ == '__main__':
     # my_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
     # To debug a reconciliation:
-    # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
+    my_eod.reconcile_opt_spots('EXPE', '2002-02-01', '2012-12-31', True)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
     # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
@@ -1099,9 +1100,9 @@ if __name__ == '__main__':
     #                 'reconciliation')
     # dn_eod.load_deltaneutral_splits([])
     # dn_eod.load_deltaneutral_divis([])
-    s_date = '2016-08-01'
-    e_date = '2017-03-17'
-    eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
-    eod.split_reconciliation('', s_date, e_date,
-                             ['splits', 'split_sq', 'dn_split', 'md_split',
-                              'split_dn'])
+    # s_date = '2016-08-01'
+    # e_date = '2017-03-17'
+    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
+    # eod.split_reconciliation('', s_date, e_date,
+    #                          ['splits', 'split_sq', 'dn_split', 'md_split',
+    #                           'split_dn'])
