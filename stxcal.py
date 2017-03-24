@@ -12,7 +12,7 @@ this.cal = None
 
 def get_cal():
     if this.cal is None:
-        start = pd.Timestamp('1998-01-01', tz='UTC')
+        start = pd.Timestamp('1901-01-01', tz='UTC')
         end = pd.Timestamp('today', tz='UTC') + \
             pd.datetools.Timedelta(weeks=52)
         print('Initializing calendar between {0:s} and {1:s}'.
@@ -79,6 +79,38 @@ def get_cal():
         )
         non_trading_rules.append(memorial_day)
 
+        flag_day = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=6,
+            bymonthday=14,
+            cache=True,
+            dtstart=datetime(1916, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(flag_day)
+
+        flag_day_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=6,
+            bymonthday=15,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=datetime(1916, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(flag_day_sunday)
+
+        flag_day_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=6,
+            bymonthday=13,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=datetime(1916, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(flag_day_saturday)
+
         july_4th = rrule.rrule(
             rrule.MONTHLY,
             bymonth=7,
@@ -121,6 +153,61 @@ def get_cal():
             until=end
         )
         non_trading_rules.append(labor_day)
+
+        columbus_day = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=10,
+            bymonthday=12,
+            cache=True,
+            dtstart=datetime(1909, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(columbus_day)
+
+        columbus_day_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=10,
+            bymonthday=13,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=datetime(1909, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(columbus_day_sunday)
+
+        columbus_day_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=10,
+            bymonthday=11,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=datetime(1909, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(columbus_day_saturday)
+
+        election_day = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=11,
+            bymonthday=(2, 3, 4, 5, 6, 7, 8),
+            byweekday=rrule.TU,
+            cache=True,
+            dtstart=start,
+            until=datetime(1969, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(election_day)
+
+        pres_election_day = rrule.rrule(
+            rrule.YEARLY,
+            interval=4,
+            bymonth=11,
+            bymonthday=(2, 3, 4, 5, 6, 7, 8),
+            byweekday=rrule.TU,
+            cache=True,
+            dtstart=datetime(1972, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1981, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(pres_election_day)
 
         thanksgiving = rrule.rrule(
             rrule.MONTHLY,
@@ -175,6 +262,17 @@ def get_cal():
         for non_trading_day in non_trading_days:
             if non_trading_day.weekday() < 5:
                 hols.append(str(non_trading_day.date()))
+
+        hols.append('1901-07-05')  # DayAfterIndependenceDay
+        hols.append('1917-06-05')  # DraftRegistrationDay
+        hols.append('1918-09-12')  # DraftRegistrationDay
+        hols.append('1929-11-01')  # ClericalBacklogRelief
+        hols.append('1945-12-24')  # Christmas Eve
+        hols.append('1956-12-24')  # Christmas Eve
+        hols.append('1961-05-29')  # DayBeforeDecorationDay
+        hols.append('1968-04-09')  # DayOfMourning-MartinLutherKing
+        hols.append('1968-07-05')  # DayAfterIndependenceDay
+        hols.append('1969-07-21')  # FirstLunarLanding
         hols.append('2001-09-11')  # September 11, 2001
         hols.append('2001-09-12')  # September 11, 2001
         hols.append('2001-09-13')  # September 11, 2001
