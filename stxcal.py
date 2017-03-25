@@ -48,6 +48,70 @@ def get_cal():
         )
         non_trading_rules.append(mlk_day)
 
+        lincoln_birthday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=12,
+            cache=True,
+            dtstart=start,
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(lincoln_birthday)
+
+        lincoln_birthday_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=13,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=start,
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(lincoln_birthday_sunday)
+
+        lincoln_birthday_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=11,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=start,
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(lincoln_birthday_saturday)
+
+        washington_birthday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=22,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(washington_birthday)
+
+        washington_birthday_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=23,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(washington_birthday_sunday)
+
+        washington_birthday_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=2,
+            bymonthday=21,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(washington_birthday_saturday)
+
         presidents_day = rrule.rrule(
             rrule.MONTHLY,
             bymonth=2,
@@ -58,6 +122,15 @@ def get_cal():
             until=end
         )
         non_trading_rules.append(presidents_day)
+
+        national_banking_holiday = rrule.rrule(
+            rrule.DAILY,
+            count=6,
+            byweekday=(rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR),
+            cache=True,
+            dtstart=datetime(1933, 3, 6, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(national_banking_holiday)
 
         good_friday_0 = rrule.rrule(
             rrule.DAILY,
@@ -80,13 +153,45 @@ def get_cal():
         memorial_day = rrule.rrule(
             rrule.MONTHLY,
             bymonth=5,
+            bymonthday=30,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(memorial_day)
+
+        memorial_day_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=5,
+            bymonthday=31,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(memorial_day_sunday)
+
+        memorial_day_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=5,
+            bymonthday=29,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=start,
+            until=datetime(1971, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(memorial_day_saturday)
+
+        memorial_day_new = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=5,
             byweekday=rrule.MO,
             bysetpos=-1,
             cache=True,
-            dtstart=start,
+            dtstart=datetime(1971, 1, 1, tzinfo=pytz.utc),
             until=end
         )
-        non_trading_rules.append(memorial_day)
+        non_trading_rules.append(memorial_day_new)
 
         flag_day = rrule.rrule(
             rrule.MONTHLY,
@@ -218,6 +323,38 @@ def get_cal():
         )
         non_trading_rules.append(pres_election_day)
 
+        veterans_day = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=11,
+            bymonthday=11,
+            cache=True,
+            dtstart=datetime(1934, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(veterans_day)
+
+        veterans_day_sunday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=11,
+            bymonthday=12,
+            byweekday=rrule.MO,
+            cache=True,
+            dtstart=datetime(1934, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(veterans_day_sunday)
+
+        veterans_day_saturday = rrule.rrule(
+            rrule.MONTHLY,
+            bymonth=11,
+            bymonthday=10,
+            byweekday=rrule.FR,
+            cache=True,
+            dtstart=datetime(1934, 1, 1, tzinfo=pytz.utc),
+            until=datetime(1954, 1, 1, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(veterans_day_saturday)
+
         thanksgiving = rrule.rrule(
             rrule.MONTHLY,
             bymonth=11,
@@ -262,6 +399,23 @@ def get_cal():
         )
         non_trading_rules.append(christmas_saturday)
 
+        paper_crisis = rrule.rrule(
+            rrule.WEEKLY,
+            count=29,
+            cache=True,
+            dtstart=datetime(1968, 6, 12, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(paper_crisis)
+
+        world_war_one = rrule.rrule(
+            rrule.DAILY,
+            count=96,
+            byweekday=(rrule.MO, rrule.TU, rrule.WE, rrule.TH, rrule.FR),
+            cache=True,
+            dtstart=datetime(1914, 7, 31, tzinfo=pytz.utc)
+        )
+        non_trading_rules.append(world_war_one)
+
         non_trading_ruleset = rrule.rruleset()
         for rule in non_trading_rules:
             non_trading_ruleset.rrule(rule)
@@ -272,16 +426,41 @@ def get_cal():
             if non_trading_day.weekday() < 5:
                 hols.append(str(non_trading_day.date()))
 
+        hols.append('1901-09-19')  # PresidentialFuneral-WilliamMcKinley
         hols.append('1901-07-05')  # DayAfterIndependenceDay
+        hols.append('1903-04-22')  # NewNYSEBuildingOpened
         hols.append('1917-06-05')  # DraftRegistrationDay
+        hols.append('1918-01-28')  # HeatlessDay
+        hols.append('1918-02-04')  # HeatlessDay
+        hols.append('1918-02-11')  # HeatlessDay
         hols.append('1918-09-12')  # DraftRegistrationDay
+        hols.append('1918-11-11')  # VeteransDay
+        hols.append('1919-03-25')  # HomecomingOf27thDivision
+        hols.append('1919-05-06')  # Parade-77thDivision
+        hols.append('1919-09-10')  # ReturnOfGeneralJohnPershing
+        hols.append('1921-11-11')  # VeteransDay
+        hols.append('1923-08-03')  # PresidentialDeath-WarrenHarding
+        hols.append('1923-08-10')  # PresidentialFuneral-WarrenHarding
+        hols.append('1927-06-13')  # Parade-CharlesLindbergh
         hols.append('1929-11-01')  # ClericalBacklogRelief
+        hols.append('1945-08-15')  # VictoryOverJapanDay
+        hols.append('1945-08-16')  # VictoryOverJapanDay
         hols.append('1945-12-24')  # Christmas Eve
+        hols.append('1950-12-12')  # Saturdayurday-Before-ChristmasEve
         hols.append('1956-12-24')  # Christmas Eve
         hols.append('1961-05-29')  # DayBeforeDecorationDay
+        hols.append('1963-11-25')  # PresidentialFuneral-JohnKennedy
+        hols.append('1968-02-12')  # LincolnsBirthday
         hols.append('1968-04-09')  # DayOfMourning-MartinLutherKing
         hols.append('1968-07-05')  # DayAfterIndependenceDay
+        hols.append('1969-02-10')  # Weather-Snow
+        hols.append('1969-03-31')  # PresidentialFuneral-DwightEisenhower
         hols.append('1969-07-21')  # FirstLunarLanding
+        hols.append('1972-12-28')  # PresidentialFuneral-HarryTruman
+        hols.append('1973-01-25')  # PresidentialFuneral-LyndonJohnson
+        hols.append('1977-07-14')  # NewYorkCityBlackout
+        hols.append('1985-09-27')  # Weather-HurricaneGloria
+        hols.append('1994-04-27')  # PresidentialFuneral-RichardNixon
         hols.append('2001-09-11')  # September 11, 2001
         hols.append('2001-09-12')  # September 11, 2001
         hols.append('2001-09-13')  # September 11, 2001
