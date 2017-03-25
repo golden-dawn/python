@@ -878,7 +878,7 @@ class StxEOD:
                 try:
                     dt, o, h, l, c, v, oi = line.split(',')
                     dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
-                    if dt < sd or dt > ed:
+                    if dt < sd or dt > ed or not stxcal.is_busday(dt):
                         continue
                     o = float(o)
                     h = float(h)
@@ -1007,10 +1007,10 @@ class StxEOD:
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    s_date = '2001-01-01'
-    e_date = '2012-12-31'
-    my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
-                    'reconciliation')
+    # s_date = '2001-01-01'
+    # e_date = '2012-12-31'
+    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
+    #                 'reconciliation')
     # my_eod.load_my_files()
     # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
     #                 'reconciliation')
@@ -1018,7 +1018,7 @@ if __name__ == '__main__':
     # my_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
     # To debug a reconciliation:
-    my_eod.reconcile_opt_spots('EXPE', '2002-02-01', '2012-12-31', True)
+    # my_eod.reconcile_opt_spots('EXPE', '2002-02-01', '2012-12-31', True)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
     # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
@@ -1074,13 +1074,13 @@ if __name__ == '__main__':
     # eod = StxEOD('', 'eod', 'split', 'reconciliation')
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split', 'md_split'])
-    # sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
-    #                 'sq_split', 'reconciliation', 'sq_fxs')
-    # sq_eod.load_stooq_files('1962-01-02', '2016-08-23')
+    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
+                    'sq_split', 'reconciliation', 'sq_fxs')
+    sq_eod.load_stooq_files('1901-01-01', '2016-08-23')
     #
     # This reconciliation is done to check that data from stooq is
     # consistent with opt_spots.  All the stocks during this time
-    # period passed the reconciilation, as it should be the case. So,
+    # period passed the reconciliation, as it should be the case. So,
     # there is no reason to invoke upload_eod. Instead, we will just
     # upload the stooq data into eod.
     #
