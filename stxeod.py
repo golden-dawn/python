@@ -890,8 +890,9 @@ class StxEOD:
                         v //= 1000
                     if v == 0:
                         v = 1
-                    if instr_name in ['bonds', 'money_market', 'major'] or \
-                       symbol.endswith('.B') or symbol.endswith('6.F'):
+                    if((instr_name in ['bonds', 'money_market', 'major'] or
+                        symbol.endswith('.B') or symbol.endswith('6.F')) and
+                       'XAG' not in symbol and 'XAU' not in symbol):
                         o *= 10000
                         h *= 10000
                         l *= 10000
