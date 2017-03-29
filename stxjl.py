@@ -202,10 +202,9 @@ class StxJL:
 
     def nextjl(self):
         dtc = self.ts.current_date()
-        # print("dtc=%s" % dtc)
-        ratio = self.ts.splits.get(pd.Timestamp(dtc))
-        if ratio is not None:
-            self.adjust_for_splits(ratio)
+        split_info = self.ts.splits.get(pd.Timestamp(dtc))
+        if split_info is not None:
+            self.adjust_for_splits(split_info[0])
         fctr = self.f * self.avg_rg
         if self.last['state'] == StxJL.SRa:
             self.sRa(fctr)

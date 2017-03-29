@@ -256,9 +256,10 @@ def analyze(ts, calls, puts, fname, fmode):
                         stk_trades_by_exp[exp] = trd
                         trades_by_exp[ts.stk] = stk_trades_by_exp
                         print('New Trade: {0:s}'.format(to_short_string(trd)))
-            ratio = ts.splits.get(pd.Timestamp(crt_dt))
-            if ratio is not None:
+            split_info = ts.splits.get(pd.Timestamp(crt_dt))
+            if split_info is not None:
                 next_bd = stxcal.next_busday(crt_dt)
+                ratio = split_info[0]
                 min_call = min_call * ratio
                 max_put = max_put * ratio
                 for trd in open_trades:
@@ -288,10 +289,10 @@ stx = 'NFLX'
 # stx   = 'FSLR,TASR,LUV,USB,GOOG,MSFT,GLD,SPY,YHOO,AAPL,AMZN,MA,TIE'
 name = 'c3'
 sd = '2001-01-01'
-ed = '2012-12-31'
+ed = '2016-12-31'
 ixx = 0
 slst = stx.split(',')
-fname = '{0:s}_88.csv'.format(stx if len(slst) == 1 else name)
+fname = '{0:s}_888.csv'.format(stx if len(slst) == 1 else name)
 for stk in slst:
     print('{0:s}: '.format(stk))
     ts = StxTS(stk, sd, ed)
