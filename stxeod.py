@@ -968,9 +968,13 @@ class StxEOD:
         print('Uploading EOD data for {0:d} days'.format(num_days))
         day_num = 0
         while dt <= e_date:
-            with open('{0:s}/{1:s}_d.prn'.format
-                      (self.in_dir, dt.replace('-', ''))) as ifile:
-                lines = ifile.readlines()
+            try:
+                with open('{0:s}/{1:s}_d.prn'.format
+                          (self.in_dir, dt.replace('-', ''))) as ifile:
+                    lines = ifile.readlines()
+            except IOError as ioe:
+                print(str(ioe))
+                continue
             for line in lines:
                 try:
                     self.parseeodline(line)
