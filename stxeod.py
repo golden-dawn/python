@@ -841,6 +841,93 @@ class StxEOD:
                         format(self.split_tbl, stxcal.prev_busday(dt), stk, dt)
                     stxdb.db_write_cmd(sql)
 
+    # Capture all the large price changes without a volume that is
+    # larger than the average, and check that these are not missed
+    # splits.  Also, check split and dividend data from yahoo, EODData
+    # and mypivots, deltaneutral, make sure that these splits are
+    # reflected in the EOD data, and, if they are, make sure that they
+    # are added to the splits database.
+    def eod_reconciliation(self, sd, ed):
+        sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
+              " and '{2:s}'".format(self.eod_tbl, sd, ed)
+        res = stxdb.db_read_cmd(sql)
+        stk_list = [x[0] for x in res]
+        num_stx = len(stk_list)
+        print('EOD reconciliation for {0:d} stocks from {1:s}'.
+              format(num_stx, self.eod_tbl))
+        num = 0
+        for stk in stk_list:
+            try:
+                self.reconcile_stk_eod(stk, sd, ed)
+            except:
+                print('{0:s} EOD reconciliation failed: {1:s}'.
+                      format(stk, str(sys.exc_info()[1])))
+            finally:
+                num += 1
+                if num % 500 == 0 or num == num_stx:
+                    print('Reconciled EOD for {0:4d} out of {1:4d}'
+                          ' stocks'.format(num, num_stx))
+
+    def reconcile_stk_eod(self, stk, sd, ed):
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts.df['chg'] = ts.df['c'].pct_change().abs()
+        ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
+        ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
+        ts.df['avg_v20'] = ts.df['v'].shift().rolling(20).mean()
+        ts.df['avg_v50'] = ts.df['v'].shift().rolling(50).mean()
+        df_review = ts.df.query('chg>=0.15 and chg>2*avg_chg20 and '
+                                'v<(0.5+10*chg)*avg_v50 and avg_v20>1000 and '
+                                'id_chg<0.6*chg and c>3 and '
+                                '(chg-id_chg)>2*avg_chg20 and (c>8 or chg>1)')
+        all_splits = {}
+        # TODO: replace this with data retrieved from Yahoo:
+        # 1. Get the dividends with this command:
+        # http://chart.finance.yahoo.com/table.csv?
+        # s=BHB&a=3&b=2&c=2016&d=3&e=2&f=2017&g=v&ignore=.csv
+        # 2. Get the historical prices with this command:
+        # http://chart.finance.yahoo.com/table.csv?
+        # s=BHB&a=3&b=2&c=2016&d=3&e=2&f=2017&g=d&ignore=.csv
+        # 3. Calculate the splits from the historical prices.
+        #
+        # for split_table in split_tbls:
+        #     res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
+        #                             "stk='{1:s}' and implied=0".
+        #                             format(split_table, stk))
+        #     all_splits[split_table] = {stxcal.next_busday(x[0]): x[1]
+        #                                for x in res}
+        for idx, row in df_review.iterrows():
+            if idx in ts.splits:
+                continue
+            db_splits = ''
+            big_chg_dt = str(idx.date())
+            for tbl_name, splits in all_splits.items():
+                if big_chg_dt not in splits:
+                    continue
+                db_splits = '{0:s}{1:9s} {2:7.4f} '.\
+                            format(db_splits, tbl_name, splits[big_chg_dt])
+                sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
+                      "{3:.4f},0)".format(self.split_tbl, stk,
+                                          stxcal.prev_busday(big_chg_dt),
+                                          splits[big_chg_dt])
+                try:
+                    stxdb.db_write_cmd(sql)
+                except:
+                    pass
+            ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
+                     format(sd.replace('-', ''), ed.replace('-', ''))
+            with open(ofname, 'a') as ofile:
+                ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} {5:6.2f} '
+                            '{6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f} {10:s}\n'.
+                            format(stk, big_chg_dt, row['o'], row['h'],
+                                   row['l'], row['c'], row['v'], row['chg'],
+                                   row['avg_chg20'], row['avg_v50'],
+                                   db_splits))
+
+    # 1. Upload EODData starting from 2010.
+    # 2. Compare the EODData volume with the volume in the EOD table,
+    #    and also with the volume in the marketdata table
+    # 3. Reconcile the eod and marketdata volumes against EODData.
+    # 4. Subsequently, generate report with volume ratios that are different
     def volume_check(self):
         # ts.set_day('2006-12-18')
         # ts.next_day()

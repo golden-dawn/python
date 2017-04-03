@@ -16,6 +16,8 @@ class Test1EOD(unittest.TestCase):
                                format(self.eod_tbl))
         self.sd = stxcal.next_busday(sd)
         self.ed = datetime.now().strftime('%Y-%m-%d')
+        if not stxcal.is_busday(self.ed):
+            self.ed = stxcal.prev_busday(self.ed)
         eod.parseeodfiles(self.sd, self.ed)
-        eod.split_reconciliation('', self.sd, self.ed, ['split'])
+        eod.eod_reconciliation('', self.sd, self.ed)
         self.assertTrue(1 == 1)
