@@ -1,9 +1,12 @@
 import csv
 from datetime import datetime
+from io import BytesIO
+import json
 import logging
 from math import trunc
 import os
 import pandas as pd
+import pycurl
 from shutil import copyfile, rmtree
 import stxcal
 import stxdb
@@ -18,6 +21,8 @@ class StxEOD:
     ed_dir = 'C:/goldendawn/EODData'
     dload_dir = 'C:/users/const/Downloads'
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
+    yahoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
+        'b={2:d}&c={3:d}&d={4:d}&e={5:d}&f={6:d}&g={7:s}&ignore=.csv'
     # when changing the dt column from varchar(10) to date need to do this:
     # alter table ed_eod modify dt date;
     # delete from my_eod where char_length(dt) < 10;
@@ -850,6 +855,9 @@ class StxEOD:
     def eod_reconciliation(self, sd, ed):
         sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
               " and '{2:s}'".format(self.eod_tbl, sd, ed)
+        c = pycurl.Curl()
+        c.setopt(pycurl.SSL_VERIFYPEER, 0)
+        c.setopt(pycurl.SSL_VERIFYHOST, 0)
         res = stxdb.db_read_cmd(sql)
         stk_list = [x[0] for x in res]
         num_stx = len(stk_list)
@@ -858,7 +866,7 @@ class StxEOD:
         num = 0
         for stk in stk_list:
             try:
-                self.reconcile_stk_eod(stk, sd, ed)
+                self.reconcile_stk_eod(c, stk, sd, ed)
             except:
                 print('{0:s} EOD reconciliation failed: {1:s}'.
                       format(stk, str(sys.exc_info()[1])))
@@ -868,7 +876,7 @@ class StxEOD:
                     print('Reconciled EOD for {0:4d} out of {1:4d}'
                           ' stocks'.format(num, num_stx))
 
-    def reconcile_stk_eod(self, stk, sd, ed):
+    def reconcile_stk_eod(self, c, stk, sd, ed):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
         ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
@@ -879,6 +887,25 @@ class StxEOD:
                                 'v<(0.5+10*chg)*avg_v50 and avg_v20>1000 and '
                                 'id_chg<0.6*chg and c>3 and '
                                 '(chg-id_chg)>2*avg_chg20 and (c>8 or chg>1)')
+        if len(df_review) > 0:
+            sdy, sdm, sdd = sd.split('-')
+            edy, edm, edd = ed.split('-')
+            c.setopt(c.URL, self.yhoo_url.format(stk, int(sdm) - 1, int(sdd),
+                                                 int(sdy), int(edm) - 1,
+                                                 int(edd), int(edy), 'v'))
+            res_buffer = BytesIO()
+            c.setopt(c.WRITEDATA, res_buffer)
+            c.perform()
+            divis = json.loads(res_buffer.getvalue().decode('iso-8859-1'))
+            c.setopt(c.URL, self.yhoo_url.format(stk, int(sdm) - 1, int(sdd),
+                                                 int(sdy), int(edm) - 1,
+                                                 int(edd), int(edy), 'd'))
+            c.setopt(c.WRITEDATA, res_buffer)
+            c.perform()
+            prices = json.loads(res_buffer.getvalue().decode('iso-8859-1'))
+
+
+
         all_splits = {}
         # TODO: replace this with data retrieved from Yahoo:
         # 1. Get the dividends with this command:
