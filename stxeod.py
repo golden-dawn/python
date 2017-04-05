@@ -21,7 +21,7 @@ class StxEOD:
     ed_dir = 'C:/goldendawn/EODData'
     dload_dir = 'C:/users/const/Downloads'
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
-    yahoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
+    yhoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
         'b={2:d}&c={3:d}&d={4:d}&e={5:d}&f={6:d}&g={7:s}&ignore=.csv'
     # when changing the dt column from varchar(10) to date need to do this:
     # alter table ed_eod modify dt date;
@@ -896,13 +896,25 @@ class StxEOD:
             res_buffer = BytesIO()
             c.setopt(c.WRITEDATA, res_buffer)
             c.perform()
-            divis = json.loads(res_buffer.getvalue().decode('iso-8859-1'))
+            divis = res_buffer.getvalue().decode('iso-8859-1').strip().\
+                split('\n')
+            for divi in divis[1:]:
+                print(divi)
             c.setopt(c.URL, self.yhoo_url.format(stk, int(sdm) - 1, int(sdd),
                                                  int(sdy), int(edm) - 1,
                                                  int(edd), int(edy), 'd'))
             c.setopt(c.WRITEDATA, res_buffer)
             c.perform()
-            prices = json.loads(res_buffer.getvalue().decode('iso-8859-1'))
+            prices = res_buffer.getvalue().decode('iso-8859-1').strip().\
+                split('\n')
+            for rec1, rec2 in zip(prices[1:-2], prices[2:]):
+                px1 = rec1.split(',')
+                px2 = rec2.split(',')
+                ratio_1 = float(px1[4]) / float(px1[6])
+                ratio_2 = float(px2[4]) / float(px2[6])
+                split = ratio_1 / ratio_2
+                if round(split, 2) != 1:
+                    print('{0:s} - {1:f}'.format(px1[0], round(split, 4)))
 
 
 
