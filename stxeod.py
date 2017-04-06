@@ -914,53 +914,26 @@ class StxEOD:
                 ratio_2 = float(px2[4]) / float(px2[6])
                 split = ratio_1 / ratio_2
                 if round(split, 2) != 1:
-                    print('{0:s} - {1:f}'.format(px1[0], round(split, 4)))
-
-
-
-        all_splits = {}
-        # TODO: replace this with data retrieved from Yahoo:
-        # 1. Get the dividends with this command:
-        # http://chart.finance.yahoo.com/table.csv?
-        # s=BHB&a=3&b=2&c=2016&d=3&e=2&f=2017&g=v&ignore=.csv
-        # 2. Get the historical prices with this command:
-        # http://chart.finance.yahoo.com/table.csv?
-        # s=BHB&a=3&b=2&c=2016&d=3&e=2&f=2017&g=d&ignore=.csv
-        # 3. Calculate the splits from the historical prices.
-        #
-        # for split_table in split_tbls:
-        #     res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
-        #                             "stk='{1:s}' and implied=0".
-        #                             format(split_table, stk))
-        #     all_splits[split_table] = {stxcal.next_busday(x[0]): x[1]
-        #                                for x in res}
-        for idx, row in df_review.iterrows():
-            if idx in ts.splits:
-                continue
-            db_splits = ''
-            big_chg_dt = str(idx.date())
-            for tbl_name, splits in all_splits.items():
-                if big_chg_dt not in splits:
-                    continue
-                db_splits = '{0:s}{1:9s} {2:7.4f} '.\
-                            format(db_splits, tbl_name, splits[big_chg_dt])
-                sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
-                      "{3:.4f},0)".format(self.split_tbl, stk,
-                                          stxcal.prev_busday(big_chg_dt),
-                                          splits[big_chg_dt])
-                try:
-                    stxdb.db_write_cmd(sql)
-                except:
-                    pass
+                    print('{0:s}: {1:s} - {2:4f}'.format(stk, px1[0],
+                                                         round(split, 4)))
+                    db_cmd = "insert into {0:s} values('{1:s}','{2:s}',"\
+                             "{3:4f},0) on duplicate key update "\
+                             "ratio={4:4f}, implied=0".\
+                             format(self.split_tbl, stk, px1[0],
+                                    round(split, 4), round(split, 4))
+                    stxdb.db_write_cmd(db_cmd)
             ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
                      format(sd.replace('-', ''), ed.replace('-', ''))
             with open(ofname, 'a') as ofile:
-                ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} {5:6.2f} '
-                            '{6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f} {10:s}\n'.
-                            format(stk, big_chg_dt, row['o'], row['h'],
-                                   row['l'], row['c'], row['v'], row['chg'],
-                                   row['avg_chg20'], row['avg_v50'],
-                                   db_splits))
+                for idx, row in df_review.iterrows():
+                    big_chg_dt = str(idx.date())
+                    ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} '
+                                '{5:6.2f} {6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f}'
+                                ' {10:s}\n'.
+                                format(stk, big_chg_dt, row['o'], row['h'],
+                                       row['l'], row['c'], row['v'],
+                                       row['chg'], row['avg_chg20'],
+                                       row['avg_v50']))
 
     # 1. Upload EODData starting from 2010.
     # 2. Compare the EODData volume with the volume in the EOD table,
