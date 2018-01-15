@@ -19,3 +19,6 @@ old
 
 # Ignore db.py file
 db.py
+
+#Ignore .env file used by autoenv
+.env
