@@ -1,0 +1,9 @@
+pytest
+nose
+behave
+pinocchio
+coverage
+numpy
+pandas
+scipy
+requests
