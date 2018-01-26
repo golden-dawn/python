@@ -21,3 +21,12 @@ mkdir -p /home/cma/.ssh
 # configure git global email and name
 git config --global user.name 'Golden Dawn'
 git config --global user.email 'cma@yahoo.com'
+echo 'deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main' | sudo tee --append /etc/apt/sources.list.d/pgdg.list
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+  sudo apt-key add -
+sudo apt-get update
+sudo apt-get install postgresql-10
+# after postgresql is installed, use this command to create a new superuser:
+# sudo -u postgres createuser -P -s -e cma
+# also, create the database
+# sudo -u postgres createdb stx
