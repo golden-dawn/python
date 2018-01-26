@@ -1,21 +1,15 @@
-import pymysql
+import sqlite3
 import sys
 
 this = sys.modules[__name__]
 
 this.cnx = None
+this.sqlite_file = '/home/cma/stx.sqlite'
 
 
 def db_get_cnx():
     if this.cnx is None:
-        with open('c:/goldendawn/db_cfg.txt', 'r') as ifile:
-            lines = ifile.readlines()
-        usr = lines[0].strip()
-        pwd = lines[1].strip()
-        db = lines[2].strip()
-        this.cnx = pymysql.connect(host='127.0.0.1', user=usr, password=pwd,
-                                   database=db)
-        print('Connected to goldendawn database')
+        this.cnx = sqlite3.connect(this.sqlite_file)
     return this.cnx
 
 

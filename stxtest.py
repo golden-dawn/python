@@ -11,6 +11,7 @@ from stxts import StxTS
 
 class Test1StxDB(unittest.TestCase):
     def setUp(self):
+        
         self.tbl_name = 'eod_test'
         self.sql_create_tbl = 'CREATE TABLE `{0:s}` ('\
                               '`stk` varchar(8) NOT NULL,'\
@@ -30,14 +31,15 @@ class Test1StxDB(unittest.TestCase):
         self.sql_describe = 'describe {0:s}'.format(self.tbl_name)
         self.sql_select_2 = 'select * from {0:s}'.format(self.tbl_name)
         self.sql_drop_tbl = 'drop table {0:s}'.format(self.tbl_name)
-        self.file_name = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads/'\
-                         'stxtest_upload.txt'
-        with open(self.file_name, 'w') as f:
-            f.write('A\t2000-01-01\t33.00\t34.00\t33.00\t34.00\t1000\n')
-            f.write('B\t2000-01-01\t33.00\t34.00\t33.00\t34.00\t1000\n')
-            f.write('C\t2000-01-01\t33.00\t34.00\t33.00\t34.00\t1000\n')
-            f.write('A\t2000-01-01\t33.00\t34.00\t33.00\t34.00\t1000\n')
-            f.write('A\t2000-01-02\t33.00\t34.00\t33.00\t34.00\t1000\n')
+        self.insert_multiple \
+            = "INSERT INTO '{0:s}' "\
+            "('stk', 'dt', 'o', 'h', 'l', 'c', 'v') VALUES "\
+            "('A', '2000-01-01', 33.00, 34.00, 33.00, 34.00, 1000), "\
+            "('B', '2000-01-01', 33.00, 34.00, 33.00, 34.00, 1000), "\
+            "('C', '2000-01-01', 33.00, 34.00, 33.00, 34.00, 1000), "\
+            "('A', '2000-01-01', 33.00, 34.00, 33.00, 34.00, 1000), "\
+            "('A', '2000-01-02', 33.00, 34.00, 33.00, 34.00, 1000); "\
+            .format(self.tbl_name)
 
     def tearDown(self):
         os.remove(self.file_name)

@@ -6,7 +6,7 @@ import logging
 from math import trunc
 import os
 import pandas as pd
-import pycurl
+import requests
 from shutil import copyfile, rmtree
 import stxcal
 import stxdb
@@ -16,11 +16,11 @@ import sys
 
 class StxEOD:
 
-    sh_dir = 'C:/goldendawn/stockhistory_2017'
-    upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
-    ed_dir = 'C:/goldendawn/EODData'
-    dload_dir = 'C:/users/const/Downloads'
-    eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
+    sh_dir = '/media/cma/{0:s}/stockhistory_2017'
+    # upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
+    ed_dir = '/media/cma/{0:s}/EODData'
+    dload_dir = '/media/cma/{0:s}/Downloads'
+    # eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
     yhoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
         'b={2:d}&c={3:d}&d={4:d}&e={5:d}&f={6:d}&g={7:s}&ignore=.csv'
     # when changing the dt column from varchar(10) to date need to do this:
@@ -855,9 +855,9 @@ class StxEOD:
     def eod_reconciliation(self, sd, ed):
         sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
               " and '{2:s}'".format(self.eod_tbl, sd, ed)
-        c = pycurl.Curl()
-        c.setopt(pycurl.SSL_VERIFYPEER, 0)
-        c.setopt(pycurl.SSL_VERIFYHOST, 0)
+        # c = pycurl.Curl()
+        # c.setopt(pycurl.SSL_VERIFYPEER, 0)
+        # c.setopt(pycurl.SSL_VERIFYHOST, 0)
         res = stxdb.db_read_cmd(sql)
         stk_list = [x[0] for x in res]
         num_stx = len(stk_list)
