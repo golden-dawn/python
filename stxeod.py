@@ -45,14 +45,14 @@ class StxEOD:
                      '`c` decimal(9,2) DEFAULT NULL,'\
                      '`v` int(11) DEFAULT NULL,'\
                      'PRIMARY KEY (`stk`,`dt`)'\
-                     ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                     ')'
     sql_create_split = 'CREATE TABLE `{0:s}` ('\
                        '`stk` varchar(8) NOT NULL,'\
                        '`dt` date NOT NULL,'\
                        '`ratio` decimal(8,4) DEFAULT NULL,'\
                        '`implied` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
-                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                       ')'
     sql_create_fxs = 'CREATE TABLE `{0:s}` ('\
                      '`stk` varchar(8) NOT NULL,'\
                      '`dt` date NOT NULL,'\
@@ -63,7 +63,7 @@ class StxEOD:
                      '`v` int(11) DEFAULT NULL,'\
                      '`oi` int(11) DEFAULT NULL,'\
                      'PRIMARY KEY (`stk`,`dt`)'\
-                     ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                     ')'
     sql_create_recon = 'CREATE TABLE `{0:s}` ('\
                        '`stk` varchar(8) NOT NULL,'\
                        '`recon_name` varchar(16) NOT NULL,'\
@@ -77,7 +77,7 @@ class StxEOD:
                        '`mse` float DEFAULT NULL,'\
                        '`status` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`recon_name`,`recon_interval`)'\
-                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                       ')'
     status_none = 0
     status_ok = 1
     status_ko = 2
