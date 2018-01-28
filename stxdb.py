@@ -30,7 +30,7 @@ def db_read_cmd(sql):
 
 # write commands perform operations that need commit
 def db_write_cmd(sql):
-    with closing(db_get_cnx().cursor())  as crs:
+    with closing(db_get_cnx().cursor()) as crs:
         crs.execute(sql)
         this.cnx.commit()
 
@@ -44,16 +44,16 @@ def db_create_missing_table(tbl_name, sql_create_tbl_cmd):
 
 
 def db_get_table_columns(tbl_name):
-    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "\
+    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "
                       "and name='{0:s}'".format(tbl_name))
     m = re.match('(.*?)\((.*),PRIMARY KEY \((.*?)\).*', res[0][0])
     lst = m.group(2).replace(',`', ', u`').split(", u")
     return [[re.match('`(.*?)` (.*?) .*', x).group(1),
              re.match('`(.*?)` (.*?) .*', x).group(2)] for x in lst]
-        
+
 
 def db_get_key_len(tbl_name):
-    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "\
+    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "
                       "and name='{0:s}'".format(tbl_name))
     m = re.match('.*?PRIMARY KEY \((.*?)\).*', res[0][0])
     return 0 if not m else len(m.group(1).split(','))
@@ -63,7 +63,13 @@ def db_get_key_len(tbl_name):
 # are no duplicate primary keys in the upload file.  If any
 # duplicates are found, keep only the first occurrence; discard
 # and print error messages for each subsequent occurrence.
-def db_bulk_upload(tbl_name, data, sep=' '):
+def db_upload_file(file_name, tbl_name, sep='\t'):
+    with open(file_name, 'r') as f:
+        lines = f.readlines()
+    db_bulk_upload(tbl_name, lines, sep)
+
+
+def db_bulk_upload(tbl_name, data, sep='\t'):
     key_len = db_get_key_len(tbl_name)
     tbl_cols = db_get_table_columns(tbl_name)
     p = re.compile('^varchar|date')
