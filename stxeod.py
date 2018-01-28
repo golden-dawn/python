@@ -11,16 +11,15 @@ from shutil import copyfile, rmtree
 import stxcal
 import stxdb
 from stxts import StxTS
-import sys
 
 
 class StxEOD:
-
-    sh_dir = '/media/cma/{0:s}/stockhistory_2017'
-    # upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
+    data_dir = os.getenv('DATA_DIR')
+    sh_dir = '{0:s}/stockhistory_2017'.format(data_dir)
+    upload_dir = '{0:s}/upload'.format(data_dir)
     ed_dir = '/media/cma/{0:s}/EODData'
     dload_dir = '/media/cma/{0:s}/Downloads'
-    # eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
+    eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
     yhoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
         'b={2:d}&c={3:d}&d={4:d}&e={5:d}&f={6:d}&g={7:s}&ignore=.csv'
     # when changing the dt column from varchar(10) to date need to do this:
@@ -78,6 +77,8 @@ class StxEOD:
                        '`status` tinyint DEFAULT 0,'\
                        'PRIMARY KEY (`stk`,`recon_name`,`recon_interval`)'\
                        ')'
+    sql_show_tables = "SELECT name FROM sqlite_master WHERE type='table' "\
+                      "AND name='{0:s}'"
     status_none = 0
     status_ok = 1
     status_ko = 2
@@ -95,6 +96,8 @@ class StxEOD:
         stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
         stxdb.db_create_missing_table(ftr_tbl, self.sql_create_fxs)
         stxdb.db_create_missing_table(recon_tbl, self.sql_create_recon)
+        if not os.path.exists(self.upload_dir):
+            os.makedirs(self.upload_dir)
 
     # Load my historical data.  Load each stock and accumulate splits.
     # Upload splits at the end.
@@ -103,7 +106,8 @@ class StxEOD:
         try:
             os.remove(split_fname)
             print('Removed {0:s}'.format(split_fname))
-        except:
+        except Exception as ex:
+            print('Problem removing {0:s}: {1:s}'.format(split_fname, str(ex)))
             pass
         if stx == '':
             lst = [f for f in os.listdir(self.in_dir)
@@ -122,12 +126,11 @@ class StxEOD:
             if ixx % 500 == 0 or ixx == num_stx:
                 print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
         try:
-            stxdb.db_upload_file(split_fname, self.split_tbl, 2)
+            stxdb.db_upload_file(split_fname, self.split_tbl, '\t')
             print('Successfully uploaded the splits in the DB')
-        except:
-            e = sys.exc_info()[1]
+        except Exception as ex:
             print('Failed to upload the splits from file {0:s}, error {1:s}'.
-                  format(split_fname, str(e)))
+                  format(split_fname, str(ex)))
 
     # Upload each stock.  Split lines are prefixed with '*'.  Upload
     # stock data separately and then accumulate each stock.
@@ -137,10 +140,10 @@ class StxEOD:
         try:
             with open(fname, 'r') as ifile:
                 lines = ifile.readlines()
-        except:
-            e = sys.exc_info()[1]
+        except Exception as ex:
+            # e = sys.exc_info()[1]
             print('Failed to read {0:s}, error {1:s}'.
-                  format(short_fname, str(e)))
+                  format(short_fname, str(ex)))
             return
         eods, splits = 0, 0
         try:
@@ -161,18 +164,16 @@ class StxEOD:
                         with open(split_fname, 'a') as split_file:
                             split_file.write('{0:s}\t{1:s}\t{2:f}\t0\n'.format
                                              (stk, toks[0], float(toks[6])))
-        except:
-            e = sys.exc_info()[1]
+        except Exception as ex:
             print('Failed to parse {0:s}, error {1:s}'.
-                  format(short_fname, str(e)))
+                  format(short_fname, str(ex)))
             return
         try:
-            stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
+            stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
             # print('{0:s}: uploaded {1:d} eods and {2:d} splits'.\
             #       format(stk, eods, splits))
-        except:
-            e = sys.exc_info()[1]
-            print('Failed to upload {0:s}: {1:s}'.format(short_fname, str(e)))
+        except Exception as ex:
+            print('Failed to upload {0:s}: {1:s}'.format(short_fname, str(ex)))
 
     # Parse delta neutral stock history.  First, separate each yearly
     # data into stock files, and upload each stock file.  Then upload
@@ -207,7 +208,7 @@ class StxEOD:
             print('{0:s}: got data for {1:d} stocks'.format(fname, len(stx)))
             for stk, recs in stx.items():
                 with open('{0:s}/{1:s}.txt'.format(self.in_dir, stk), 'a') \
-                     as ofile:
+                        as ofile:
                     for rec in recs:
                         ofile.write(rec)
         lst = [f for f in os.listdir(self.in_dir)
@@ -217,9 +218,8 @@ class StxEOD:
             try:
                 stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
                 print('{0:s}: uploaded eods'.format(stk))
-            except:
-                e = sys.exc_info()[1]
-                print('Upload failed {0:s}, error {1:s}'.format(stk, str(e)))
+            except Exception as ex:
+                print('Upload failed {0:s}, error {1:s}'.format(stk, str(ex)))
         self.load_deltaneutral_splits(stk_list)
 
     # Load the delta neutral splits into the database
@@ -245,9 +245,8 @@ class StxEOD:
         try:
             stxdb.db_upload_file(out_fname, self.split_tbl, 2)
             print('Uploaded delta neutral splits')
-        except:
-            e = sys.exc_info()[1]
-            print('Failed to upload splits, error {0:s}'.format(str(e)))
+        except Exception as ex:
+            print('Failed to upload splits, error {0:s}'.format(str(ex)))
 
     # Load the delta neutral divis into the database
     def load_deltaneutral_divis(self, stk_list):
@@ -283,15 +282,14 @@ class StxEOD:
                         else:
                             dbfile.write('{0:s}\t{1:s}\t{2:8.4f}\t2\n'.
                                          format(stk, dt, (1 - divi / cc)))
-                    except:
+                    except Exception as ex:
                         print('Failed to process {0:s}, error: {1:s}'.
-                              format(str(row), str(sys.exc_info()[1])))
+                              format(str(row), str(ex)))
         try:
             stxdb.db_upload_file(out_fname, self.split_tbl, 2)
             print('Uploaded delta neutral splits')
-        except:
-            print('Failed to upload splits, error {0:s}'.
-                  format(str(sys.exc_info()[1])))
+        except Exception as ex:
+            print('Failed to upload splits, error {0:s}'.format(str(ex)))
 
     # Load data from EODData data source in the database. There is a
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
@@ -312,9 +310,9 @@ class StxEOD:
             try:
                 stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
                 print('{0:s}: uploaded eods'.format(dt))
-            except:
-                e = sys.exc_info()[1]
-                print('Failed to upload {0:s}, error {1:s}'.format(dt, str(e)))
+            except Exception as ex:
+                print('Failed to upload {0:s}, error {1:s}'.format(dt,
+                                                                   str(ex)))
             dt = stxcal.next_busday(dt)
 
     # Load data from a single EODData file in the database Perform
@@ -331,11 +329,11 @@ class StxEOD:
                    ('*' in stk) or (stk in ['AUX', 'PRN']):
                     continue
                 o = float(tokens[2])
-                h = float(tokens[3])
-                l = float(tokens[4])
+                hi = float(tokens[3])
+                lo = float(tokens[4])
                 c = float(tokens[5])
                 v = int(tokens[6])
-                if v == 0 or o < l or o > h or c < l or c > h or \
+                if v == 0 or o < lo or o > hi or c < lo or c > hi or \
                    len(tokens[0]) > 6:
                     continue
                 ofile.write('{0:s}\n'.format('\t'.join(tokens)))
@@ -359,9 +357,9 @@ class StxEOD:
                         self.load_marketdata_file('{0:s}/{1:s}'.
                                                   format(exch_dir, fname),
                                                   logfile)
-                    except:
+                    except Exception as ex:
                         print('Failed to load {0:s}: {1:s}'.
-                              format(fname, str(sys.exc_info()[1])))
+                              format(fname, str(ex)))
                     num += 1
                     if num % 250 == 0 or num == total:
                         print('{0:s} uploaded {1:4d}/{2:4d} {3:s} stocks'.
@@ -376,7 +374,7 @@ class StxEOD:
         dt_dict = {}
         for row in df.iterrows():
             dt_dict[row[1][0]] = row[0]
-        stk = ifname[ifname.rfind('/')+1:ifname.rfind('.')]
+        stk = ifname[ifname.rfind('/') + 1:ifname.rfind('.')]
         df['R'] = df['Close'] / df['Adj Close']
         df['R_1'] = df['R'].shift()
         df['RR'] = round(df['R'] / df['R_1'], 4)
@@ -392,7 +390,7 @@ class StxEOD:
             validation = ''
             for tbl in ['dn_split', 'splits', 'split']:
                 sql = "select * from {0:s} where stk='{1:s}' and dt='{2:s}'".\
-                                                      format(tbl, stk, dt)
+                    format(tbl, stk, dt)
                 res = stxdb.db_read_cmd(sql)
                 if len(res) > 0:
                     tbl_sd_type = res[0][3]
@@ -467,10 +465,9 @@ class StxEOD:
                                            format(self.recon_tbl, stk,
                                                   self.rec_name,
                                                   rec_interval, res))
-            except:
-                e = sys.exc_info()[1]
+            except Exception as ex:
                 print('Failed to reconcile {0:s}, error {1:s}'.
-                      format(stk, str(e)))
+                      format(stk, str(ex)))
             finally:
                 num += 1
                 if num % 500 == 0 or num == num_stx:
@@ -572,9 +569,9 @@ class StxEOD:
         # calculate statistics: coverage and mean square error
         def msefun(x):
             return 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
-                else pow(1 - x['c']/x['spot'], 2)
+                else pow(1 - x['c'] / x['spot'], 2)
         df['mse'] = df.apply(msefun, axis=1)
-        mse = pow(df['mse'].sum()/min(len(df['mse']), len(spot_df)), 0.5)
+        mse = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)), 0.5)
         if dbg:
             df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}{2:s}_recon.csv'.
                       format(ts.stk, self.eod_tbl, sfx))
@@ -586,8 +583,7 @@ class StxEOD:
         stxdb.db_write_cmd('drop table `{0:s}`'.format(self.split_tbl))
         # if reconciliation table exists, delete all the records that
         # correspond to the self.recon_name variable
-        res = stxdb.db_read_cmd("show tables like '{0:s}'".
-                                format(self.recon_tbl))
+        res = stxdb.db_read_cmd(self.sql_show_tables.format(self.recon_tbl))
         if res:
             stxdb.db_write_cmd("delete from {0:s} where recon_name='{1:s}'".
                                format(self.recon_tbl, self.rec_name))
@@ -622,7 +618,7 @@ class StxEOD:
                 rec = df_err.ix[ixx]
                 if rec.spot == trunc(rec.spot):
                     pass
-                elif abs(1 - rec.mse/mse0) < 0.01:
+                elif abs(1 - rec.mse / mse0) < 0.01:
                     strikes = 0
                     end = ixx
                 else:
@@ -664,7 +660,8 @@ class StxEOD:
     def build_df_ts(self, spot_df, stk, sd, ed):
         try:
             ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
-        except:
+        except Exception as ex:
+            print('Failed to build StxTS: error {0:s}'.format(str(ex)))
             return None, None
         df = ts.df.join(spot_df)
         for i in [x for x in range(-2, 3) if x != 0]:
@@ -717,10 +714,9 @@ class StxEOD:
                     if num % 500 == 0:
                         print('Uploaded {0:4d} stocks from {1:s}'.
                               format(num, self.eod_tbl))
-                except:
-                    e = sys.exc_info()[1]
+                except Exception as ex:
                     print('Failed to EOD upload stock {0:s}, error {1:s}'.
-                          format(stk, str(e)))
+                          format(stk, str(ex)))
         print('{0:s} - uploaded {1:d} stocks'.format(self.rec_name, num))
 
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
@@ -778,10 +774,9 @@ class StxEOD:
         for stk in stk_list:
             try:
                 self.reconcile_big_changes(stk, sd, ed, split_tbls)
-            except:
-                e = sys.exc_info()[1]
+            except Exception as ex:
                 print('Failed to reconcile {0:s}, error {1:s}'.
-                      format(stk, str(e)))
+                      format(stk, str(ex)))
             finally:
                 num += 1
                 if num % 500 == 0 or num == num_stx:
@@ -822,8 +817,9 @@ class StxEOD:
                                           splits[big_chg_dt])
                 try:
                     stxdb.db_write_cmd(sql)
-                except:
-                    pass
+                except Exception as ex:
+                    print('Failed to write values to DB, error {0:s}'.
+                          format(str(ex)))
             ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
                      format(sd.replace('-', ''), ed.replace('-', ''))
             with open(ofname, 'a') as ofile:
@@ -867,9 +863,9 @@ class StxEOD:
         for stk in stk_list:
             try:
                 self.reconcile_stk_eod(c, stk, sd, ed)
-            except:
+            except Exception as ex:
                 print('{0:s} EOD reconciliation failed: {1:s}'.
-                      format(stk, str(sys.exc_info()[1])))
+                      format(stk, str(ex)))
             finally:
                 num += 1
                 if num % 500 == 0 or num == num_stx:
@@ -975,13 +971,13 @@ class StxEOD:
         with open(ofname, 'w') as ofile:
             for line in lines:
                 try:
-                    dt, o, h, l, c, v, oi = line.split(',')
+                    dt, o, hi, lo, c, v, oi = line.split(',')
                     dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
                     if dt < sd or dt > ed or not stxcal.is_busday(dt):
                         continue
                     o = float(o)
-                    h = float(h)
-                    l = float(l)
+                    hi = float(hi)
+                    lo = float(lo)
                     c = float(c)
                     v = int(v)
                     oi = int(oi)
@@ -993,24 +989,23 @@ class StxEOD:
                         symbol.endswith('.B') or symbol.endswith('6.F')) and
                        'XAG' not in symbol and 'XAU' not in symbol):
                         o *= 10000
-                        h *= 10000
-                        l *= 10000
+                        hi *= 10000
+                        lo *= 10000
                         c *= 10000
                     if symbol in ['HO.F', 'NG.F', 'RB.F']:
                         o *= 100
-                        h *= 100
-                        l *= 100
+                        hi *= 100
+                        lo *= 100
                         c *= 100
                     oline = '{0:s}\t{1:s}\t{2:f}\t{3:f}\t{4:f}\t{5:f}\t{6:d}'.\
-                            format(symbol, dt, o, h, l, c, v)
+                            format(symbol, dt, o, hi, lo, c, v)
                     oline = '{0:s}\t{1:d}\n'.format(oline, oi) \
                             if instr_name == 'commodities' else \
                             '{0:s}\n'.format(oline)
                     ofile.write(oline)
-                except:
-                    e = sys.exc_info()[1]
+                except Exception as ex:
                     print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
-                          format(symbol, line, str(e)))
+                          format(symbol, line, str(ex)))
         tbl_name = self.ftr_tbl if instr_name == 'commodities' \
             else self.eod_tbl
         stxdb.db_upload_file(ofname, tbl_name, 2)
