@@ -9,7 +9,9 @@ import zipfile
 
 
 class OptEOD:
-    upload_dir = 'C:/ProgramData/MySQL/MySQL Server 5.7/Uploads'
+    data_dir = os.getenv('DATA_DIR')
+    upload_dir = '{0:s}/upload'.format(data_dir)
+    options_dir = '{0:s}/options'.format(data_dir)
     month_names = {1: 'January', 2: 'February', 3: 'March', 4: 'April',
                    5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September',
                    10: 'October', 11: 'November', 12: 'December'}
@@ -23,17 +25,16 @@ class OptEOD:
                       '`ask` decimal(9, 2) NOT NULL,'\
                       '`volume` int(11) NOT NULL,'\
                       'PRIMARY KEY (`exp`,`und`,`cp`,`strike`,`dt`)'\
-                      ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                      ')'
     sql_create_spots = 'CREATE TABLE `{0:s}` ('\
                        '`stk` char(6) NOT NULL,'\
                        '`dt` date NOT NULL,'\
                        '`spot` decimal(9, 2) NOT NULL,'\
                        'PRIMARY KEY (`stk`,`dt`)'\
-                       ') ENGINE=MyISAM DEFAULT CHARSET=utf8'
+                       ')'
 
-    def __init__(self, in_dir='c:/goldendawn/options', opt_tbl='options',
-                 spot_tbl='opt_spots'):
-        self.in_dir = in_dir
+    def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots'):
+        self.in_dir = self.opt_dir if in_dir is None else in_dir
         self.opt_tbl = opt_tbl
         self.spot_tbl = spot_tbl
         stxdb.db_create_missing_table(opt_tbl, self.sql_create_opts)
@@ -44,7 +45,7 @@ class OptEOD:
             y_spots, y_opts = 0, 0
             for month in range(1, 13):
                 zip_fname = '{0:s}/bb_{1:d}_{2:s}.zip'.\
-                        format(self.in_dir, year, self.month_names[month])
+                    format(self.in_dir, year, self.month_names[month])
                 if os.path.exists(zip_fname):
                     m_spots, m_opts = self.load_opts_archive(zip_fname, year,
                                                              month)
@@ -103,7 +104,7 @@ class OptEOD:
                     bid = round(float(row[10]), 2)
                     ask = round(float(row[11]), 2)
                     volume = int(row[12])
-                except:
+                except Exception:
                     continue
                 if exp not in exps or ask == 0:
                     continue
@@ -154,8 +155,9 @@ class OptEOD:
         print('{0:s}: removed invalid days from {1:s} table.'.
               format(stxcal.print_current_time(), self.opt_tbl))
 
+
 if __name__ == '__main__':
     opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots')
-    opt_eod.load_opts(2013, 2016)
+    opt_eod.load_opts(2001, 2017)
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)
