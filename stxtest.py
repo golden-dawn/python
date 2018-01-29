@@ -239,7 +239,7 @@ class Test4StxEod(unittest.TestCase):
         self.recon_tbl = 'reconciliation_test'
         self.my_in_dir = '{0:s}/my_test'.format(self.data_dir)
         self.dn_in_dir = '{0:s}/dn_test'.format(self.data_dir)
-        self.md_in_dir = self.data_dir
+        self.md_in_dir = '{0:s}/md'.format(self.data_dir)
         self.ed_in_dir = '{0:s}/EODData'.format(self.data_dir)
         self.my_dir = '{0:s}/bkp'.format(self.data_dir)
         self.dn_dir = '{0:s}/stockhistory_2017'.format(self.data_dir)
@@ -325,42 +325,42 @@ class Test4StxEod(unittest.TestCase):
                         res5[0][0] == 'AEOS' and float(res5[0][1]) == 3.68 and
                         res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
 
-    # def test_03_load_dn_data(self):
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod.load_deltaneutral_files(self.stx)
-    #     res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.dn_eod_tbl))
-    #     res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.dn_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.dn_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <= "
-    #                              "'2012-12-31' group by stk order by stk".
-    #                              format(self.dn_eod_tbl))
-    #     res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
-    #                              "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <="
-    #                              " '2012-12-31' group by stk order by stk".
-    #                              format(self.dn_split_tbl))
-    #     print('test_03_load_dn_data')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     print('res3')
-    #     print(res3)
-    #     print('res4')
-    #     print(res4)
-    #     print('res5')
-    #     print(res5)
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-    #                     and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
-    #                     res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
-    #                     res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
-    #                     res4[3][0] == 'TIE' and res4[3][1] == 3017 and
-    #                     res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
-    #                     res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
+    def test_03_load_dn_data(self):
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        dn_eod.load_deltaneutral_files(self.stx)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.dn_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <= "
+                                 "'2012-12-31' group by stk order by stk".
+                                 format(self.dn_eod_tbl))
+        res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
+                                 "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <="
+                                 " '2012-12-31' group by stk order by stk".
+                                 format(self.dn_split_tbl))
+        print('test_03_load_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
+                        res4[3][0] == 'TIE' and res4[3][1] == 3017 and
+                        res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
+                        res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
     # def test_04_reconcile_my_data(self):
     #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
@@ -517,48 +517,48 @@ class Test4StxEod(unittest.TestCase):
     #                     res5[2] == ('NFLX', 1) and
     #                     res5[3] == ('TIE', 2))
 
-    # def test_08_load_md_data(self):
-    #     md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
-    #                     self.recon_tbl)
-    #     log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
-    #                                                   strftime('%Y%m%d%H%M%S'))
-    #     with open(log_fname, 'w') as logfile:
-    #         md_eod.load_marketdata_file('{0:s}/NASDAQ/EXPE.csv'.
-    #                                     format(self.md_in_dir), logfile)
-    #         md_eod.load_marketdata_file('{0:s}/NASDAQ/NFLX.csv'.
-    #                                     format(self.md_in_dir), logfile)
-    #     os.remove(log_fname)
-    #     res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.md_eod_tbl))
-    #     res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.md_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.md_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('NFLX', 'EXPE') group by stk order by stk".
-    #                              format(self.md_eod_tbl))
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 2
-    #                     and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
-    #                     res4[1][0] == 'NFLX' and res4[1][1] == 3616)
+    def test_08_load_md_data(self):
+        md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
+                        self.recon_tbl)
+        log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
+                                                      strftime('%Y%m%d%H%M%S'))
+        with open(log_fname, 'w') as logfile:
+            md_eod.load_marketdata_file('{0:s}/NASDAQ/EXPE.csv'.
+                                        format(self.md_in_dir), logfile)
+            md_eod.load_marketdata_file('{0:s}/NASDAQ/NFLX.csv'.
+                                        format(self.md_in_dir), logfile)
+        os.remove(log_fname)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.md_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'EXPE') group by stk order by stk".
+                                 format(self.md_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 2
+                        and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
+                        res4[1][0] == 'NFLX' and res4[1][1] == 3616)
 
-    # def test_09_load_ed_data(self):
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     ed_eod.load_eoddata_files(sd=self.sd_01, stks=self.ed_stx)
-    #     res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.ed_eod_tbl))
-    #     res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.ed_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.ed_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
-    #                              "order by stk".format(self.ed_eod_tbl))
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-    #                     and res4[0][0] == 'AA' and res4[0][1] == 242 and
-    #                     res4[1][0] == 'EXPE' and res4[1][1] == 242 and
-    #                     res4[2][0] == 'NFLX' and res4[2][1] == 242 and
-    #                     res4[3][0] == 'VXX' and res4[3][1] == 241)
+    def test_09_load_ed_data(self):
+        ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
+                        self.recon_tbl)
+        ed_eod.load_eoddata_files(sd=self.sd_01, stks=self.ed_stx)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.ed_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
+                                 "order by stk".format(self.ed_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AA' and res4[0][1] == 242 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 242 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 242 and
+                        res4[3][0] == 'VXX' and res4[3][1] == 241)
 
     # def test_10_reconcile_ed_data(self):
     #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
