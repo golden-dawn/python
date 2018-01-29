@@ -216,7 +216,7 @@ class StxEOD:
         for fname in lst:
             copyfile('{0:s}/{1:s}'.format(self.in_dir, fname), self.eod_name)
             try:
-                stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
+                stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
                 print('{0:s}: uploaded eods'.format(stk))
             except Exception as ex:
                 print('Upload failed {0:s}, error {1:s}'.format(stk, str(ex)))
@@ -225,7 +225,7 @@ class StxEOD:
     # Load the delta neutral splits into the database
     def load_deltaneutral_splits(self, stk_list):
         # this part uploads the splits
-        in_fname = '{0:s}/stocksplits.csv'.format(self.sh_dir)
+        in_fname = '{0:s}/stocksplits_20170102.csv'.format(self.sh_dir)
         out_fname = '{0:s}/stocksplits.txt'.format(self.upload_dir)
         with open(in_fname, 'r') as csvfile:
             with open(out_fname, 'w') as dbfile:
@@ -243,7 +243,7 @@ class StxEOD:
                                  format(stk, stxcal.prev_busday(dt),
                                         num / denom))
         try:
-            stxdb.db_upload_file(out_fname, self.split_tbl, 2)
+            stxdb.db_upload_file(out_fname, self.split_tbl, '\t')
             print('Uploaded delta neutral splits')
         except Exception as ex:
             print('Failed to upload splits, error {0:s}'.format(str(ex)))
@@ -286,7 +286,7 @@ class StxEOD:
                         print('Failed to process {0:s}, error: {1:s}'.
                               format(str(row), str(ex)))
         try:
-            stxdb.db_upload_file(out_fname, self.split_tbl, 2)
+            stxdb.db_upload_file(out_fname, self.split_tbl, '\t')
             print('Uploaded delta neutral splits')
         except Exception as ex:
             print('Failed to upload splits, error {0:s}'.format(str(ex)))
@@ -308,7 +308,7 @@ class StxEOD:
                     self.load_eoddata_file(ofile, fname.format(dtc), dt, dtc,
                                            stks)
             try:
-                stxdb.db_upload_file(self.eod_name, self.eod_tbl, 2)
+                stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
                 print('{0:s}: uploaded eods'.format(dt))
             except Exception as ex:
                 print('Failed to upload {0:s}, error {1:s}'.format(dt,
@@ -424,7 +424,7 @@ class StxEOD:
                             format(stk, r[1]['Date'], r[1]['Open'],
                                    r[1]['High'], r[1]['Low'], r[1]['Close'],
                                    r[1]['Volume']))
-        stxdb.db_upload_file(upload_fname, self.eod_tbl, 2)
+        stxdb.db_upload_file(upload_fname, self.eod_tbl, '\t')
 
     # Perform reconciliation with the option spots.  First get all the
     # underliers for which we have spot prices within a given
@@ -740,7 +740,7 @@ class StxEOD:
                                        row['h'], row['l'], row['c'],
                                        row['v']))
         # upload the eod data in the database
-        stxdb.db_upload_file(self.eod_name, eod_table, 2)
+        stxdb.db_upload_file(self.eod_name, eod_table, '\t')
         # finally, upload all the splits into the final split table
         stxdb.db_write_cmd('insert into {0:s} (stk,dt,ratio,implied) '
                            'select stk, dt, ratio, implied from {1:s} '
@@ -1008,7 +1008,7 @@ class StxEOD:
                           format(symbol, line, str(ex)))
         tbl_name = self.ftr_tbl if instr_name == 'commodities' \
             else self.eod_tbl
-        stxdb.db_upload_file(ofname, tbl_name, 2)
+        stxdb.db_upload_file(ofname, tbl_name, '\t')
 
     def multiply_prices(self, o, h, l, c, factor):
         return o * factor, h * factor, l * factor, c * factor
@@ -1129,7 +1129,7 @@ if __name__ == '__main__':
     # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
     # ed_eod.load_eoddata_files()
     #
-    # md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciilation')
+    # md_eod = StxEOD('c:/goldendawn/md', 'md_eod', 'md_split', 'reconciilation')
     # log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
     #                                             strftime('%Y%m%d%H%M%S'))
     # with open(log_fname, 'w') as logfile:
