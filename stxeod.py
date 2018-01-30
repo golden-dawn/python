@@ -582,8 +582,8 @@ class StxEOD:
         df['mse'] = df.apply(msefun, axis=1)
         mse = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)), 0.5)
         if dbg:
-            df.to_csv('c:/goldendawn/dbg/{0:s}_{1:s}{2:s}_recon.csv'.
-                      format(ts.stk, self.eod_tbl, sfx))
+            df.to_csv('{0:s}/dbg/{1:s}_{2:s}{3:s}_recon.csv'.
+                      format(self.data_dir, ts.stk, self.eod_tbl, sfx))
         return df, coverage, mse
 
     def cleanup(self):
@@ -829,8 +829,9 @@ class StxEOD:
                 except Exception as ex:
                     print('Failed to write values to DB, error {0:s}'.
                           format(str(ex)))
-            ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
-                     format(sd.replace('-', ''), ed.replace('-', ''))
+            ofname = '{0:s}/big_change_recon_{1:s}_{2:s}.txt'.\
+                     format(self.data_dir, sd.replace('-', ''),
+                            ed.replace('-', ''))
             with open(ofname, 'a') as ofile:
                 ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} {5:6.2f} '
                             '{6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f} {10:s}\n'.
@@ -927,8 +928,9 @@ class StxEOD:
                              format(self.split_tbl, stk, px1[0],
                                     round(split, 4), round(split, 4))
                     stxdb.db_write_cmd(db_cmd)
-            ofname = 'c:/goldendawn/big_change_recon_{0:s}_{1:s}.txt'.\
-                     format(sd.replace('-', ''), ed.replace('-', ''))
+            ofname = '{0:s}/big_change_recon_{1:s}_{2:s}.txt'.\
+                     format(self.data_dir, sd.replace('-', ''),
+                            ed.replace('-', ''))
             with open(ofname, 'a') as ofile:
                 for idx, row in df_review.iterrows():
                     big_chg_dt = str(idx.date())
