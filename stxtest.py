@@ -432,90 +432,94 @@ class Test4StxEod(unittest.TestCase):
     #                     res2[0] == ('AEOS', datetime.date(2005, 3, 7),
     #                                 Decimal('0.4999'), 1))
 
-    # def test_06_split_recon(self):
-    #     # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod.reconcile_big_changes('AEOS', '2001-01-01', '2012-12-31',
-    #                                  ['splits', 'my_split_test'])
-    #     res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
-    #                             .format(dn_eod.split_tbl, 'AEOS'))
-    #     self.assertTrue(
-    #         res[0] == ('AEOS', datetime.date(2005, 3, 7), Decimal('0.4999'),
-    #                    1) and
-    #         res[1] == ('AEOS', datetime.date(2006, 12, 18), Decimal('0.6700'),
-    #                    0))
+    def test_06_split_recon(self):
+        # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        dn_eod.reconcile_big_changes('AEOS', '2001-01-01', '2012-12-31',
+                                     [self.my_split_tbl])
+        res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
+                                .format(dn_eod.split_tbl, 'AEOS'))
+        print('res')
+        print(res)
+        # self.assertTrue(
+        #     res[0] == ('AEOS', datetime.date(2005, 3, 7), Decimal('0.4999'),
+        #                1) and
+        #     res[1] == ('AEOS', datetime.date(2006, 12, 18), Decimal('0.6700')
+        #                0))
+        self.assertTrue(res[0] == ('AEOS', datetime.date(2006, 12, 18),
+                                   Decimal('0.6700'), 0))
 
-    # def test_07_merge_eod_tbls(self):
-    #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
-    #                       self.ed)
-    #     dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
-    #                       self.ed)
-    #     res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
-    #                              "dt between '2003-03-10' and '2003-03-11'".
-    #                              format(self.eod_test))
-    #     res2 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
-    #                              "between '2006-02-16' and '2006-02-17'".
-    #                              format(self.eod_test))
-    #     res3 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
-    #                              "between '2006-05-15' and '2006-05-16'".
-    #                              format(self.eod_test))
-    #     res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and dt "
-    #                              "between '2003-08-08' and '2005-07-21'".
-    #                              format(self.eod_test))
-    #     res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
-    #                              'group by stk'.format(self.split_test))
-    #     print('test_07_merge_eod_tbls')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     print('res3')
-    #     print(res3)
-    #     print('res4')
-    #     print(res4)
-    #     print('res5')
-    #     print(res5)
-    #     self.assertTrue(res1[0][2] == Decimal('69.06') and
-    #                     res1[0][3] == Decimal('69.38') and
-    #                     res1[0][4] == Decimal('68.40') and
-    #                     res1[0][5] == Decimal('68.66') and
-    #                     res1[0][6] == 922950 and
-    #                     res1[1][2] == Decimal('33.76') and
-    #                     res1[1][3] == Decimal('34.20') and
-    #                     res1[1][4] == Decimal('33.32') and
-    #                     res1[1][5] == Decimal('33.78') and
-    #                     res1[1][6] == 4107600 and
-    #                     res2[0][2] == Decimal('72.36') and
-    #                     res2[0][3] == Decimal('74.16') and
-    #                     res2[0][4] == Decimal('71.28') and
-    #                     res2[0][5] == Decimal('73.80') and
-    #                     res2[0][6] == 1886800 and
-    #                     res2[1][2] == Decimal('37.12') and
-    #                     res2[1][3] == Decimal('38.00') and
-    #                     res2[1][4] == Decimal('37.02') and
-    #                     res2[1][5] == Decimal('37.56') and
-    #                     res2[1][6] == 1439500 and
-    #                     res3[0][2] == Decimal('77.12') and
-    #                     res3[0][3] == Decimal('77.48') and
-    #                     res3[0][4] == Decimal('69.60') and
-    #                     res3[0][5] == Decimal('72.12') and
-    #                     res3[0][6] == 22097800 and
-    #                     res3[1][2] == Decimal('36.50') and
-    #                     res3[1][3] == Decimal('38.50') and
-    #                     res3[1][4] == Decimal('34.80') and
-    #                     res3[1][5] == Decimal('37.96') and
-    #                     res3[1][6] == 11771300 and
-    #                     res4[0][1] == datetime.date(2003, 8, 8) and
-    #                     res4[1][1] == datetime.date(2005, 7, 21) and
-    #                     res5[0] == ('AEOS', 6) and
-    #                     res5[1] == ('EXPE', 1) and
-    #                     res5[2] == ('NFLX', 1) and
-    #                     res5[3] == ('TIE', 2))
+    def test_07_merge_eod_tbls(self):
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
+                          self.ed)
+        dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
+                          self.ed)
+        res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
+                                 "dt between '2003-03-10' and '2003-03-11'".
+                                 format(self.eod_test))
+        res2 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
+                                 "between '2006-02-16' and '2006-02-17'".
+                                 format(self.eod_test))
+        res3 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
+                                 "between '2006-05-15' and '2006-05-16'".
+                                 format(self.eod_test))
+        res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and dt "
+                                 "between '2003-08-08' and '2005-07-21'".
+                                 format(self.eod_test))
+        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
+                                 'group by stk'.format(self.split_test))
+        print('test_07_merge_eod_tbls')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
+        self.assertTrue(res1[0][2] == Decimal('69.06') and
+                        res1[0][3] == Decimal('69.38') and
+                        res1[0][4] == Decimal('68.40') and
+                        res1[0][5] == Decimal('68.66') and
+                        res1[0][6] == 922950 and
+                        res1[1][2] == Decimal('33.76') and
+                        res1[1][3] == Decimal('34.20') and
+                        res1[1][4] == Decimal('33.32') and
+                        res1[1][5] == Decimal('33.78') and
+                        res1[1][6] == 4107600 and
+                        res2[0][2] == Decimal('72.36') and
+                        res2[0][3] == Decimal('74.16') and
+                        res2[0][4] == Decimal('71.28') and
+                        res2[0][5] == Decimal('73.80') and
+                        res2[0][6] == 1886800 and
+                        res2[1][2] == Decimal('37.12') and
+                        res2[1][3] == Decimal('38.00') and
+                        res2[1][4] == Decimal('37.02') and
+                        res2[1][5] == Decimal('37.56') and
+                        res2[1][6] == 1439500 and
+                        res3[0][2] == Decimal('77.12') and
+                        res3[0][3] == Decimal('77.48') and
+                        res3[0][4] == Decimal('69.60') and
+                        res3[0][5] == Decimal('72.12') and
+                        res3[0][6] == 22097800 and
+                        res3[1][2] == Decimal('36.50') and
+                        res3[1][3] == Decimal('38.50') and
+                        res3[1][4] == Decimal('34.80') and
+                        res3[1][5] == Decimal('37.96') and
+                        res3[1][6] == 11771300 and
+                        res4[0][1] == datetime.date(2003, 8, 8) and
+                        res4[1][1] == datetime.date(2005, 7, 21) and
+                        res5[0] == ('AEOS', 6) and
+                        res5[1] == ('EXPE', 1) and
+                        res5[2] == ('NFLX', 1) and
+                        res5[3] == ('TIE', 2))
 
     def test_08_load_md_data(self):
         md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
@@ -587,140 +591,140 @@ class Test4StxEod(unittest.TestCase):
     #                                 '2013-11-15', 0, 100.0, 0.0017, 0) and
     #                     len(res2) == 0)
 
-    # def test_11_split_recon(self):
-    #     # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     stk_list = self.ed_stx.split(',')
-    #     for stk in stk_list:
-    #         ed_eod.reconcile_big_changes(stk, '2013-01-01', '2013-12-31',
-    #                                      ['splits'])
-    #     res = stxdb.db_read_cmd("select * from {0:s}"
-    #                             .format(ed_eod.split_tbl))
-    #     self.assertTrue(res[0] == ('VXX', datetime.date(2013, 11, 7),
-    #                                Decimal('4.0000'), 0))
+    def test_11_split_recon(self):
+        # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
+        ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
+                        self.recon_tbl)
+        stk_list = self.ed_stx.split(',')
+        for stk in stk_list:
+            ed_eod.reconcile_big_changes(stk, '2013-01-01', '2013-12-31',
+                                         ['splits'])
+        res = stxdb.db_read_cmd("select * from {0:s}"
+                                .format(ed_eod.split_tbl))
+        self.assertTrue(res[0] == ('VXX', datetime.date(2013, 11, 7),
+                                   Decimal('4.0000'), 0))
 
-    # def test_12_merge_eod_tbls(self):
-    #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
-    #                       self.ed)
-    #     dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
-    #                       self.ed)
-    #     ed_eod.upload_eod(self.eod_test, self.split_test, self.ed_stx,
-    #                       self.sd_1, self.ed_1)
-    #     res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
-    #                              "dt between '2003-03-10' and '2003-03-11'".
-    #                              format(self.eod_test))
-    #     res2 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
-    #                              "between '2006-02-16' and '2006-02-17'".
-    #                              format(self.eod_test))
-    #     res3 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
-    #                              "between '2006-05-15' and '2006-05-16'".
-    #                              format(self.eod_test))
-    #     res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and dt "
-    #                              "between '2003-08-08' and '2005-07-21'".
-    #                              format(self.eod_test))
-    #     res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
-    #                              'group by stk'.format(self.split_test))
-    #     print('test_12_merge_eod_tbls')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     print('res3')
-    #     print(res3)
-    #     print('res4')
-    #     print(res4)
-    #     print('res5')
-    #     print(res5)
-    #     self.assertTrue(res1[0][2] == Decimal('69.06') and
-    #                     res1[0][3] == Decimal('69.38') and
-    #                     res1[0][4] == Decimal('68.40') and
-    #                     res1[0][5] == Decimal('68.66') and
-    #                     res1[0][6] == 922950 and
-    #                     res1[1][2] == Decimal('33.76') and
-    #                     res1[1][3] == Decimal('34.20') and
-    #                     res1[1][4] == Decimal('33.32') and
-    #                     res1[1][5] == Decimal('33.78') and
-    #                     res1[1][6] == 4107600 and
-    #                     res2[0][2] == Decimal('72.36') and
-    #                     res2[0][3] == Decimal('74.16') and
-    #                     res2[0][4] == Decimal('71.28') and
-    #                     res2[0][5] == Decimal('73.80') and
-    #                     res2[0][6] == 1886800 and
-    #                     res2[1][2] == Decimal('37.12') and
-    #                     res2[1][3] == Decimal('38.00') and
-    #                     res2[1][4] == Decimal('37.02') and
-    #                     res2[1][5] == Decimal('37.56') and
-    #                     res2[1][6] == 1439500 and
-    #                     res3[0][2] == Decimal('77.12') and
-    #                     res3[0][3] == Decimal('77.48') and
-    #                     res3[0][4] == Decimal('69.60') and
-    #                     res3[0][5] == Decimal('72.12') and
-    #                     res3[0][6] == 22097800 and
-    #                     res3[1][2] == Decimal('36.50') and
-    #                     res3[1][3] == Decimal('38.50') and
-    #                     res3[1][4] == Decimal('34.80') and
-    #                     res3[1][5] == Decimal('37.96') and
-    #                     res3[1][6] == 11771300 and
-    #                     res4[0][1] == datetime.date(2003, 8, 8) and
-    #                     res4[1][1] == datetime.date(2005, 7, 21) and
-    #                     res5[0] == ('AEOS', 6) and
-    #                     res5[1] == ('EXPE', 1) and
-    #                     res5[2] == ('NFLX', 1) and
-    #                     res5[3] == ('TIE', 2) and res5[4] == ('VXX', 1))
+    def test_12_merge_eod_tbls(self):
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
+                        self.recon_tbl)
+        my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
+                          self.ed)
+        dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
+                          self.ed)
+        ed_eod.upload_eod(self.eod_test, self.split_test, self.ed_stx,
+                          self.sd_1, self.ed_1)
+        res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
+                                 "dt between '2003-03-10' and '2003-03-11'".
+                                 format(self.eod_test))
+        res2 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
+                                 "between '2006-02-16' and '2006-02-17'".
+                                 format(self.eod_test))
+        res3 = stxdb.db_read_cmd("select * from {0:s} where stk='TIE' and dt "
+                                 "between '2006-05-15' and '2006-05-16'".
+                                 format(self.eod_test))
+        res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and dt "
+                                 "between '2003-08-08' and '2005-07-21'".
+                                 format(self.eod_test))
+        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
+                                 'group by stk'.format(self.split_test))
+        print('test_12_merge_eod_tbls')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
+        self.assertTrue(res1[0][2] == Decimal('69.06') and
+                        res1[0][3] == Decimal('69.38') and
+                        res1[0][4] == Decimal('68.40') and
+                        res1[0][5] == Decimal('68.66') and
+                        res1[0][6] == 922950 and
+                        res1[1][2] == Decimal('33.76') and
+                        res1[1][3] == Decimal('34.20') and
+                        res1[1][4] == Decimal('33.32') and
+                        res1[1][5] == Decimal('33.78') and
+                        res1[1][6] == 4107600 and
+                        res2[0][2] == Decimal('72.36') and
+                        res2[0][3] == Decimal('74.16') and
+                        res2[0][4] == Decimal('71.28') and
+                        res2[0][5] == Decimal('73.80') and
+                        res2[0][6] == 1886800 and
+                        res2[1][2] == Decimal('37.12') and
+                        res2[1][3] == Decimal('38.00') and
+                        res2[1][4] == Decimal('37.02') and
+                        res2[1][5] == Decimal('37.56') and
+                        res2[1][6] == 1439500 and
+                        res3[0][2] == Decimal('77.12') and
+                        res3[0][3] == Decimal('77.48') and
+                        res3[0][4] == Decimal('69.60') and
+                        res3[0][5] == Decimal('72.12') and
+                        res3[0][6] == 22097800 and
+                        res3[1][2] == Decimal('36.50') and
+                        res3[1][3] == Decimal('38.50') and
+                        res3[1][4] == Decimal('34.80') and
+                        res3[1][5] == Decimal('37.96') and
+                        res3[1][6] == 11771300 and
+                        res4[0][1] == datetime.date(2003, 8, 8) and
+                        res4[1][1] == datetime.date(2005, 7, 21) and
+                        res5[0] == ('AEOS', 6) and
+                        res5[1] == ('EXPE', 1) and
+                        res5[2] == ('NFLX', 1) and
+                        res5[3] == ('TIE', 2) and res5[4] == ('VXX', 1))
 
-    # def test_15_teardown(self):
-    #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
-    #                     self.recon_tbl)
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     my_eod.cleanup()
-    #     my_eod.cleanup_data_folder()
-    #     dn_eod.cleanup()
-    #     dn_eod.cleanup_data_folder()
-    #     md_eod.cleanup()
-    #     ed_eod.cleanup()
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_test))
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.split_test))
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.recon_tbl))
-    #     res1 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.my_eod_tbl))
-    #     res2 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.my_split_tbl))
-    #     res3 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.dn_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.dn_split_tbl))
-    #     res5 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.eod_test))
-    #     res6 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.split_test))
-    #     res7 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.recon_tbl))
-    #     res8 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.md_eod_tbl))
-    #     res9 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                              format(self.md_split_tbl))
-    #     res10 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                               format(self.ed_eod_tbl))
-    #     res11 = stxdb.db_read_cmd("show tables like '{0:s}'".
-    #                               format(self.ed_split_tbl))
-    #     self.assertTrue((not res1) and (not res2) and (not res3) and
-    #                     (not res4) and (not res5) and (not res6) and
-    #                     (not res7) and (not res8) and (not res9) and
-    #                     (not res10) and (not res11) and
-    #                     (not os.path.exists(self.my_in_dir)) and
-    #                     (not os.path.exists(self.dn_in_dir)))
+    def test_15_teardown(self):
+        my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
+                        self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
+                        self.recon_tbl)
+        md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
+                        self.recon_tbl)
+        ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
+                        self.recon_tbl)
+        my_eod.cleanup()
+        my_eod.cleanup_data_folder()
+        dn_eod.cleanup()
+        dn_eod.cleanup_data_folder()
+        md_eod.cleanup()
+        ed_eod.cleanup()
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_test))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.split_test))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.recon_tbl))
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.my_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.my_split_tbl))
+        res3 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_eod_tbl))
+        res4 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_split_tbl))
+        res5 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.eod_test))
+        res6 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.split_test))
+        res7 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.recon_tbl))
+        res8 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_eod_tbl))
+        res9 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_split_tbl))
+        res10 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_eod_tbl))
+        res11 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_split_tbl))
+        self.assertTrue((not res1) and (not res2) and (not res3) and
+                        (not res4) and (not res5) and (not res6) and
+                        (not res7) and (not res8) and (not res9) and
+                        (not res10) and (not res11) and
+                        (not os.path.exists(self.my_in_dir)) and
+                        (not os.path.exists(self.dn_in_dir)))
 
 
 if __name__ == '__main__':
