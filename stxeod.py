@@ -4,6 +4,7 @@ from io import BytesIO
 import json
 import logging
 from math import trunc
+import numpy as np
 import os
 import pandas as pd
 import requests
@@ -377,18 +378,26 @@ class StxEOD:
         stk = ifname[ifname.rfind('/') + 1:ifname.rfind('.')]
         df['R'] = df['Close'] / df['Adj Close']
         df['R_1'] = df['R'].shift()
-        df['RR'] = round(df['R'] / df['R_1'], 4)
+        df.R_1.fillna(df.R, inplace=True)
+        df['RR'] = np.round(df['R'] / df['R_1'], 4)
         df['RR_1'] = df['RR'].shift(-1)
-        df['IRR'] = round(df['R_1'] / df['R'], 4)
+        df.RR_1.fillna(df.RR, inplace=True)
+        df['IRR'] = np.round(df['R_1'] / df['R'], 4)
         df['IRR_1'] = df['IRR'].shift(-1)
+        df.IRR_1.fillna(df.IRR, inplace=True)
         splits_divis = df.query('RR_1<0.999 | RR_1>1.001')
         splits_dict = {}
+        split_tables = []
+        for tbl in ['dn_split', 'splits', 'split']:
+            res = stxdb.db_read_cmd(self.sql_show_tables.format(tbl))
+            if len(res) == 1:
+                split_tables.append(tbl)
         for row in splits_divis.iterrows():
             dt = row[1]['Date']
             ratio, iratio = row[1]['RR_1'], row[1]['IRR_1']
             sd_type = 0 if ratio <= 0.95 or ratio >= 1.05 else 2
             validation = ''
-            for tbl in ['dn_split', 'splits', 'split']:
+            for tbl in split_tables:
                 sql = "select * from {0:s} where stk='{1:s}' and dt='{2:s}'".\
                     format(tbl, stk, dt)
                 res = stxdb.db_read_cmd(sql)
