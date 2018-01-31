@@ -31,6 +31,7 @@ def db_read_cmd(sql):
 # write commands perform operations that need commit
 def db_write_cmd(sql):
     with closing(db_get_cnx().cursor()) as crs:
+        # print('sql = {0:s}'.format(sql))
         crs.execute(sql)
         this.cnx.commit()
 
@@ -72,7 +73,7 @@ def db_upload_file(file_name, tbl_name, sep='\t'):
 def db_bulk_upload(tbl_name, data, sep='\t'):
     key_len = db_get_key_len(tbl_name)
     tbl_cols = db_get_table_columns(tbl_name)
-    p = re.compile('^varchar|date')
+    p = re.compile('^varchar|date|char')
     use_quotes = [not not p.match(x[1]) for x in tbl_cols]
     cmd = "INSERT INTO '{0:s}' ({1:s}) VALUES ".format(
         tbl_name, ', '.join(["'{0:s}'".format(x[0]) for x in tbl_cols]))
@@ -81,7 +82,7 @@ def db_bulk_upload(tbl_name, data, sep='\t'):
     for line in data:
         if line.strip() == '':
             continue
-        tokens = line.split(sep)
+        tokens = line.strip().split(sep)
         key = '\t'.join(tokens[:key_len])
         if key in dct:
             print('DUPLICATE KEY: {0:s}'.format(key))
