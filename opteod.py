@@ -5,6 +5,7 @@ import os
 from shutil import rmtree
 import stxcal
 import stxdb
+import sys
 import zipfile
 
 
@@ -33,10 +34,13 @@ class OptEOD:
                        'PRIMARY KEY (`stk`,`dt`)'\
                        ')'
 
-    def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots'):
+    def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots',
+                 upload_options=True, upload_spots=True):
         self.in_dir = self.options_dir if in_dir is None else in_dir
         self.opt_tbl = opt_tbl
         self.spot_tbl = spot_tbl
+        self.upload_spots = upload_spots
+        self.upload_options = upload_options
         stxdb.db_create_missing_table(opt_tbl, self.sql_create_opts)
         stxdb.db_create_missing_table(spot_tbl, self.sql_create_spots)
 
@@ -65,7 +69,6 @@ class OptEOD:
         with zipfile.ZipFile(zip_fname, 'r') as zip_file:
             zip_file.extractall(tmp_dir)
         daily_opt_files = os.listdir(tmp_dir)
-        print('daily_opt_files = {0:s}'.format(daily_opt_files))
         for opt_file in daily_opt_files:
             d_spots, d_opts = self.load_opts_daily(os.path.join(tmp_dir,
                                                                 opt_file))
@@ -129,8 +132,10 @@ class OptEOD:
                                 '{6:2f}\t{7:d}\n'.format(o[0], o[1], o[2],
                                                          o[3], o[4], o[5],
                                                          o[6], o[7]))
-        stxdb.db_upload_file(spots_upload_file, self.spot_tbl, '\t')
-        stxdb.db_upload_file(opts_upload_file, self.opt_tbl, '\t')
+        if self.upload_spots:
+            stxdb.db_upload_file(spots_upload_file, self.spot_tbl, '\t')
+        if self.upload_options:
+            stxdb.db_upload_file(opts_upload_file, self.opt_tbl, '\t')
         d_spots, d_opts = len(spots), len(opts)
         print('{0:s}\t{1:s}\t{2:5d}\t{3:6d}'.format
               (stxcal.print_current_time(), dt, d_spots, d_opts))
@@ -159,7 +164,14 @@ class OptEOD:
 
 
 if __name__ == '__main__':
-    opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots')
+    upload_options = True
+    upload_spots = True
+    if '-no_spots' in sys.argv:
+        upload_spots = False
+    if '-no_options' in sys.argv:
+        upload_options = False
+    opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots',
+                     upload_options=upload_options, upload_spots=upload_spots)
     opt_eod.load_opts(2001, 2017)
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)
