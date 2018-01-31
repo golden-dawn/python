@@ -34,7 +34,7 @@ class OptEOD:
                        ')'
 
     def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots'):
-        self.in_dir = self.opt_dir if in_dir is None else in_dir
+        self.in_dir = self.options_dir if in_dir is None else in_dir
         self.opt_tbl = opt_tbl
         self.spot_tbl = spot_tbl
         stxdb.db_create_missing_table(opt_tbl, self.sql_create_opts)
@@ -44,8 +44,9 @@ class OptEOD:
         for year in range(start_year, end_year + 1):
             y_spots, y_opts = 0, 0
             for month in range(1, 13):
-                zip_fname = '{0:s}/bb_{1:d}_{2:s}.zip'.\
-                    format(self.in_dir, year, self.month_names[month])
+                zip_fname = os.path.join(
+                    self.in_dir,
+                    'bb_{0:d}_{1:s}.zip'.format(year, self.month_names[month]))
                 if os.path.exists(zip_fname):
                     m_spots, m_opts = self.load_opts_archive(zip_fname, year,
                                                              month)
@@ -56,7 +57,7 @@ class OptEOD:
 
     def load_opts_archive(self, zip_fname, year, month):
         # remove the tmp directory (if it already exists, and recreate it
-        tmp_dir = '{0:s}/tmp'.format(self.in_dir)
+        tmp_dir = '{0:s}/tmp'.format(self.data_dir)
         if os.path.exists(tmp_dir):
             rmtree(tmp_dir)
         os.makedirs(tmp_dir)
@@ -64,6 +65,7 @@ class OptEOD:
         with zipfile.ZipFile(zip_fname, 'r') as zip_file:
             zip_file.extractall(tmp_dir)
         daily_opt_files = os.listdir(tmp_dir)
+        print('daily_opt_files = {0:s}'.format(daily_opt_files))
         for opt_file in daily_opt_files:
             d_spots, d_opts = self.load_opts_daily(os.path.join(tmp_dir,
                                                                 opt_file))
@@ -85,7 +87,7 @@ class OptEOD:
         dt = '{0:s}-{1:s}-{2:s}'.format(opt_fname[-12:-8], opt_fname[-8:-6],
                                         opt_fname[-6:-4])
         if dt in invalid_days:
-            return
+            return 0, 0
         sdt = datetime.strptime(dt, '%Y-%m-%d')
         edt = sdt + relativedelta(months=+7)
         sdt = str(sdt.date())[:-3]
@@ -127,8 +129,8 @@ class OptEOD:
                                 '{6:2f}\t{7:d}\n'.format(o[0], o[1], o[2],
                                                          o[3], o[4], o[5],
                                                          o[6], o[7]))
-        stxdb.db_upload_file(spots_upload_file, self.spot_tbl, 2)
-        stxdb.db_upload_file(opts_upload_file, self.opt_tbl, 5)
+        stxdb.db_upload_file(spots_upload_file, self.spot_tbl, '\t')
+        stxdb.db_upload_file(opts_upload_file, self.opt_tbl, '\t')
         d_spots, d_opts = len(spots), len(opts)
         print('{0:s}\t{1:s}\t{2:5d}\t{3:6d}'.format
               (stxcal.print_current_time(), dt, d_spots, d_opts))
