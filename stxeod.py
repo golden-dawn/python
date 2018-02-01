@@ -538,11 +538,11 @@ class StxEOD:
             df['r{0:d}'.format(i)] = df['r'].shift(-i)
         df['rr'] = df['r1'] / df['r']
         df_f1 = df[(abs(df['rr'] - 1) > 0.05) & (df['c'] > 1.0) &
-                   (round(df['r-1'] - df['r'], 2) == 0) &
-                   (round(df['r-2'] - df['r'], 2) == 0) &
-                   (round(df['r-3'] - df['r'], 2) == 0) &
-                   (round(df['r2'] - df['r1'], 2) == 0) &
-                   (round(df['r3'] - df['r1'], 2) == 0) &
+                   (np.round(df['r-1'] - df['r'], 2) == 0) &
+                   (np.round(df['r-2'] - df['r'], 2) == 0) &
+                   (np.round(df['r-3'] - df['r'], 2) == 0) &
+                   (np.round(df['r2'] - df['r1'], 2) == 0) &
+                   (np.round(df['r3'] - df['r1'], 2) == 0) &
                    (df['v'] > 0)]
         for r in df_f1.iterrows():
             stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "
@@ -562,7 +562,7 @@ class StxEOD:
         if e_ts > e_spot:
             e_ts = e_spot
         ts_days = stxcal.num_busdays(s_ts, e_ts) if e_ts > s_ts else 0
-        coverage = round(100.0 * ts_days / spot_days, 2)
+        coverage = np.round(100.0 * ts_days / spot_days, 2)
         # apply the split adjustments
         ts.splits.clear()
         splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where"
@@ -919,14 +919,14 @@ class StxEOD:
                 ratio_1 = float(px1[4]) / float(px1[6])
                 ratio_2 = float(px2[4]) / float(px2[6])
                 split = ratio_1 / ratio_2
-                if round(split, 2) != 1:
+                if np.round(split, 2) != 1:
                     print('{0:s}: {1:s} - {2:4f}'.format(stk, px1[0],
-                                                         round(split, 4)))
+                                                         np.round(split, 4)))
                     db_cmd = "insert into {0:s} values('{1:s}','{2:s}',"\
                              "{3:4f},0) on duplicate key update "\
                              "ratio={4:4f}, implied=0".\
                              format(self.split_tbl, stk, px1[0],
-                                    round(split, 4), round(split, 4))
+                                    np.round(split, 4), np.round(split, 4))
                     stxdb.db_write_cmd(db_cmd)
             ofname = '{0:s}/big_change_recon_{1:s}_{2:s}.txt'.\
                      format(self.data_dir, sd.replace('-', ''),
