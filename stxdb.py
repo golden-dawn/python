@@ -1,17 +1,16 @@
 from contextlib import closing
+import os
+import psycopg2
 import re
-import sqlite3
 import sys
 
 this = sys.modules[__name__]
-
 this.cnx = None
-this.sqlite_file = '/home/cma/stx.sqlite'
 
 
 def db_get_cnx():
     if this.cnx is None:
-        this.cnx = sqlite3.connect(this.sqlite_file)
+        this.cnx = psycopg2.connect(os.getenv('DB_URL'))
     return this.cnx
 
 
@@ -38,8 +37,9 @@ def db_write_cmd(sql):
 
 # Create a database table if it doesn't exist
 def db_create_missing_table(tbl_name, sql_create_tbl_cmd):
-    res = db_read_cmd("SELECT name FROM sqlite_master WHERE type='table' "
-                      "and name='{0:s}'".format(tbl_name))
+    res = db_read_cmd("SELECT table_name FROM information_schema.tables "
+                      "WHERE table_schema='public AND table_name='{0:s}'".
+                      format(tbl_name))
     if not res:
         db_write_cmd(sql_create_tbl_cmd.format(tbl_name))
 
