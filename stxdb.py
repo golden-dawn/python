@@ -11,6 +11,7 @@ this.cnx = None
 def db_get_cnx():
     if this.cnx is None:
         this.cnx = psycopg2.connect(os.getenv('DB_URL'))
+        this.cnx.autocommit = True
     return this.cnx
 
 
@@ -29,6 +30,7 @@ def db_read_cmd(sql):
 
 # write commands perform operations that need commit
 def db_write_cmd(sql):
+    print('db_write_cmd: sql = {0:s}'.format(sql))
     with closing(db_get_cnx().cursor()) as crs:
         # print('sql = {0:s}'.format(sql))
         crs.execute(sql)
@@ -38,26 +40,29 @@ def db_write_cmd(sql):
 # Create a database table if it doesn't exist
 def db_create_missing_table(tbl_name, sql_create_tbl_cmd):
     res = db_read_cmd("SELECT table_name FROM information_schema.tables "
-                      "WHERE table_schema='public AND table_name='{0:s}'".
+                      "WHERE table_schema='public' AND table_name='{0:s}'".
                       format(tbl_name))
     if not res:
         db_write_cmd(sql_create_tbl_cmd.format(tbl_name))
 
 
 def db_get_table_columns(tbl_name):
-    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "
-                      "and name='{0:s}'".format(tbl_name))
-    m = re.match('(.*?)\((.*),PRIMARY KEY \((.*?)\).*', res[0][0])
-    lst = m.group(2).replace(',`', ', u`').split(", u")
-    return [[re.match('`(.*?)` (.*?) .*', x).group(1),
-             re.match('`(.*?)` (.*?) .*', x).group(2)] for x in lst]
+    res = db_read_cmd("select column_name,udt_name,character_maximum_length,"
+                      "numeric_precision,numeric_scale from "
+                      "INFORMATION_SCHEMA.COLUMNS where table_name='{0:s}'".
+                      format(tbl_name))
+    return res
 
 
 def db_get_key_len(tbl_name):
-    res = db_read_cmd("SELECT sql FROM sqlite_master WHERE type='table' "
-                      "and name='{0:s}'".format(tbl_name))
-    m = re.match('.*?PRIMARY KEY \((.*?)\).*', res[0][0])
-    return 0 if not m else len(m.group(1).split(','))
+    res = db_read_cmd(
+        "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type "
+        "FROM   pg_index i "
+        "JOIN   pg_attribute a ON a.attrelid = i.indrelid "
+        "AND a.attnum = ANY(i.indkey) "
+        "WHERE  i.indrelid = '{0:s}'::regclass "
+        "AND    i.indisprimary".format(tbl_name))
+    return len(res)
 
 
 # Upload data from a file.  Prior to updating, verify that there
