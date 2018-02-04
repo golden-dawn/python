@@ -11,27 +11,27 @@ import zipfile
 
 class OptEOD:
     data_dir = os.getenv('DATA_DIR')
-    upload_dir = '{0:s}/upload'.format(data_dir)
+    upload_dir = '/tmp'
     options_dir = '{0:s}/options'.format(data_dir)
     month_names = {1: 'January', 2: 'February', 3: 'March', 4: 'April',
                    5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September',
                    10: 'October', 11: 'November', 12: 'December'}
-    sql_create_opts = 'CREATE TABLE `{0:s}` ('\
-                      '`exp` date NOT NULL,'\
-                      '`und` char(6) NOT NULL,'\
-                      '`cp` char(1) NOT NULL,'\
-                      '`strike` decimal(9, 2) NOT NULL,'\
-                      '`dt` date NOT NULL,'\
-                      '`bid` decimal(9, 2) NOT NULL,'\
-                      '`ask` decimal(9, 2) NOT NULL,'\
-                      '`volume` int(11) NOT NULL,'\
-                      'PRIMARY KEY (`exp`,`und`,`cp`,`strike`,`dt`)'\
+    sql_create_opts = 'CREATE TABLE {0:s} ('\
+                      'exp date NOT NULL,'\
+                      'und varchar(8) NOT NULL,'\
+                      'cp varchar(1) NOT NULL,'\
+                      'strike decimal(10, 2) NOT NULL,'\
+                      'dt date NOT NULL,'\
+                      'bid decimal(10, 2) NOT NULL,'\
+                      'ask decimal(10, 2) NOT NULL,'\
+                      'volume integer NOT NULL,'\
+                      'PRIMARY KEY (exp,und,cp,strike,dt)'\
                       ')'
-    sql_create_spots = 'CREATE TABLE `{0:s}` ('\
-                       '`stk` char(6) NOT NULL,'\
-                       '`dt` date NOT NULL,'\
-                       '`spot` decimal(9, 2) NOT NULL,'\
-                       'PRIMARY KEY (`stk`,`dt`)'\
+    sql_create_spots = 'CREATE TABLE {0:s} ('\
+                       'stk varchar(8) NOT NULL,'\
+                       'dt date NOT NULL,'\
+                       'spot decimal(10, 2) NOT NULL,'\
+                       'PRIMARY KEY (stk,dt)'\
                        ')'
 
     def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots',
@@ -44,10 +44,15 @@ class OptEOD:
         stxdb.db_create_missing_table(opt_tbl, self.sql_create_opts)
         stxdb.db_create_missing_table(spot_tbl, self.sql_create_spots)
 
-    def load_opts(self, start_year, end_year):
+    def load_opts(self, start_date, end_date):
+        start_year, start_month = [int(x) for x in start_date.split('-')]
+        end_year, end_month = [int(x) for x in end_date.split('-')]
         for year in range(start_year, end_year + 1):
             y_spots, y_opts = 0, 0
             for month in range(1, 13):
+                if (year == start_year and month < start_month) or \
+                   (year == end_year and month > end_month):
+                    continue
                 zip_fname = os.path.join(
                     self.in_dir,
                     'bb_{0:d}_{1:s}.zip'.format(year, self.month_names[month]))
@@ -172,6 +177,6 @@ if __name__ == '__main__':
         upload_options = False
     opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots',
                      upload_options=upload_options, upload_spots=upload_spots)
-    opt_eod.load_opts(2001, 2017)
+    opt_eod.load_opts('2002-02', '2002-03')
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)
