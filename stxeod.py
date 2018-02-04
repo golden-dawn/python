@@ -17,7 +17,7 @@ from stxts import StxTS
 class StxEOD:
     data_dir = os.getenv('DATA_DIR')
     sh_dir = '{0:s}/stockhistory_2017'.format(data_dir)
-    upload_dir = '{0:s}/upload'.format(data_dir)
+    upload_dir = '/tmp'
     ed_dir = '/media/cma/{0:s}/EODData'
     dload_dir = '/media/cma/{0:s}/Downloads'
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
@@ -36,50 +36,50 @@ class StxEOD:
     # alter table my_split modify dt date;
     # alter table dn_split modify dt date;
     # alter table split modify dt date;
-    sql_create_eod = 'CREATE TABLE `{0:s}` ('\
-                     '`stk` varchar(8) NOT NULL,'\
-                     '`dt` date NOT NULL,'\
-                     '`o` decimal(9,2) DEFAULT NULL,'\
-                     '`h` decimal(9,2) DEFAULT NULL,'\
-                     '`l` decimal(9,2) DEFAULT NULL,'\
-                     '`c` decimal(9,2) DEFAULT NULL,'\
-                     '`v` int(11) DEFAULT NULL,'\
-                     'PRIMARY KEY (`stk`,`dt`)'\
+    sql_create_eod = 'CREATE TABLE {0:s} ('\
+                     'stk varchar(8) NOT NULL,'\
+                     'dt date NOT NULL,'\
+                     'o decimal(9,2) DEFAULT NULL,'\
+                     'hi decimal(9,2) DEFAULT NULL,'\
+                     'lo decimal(9,2) DEFAULT NULL,'\
+                     'c decimal(9,2) DEFAULT NULL,'\
+                     'v integer DEFAULT NULL,'\
+                     'PRIMARY KEY (stk,dt)'\
                      ')'
-    sql_create_split = 'CREATE TABLE `{0:s}` ('\
-                       '`stk` varchar(8) NOT NULL,'\
-                       '`dt` date NOT NULL,'\
-                       '`ratio` decimal(8,4) DEFAULT NULL,'\
-                       '`implied` tinyint DEFAULT 0,'\
-                       'PRIMARY KEY (`stk`,`dt`)'\
+    sql_create_split = 'CREATE TABLE {0:s} ('\
+                       'stk varchar(8) NOT NULL,'\
+                       'dt date NOT NULL,'\
+                       'ratio decimal(8,4) DEFAULT NULL,'\
+                       'implied smallint DEFAULT 0,'\
+                       'PRIMARY KEY (stk,dt)'\
                        ')'
-    sql_create_fxs = 'CREATE TABLE `{0:s}` ('\
-                     '`stk` varchar(8) NOT NULL,'\
-                     '`dt` date NOT NULL,'\
-                     '`o` decimal(9,2) DEFAULT NULL,'\
-                     '`h` decimal(9,2) DEFAULT NULL,'\
-                     '`l` decimal(9,2) DEFAULT NULL,'\
-                     '`c` decimal(9,2) DEFAULT NULL,'\
-                     '`v` int(11) DEFAULT NULL,'\
-                     '`oi` int(11) DEFAULT NULL,'\
-                     'PRIMARY KEY (`stk`,`dt`)'\
+    sql_create_fxs = 'CREATE TABLE {0:s} ('\
+                     'stk varchar(8) NOT NULL,'\
+                     'dt date NOT NULL,'\
+                     'o decimal(9,2) DEFAULT NULL,'\
+                     'hi decimal(9,2) DEFAULT NULL,'\
+                     'lo decimal(9,2) DEFAULT NULL,'\
+                     'c decimal(9,2) DEFAULT NULL,'\
+                     'v integer DEFAULT NULL,'\
+                     'oi integer DEFAULT NULL,'\
+                     'PRIMARY KEY (stk,dt)'\
                      ')'
-    sql_create_recon = 'CREATE TABLE `{0:s}` ('\
-                       '`stk` varchar(8) NOT NULL,'\
-                       '`recon_name` varchar(16) NOT NULL,'\
-                       '`recon_interval` char(18) NOT NULL,'\
-                       '`s_spot` char(10) DEFAULT NULL,'\
-                       '`e_spot` char(10) DEFAULT NULL,'\
-                       '`sdf` char(10) DEFAULT NULL,'\
-                       '`edf` char(10) DEFAULT NULL,'\
-                       '`splits` smallint DEFAULT NULL,'\
-                       '`coverage` float DEFAULT NULL,'\
-                       '`mse` float DEFAULT NULL,'\
-                       '`status` tinyint DEFAULT 0,'\
-                       'PRIMARY KEY (`stk`,`recon_name`,`recon_interval`)'\
+    sql_create_recon = 'CREATE TABLE {0:s} ('\
+                       'stk varchar(8) NOT NULL,'\
+                       'recon_name varchar(16) NOT NULL,'\
+                       'recon_interval char(18) NOT NULL,'\
+                       's_spot char(10) DEFAULT NULL,'\
+                       'e_spot char(10) DEFAULT NULL,'\
+                       'sdf char(10) DEFAULT NULL,'\
+                       'edf char(10) DEFAULT NULL,'\
+                       'splits smallint DEFAULT NULL,'\
+                       'coverage float DEFAULT NULL,'\
+                       'mse float DEFAULT NULL,'\
+                       'status smallint DEFAULT 0,'\
+                       'PRIMARY KEY (stk,recon_name,recon_interval)'\
                        ')'
-    sql_show_tables = "SELECT name FROM sqlite_master WHERE type='table' "\
-                      "AND name='{0:s}'"
+    sql_show_tables = "SELECT table_name FROM information_schema.tables "\
+                      "WHERE table_schema='public' AND table_name='{0:s}'"
     status_none = 0
     status_ok = 1
     status_ko = 2
@@ -588,8 +588,8 @@ class StxEOD:
 
     def cleanup(self):
         # drop the EOD and splits tables
-        stxdb.db_write_cmd('drop table `{0:s}`'.format(self.eod_tbl))
-        stxdb.db_write_cmd('drop table `{0:s}`'.format(self.split_tbl))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_tbl))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.split_tbl))
         # if reconciliation table exists, delete all the records that
         # correspond to the self.recon_name variable
         res = stxdb.db_read_cmd(self.sql_show_tables.format(self.recon_tbl))
