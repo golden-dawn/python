@@ -1,7 +1,6 @@
 from contextlib import closing
 import os
 import psycopg2
-import re
 import sys
 
 this = sys.modules[__name__]
@@ -30,7 +29,6 @@ def db_read_cmd(sql):
 
 # write commands perform operations that need commit
 def db_write_cmd(sql):
-    print('db_write_cmd: sql = {0:s}'.format(sql))
     with closing(db_get_cnx().cursor()) as crs:
         # print('sql = {0:s}'.format(sql))
         crs.execute(sql)
@@ -70,36 +68,25 @@ def db_get_key_len(tbl_name):
 # duplicates are found, keep only the first occurrence; discard
 # and print error messages for each subsequent occurrence.
 def db_upload_file(file_name, tbl_name, sep='\t'):
-    with open(file_name, 'r') as f:
-        lines = f.readlines()
-    db_bulk_upload(tbl_name, lines, sep)
-
-
-def db_bulk_upload(tbl_name, data, sep='\t'):
-    key_len = db_get_key_len(tbl_name)
-    tbl_cols = db_get_table_columns(tbl_name)
-    p = re.compile('^varchar|date|char')
-    use_quotes = [not not p.match(x[1]) for x in tbl_cols]
-    cmd = "INSERT INTO '{0:s}' ({1:s}) VALUES ".format(
-        tbl_name, ', '.join(["'{0:s}'".format(x[0]) for x in tbl_cols]))
     dct = {}
-    write_lines = []
-    for line in data:
-        if line.strip() == '':
-            continue
-        tokens = line.strip().split(sep)
-        key = '\t'.join(tokens[:key_len])
-        if key in dct:
-            print('DUPLICATE KEY: {0:s}'.format(key))
-            print('  Removed line: {0:s}'.format(line.strip()))
-            print('  Prev occurence: {0:s}'.format(dct[key].strip()))
-        else:
-            dct[key] = line
-            new_line = ["'{0:s}'".format(x) if y else x
-                        for x, y in zip(tokens, use_quotes)]
-            write_lines.append('({0:s})'.format(','.join(new_line)))
-    cmd = '{0:s} {1:s}'.format(cmd, ','.join(write_lines))
-    db_write_cmd(cmd)
+    with open(file_name, 'r+') as f:
+        key_len = db_get_key_len(tbl_name)
+        lines = f.readlines()
+        write_lines = []
+        for line in lines:
+            tokens = [x.strip() for x in line.strip().split(sep)]
+            key = '\t'.join(tokens[:key_len])
+            if key in dct:
+                print('DUPLICATE KEY: {0:s}'.format(key))
+                print('  Removed line: {0:s}'.format(line.strip()))
+                print('  Prev occurence: {0:s}'.format(dct[key].strip()))
+            else:
+                dct[key] = line
+                write_lines.append('\t'.join(tokens))
+        f.seek(0)
+        f.write('\n'.join(write_lines))
+        f.truncate()
+        db_write_cmd("COPY {0:s} FROM '{1:s}'".format(tbl_name, file_name))
 
 
 # Return sql string for specific timeframe between start date (sd) and
