@@ -37,6 +37,9 @@ def db_write_cmd(sql):
 
 # Create a database table if it doesn't exist
 def db_create_missing_table(tbl_name, sql_create_tbl_cmd):
+    if tbl_name is None or tbl_name == '':
+        print('No table name specified for create request')
+        return
     res = db_read_cmd("SELECT table_name FROM information_schema.tables "
                       "WHERE table_schema='public' AND table_name='{0:s}'".
                       format(tbl_name))
