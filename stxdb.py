@@ -5,11 +5,12 @@ import sys
 
 this = sys.modules[__name__]
 this.cnx = None
+this.db_url = 'DB_TEST_URL' if os.getenv('TESTING') == 1 else 'DB_URL'
 
 
 def db_get_cnx():
     if this.cnx is None:
-        this.cnx = psycopg2.connect(os.getenv('DB_URL'))
+        this.cnx = psycopg2.connect(os.getenv(this.db_url))
         this.cnx.autocommit = True
     return this.cnx
 
