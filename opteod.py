@@ -102,6 +102,12 @@ class OptEOD:
         edt = str(edt.date())[:-3]
         exps = {exp: '' for exp in stxcal.expiries(sdt, edt)}
         spot_dct, opt_dct, spots, opts = {}, {}, [], []
+        xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
+        if not xchgs:
+            stxdb.db_write_cmd("insert into exchanges values('US')")
+        insert_stx = 'INSERT INTO equities VALUES '
+        db_stx = {x[0]: '' for x in stxdb.db_read_cmd(
+            "select * from equities where exchange='US'")}
         with open(opt_fname) as csvfile:
             frdr = csv.reader(csvfile)
             for row in frdr:
@@ -118,6 +124,9 @@ class OptEOD:
                     continue
                 if exp not in exps or ask == 0:
                     continue
+                if stk not in db_stx:
+                    insert_stx = "{0:s} ('{1:s}', '', 'US Stocks', 'US')".\
+                        format(insert_stx, stk)
                 if stk not in spot_dct:
                     spot_dct[stk] = spot
                     spots.append([stk, dt, spot])
@@ -137,6 +146,8 @@ class OptEOD:
                                 '{6:2f}\t{7:d}\n'.format(o[0], o[1], o[2],
                                                          o[3], o[4], o[5],
                                                          o[6], o[7]))
+        if insert_stx != 'INSERT INTO equities VALUES ':
+            stxdb.db_write_cmd(insert_stx)
         if self.upload_spots:
             stxdb.db_upload_file(spots_upload_file, self.spot_tbl, '\t')
         if self.upload_options:
@@ -175,7 +186,7 @@ if __name__ == '__main__':
         upload_spots = False
     if '-no_options' in sys.argv:
         upload_options = False
-    opt_eod = OptEOD(opt_tbl='opts', spot_tbl='opt_spots',
+    opt_eod = OptEOD(opt_tbl='options', spot_tbl='opt_spots',
                      upload_options=upload_options, upload_spots=upload_spots)
     opt_eod.load_opts('2002-02', '2002-03')
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
