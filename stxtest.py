@@ -92,6 +92,49 @@ A,2000-01-02,33.00,34.00,33.00,34.00,1000
         res = stxdb.db_read_cmd(self.sql_tbls)
         self.assertEqual(len(res), 0)
 
+    def test_6_create_table_like(self):
+        tbl_name = 'eods'
+        new_tbl_name = 'eods2'
+        sql_new_tbl = "SELECT table_name FROM information_schema.tables "\
+                      "WHERE table_schema='public' AND table_name='{0:s}'".\
+                      format(new_tbl_name)
+        res0 = stxdb.db_read_cmd(sql_new_tbl)
+        stxdb.db_create_table_like(tbl_name, new_tbl_name)
+        res1 = stxdb.db_read_cmd(sql_new_tbl)
+        print('res1 = {0:s}'.format(res1))
+        print('res1[0][0] = {0:s}'.format(res1[0][0]))
+        self.assertEqual(len(res0), 0)
+        self.assertEqual(len(res1), 1)
+        self.assertEqual(res1[0][0], new_tbl_name)
+        res = stxdb.db_get_table_columns(new_tbl_name)
+        print('res = {0:s}'.format(res))
+        self.assertEqual(len(res), 8)
+        self.assertEqual(res[0][0], 'stk')
+        self.assertEqual(res[0][1],'varchar')
+        self.assertEqual(res[0][2], 8)
+        self.assertEqual(res[1][0], 'date')
+        self.assertEqual(res[1][1], 'date')
+        self.assertEqual(res[2][0], 'o')
+        self.assertEqual(res[2][1], 'numeric')
+        self.assertEqual(res[2][3], 10)
+        self.assertEqual(res[2][4], 2)
+        self.assertEqual(res[3][0], 'hi')
+        self.assertEqual(res[3][1], 'numeric')
+        self.assertEqual(res[3][3], 10)
+        self.assertEqual(res[3][4], 2)
+        self.assertEqual(res[4][0], 'lo')
+        self.assertEqual(res[4][1], 'numeric')
+        self.assertEqual(res[4][3], 10)
+        self.assertEqual(res[4][4], 2)
+        self.assertEqual(res[5][0], 'c')
+        self.assertEqual(res[5][1], 'numeric')
+        self.assertEqual(res[5][3], 10)
+        self.assertEqual(res[5][4], 2)
+        self.assertEqual(res[6][0], 'volume')
+        self.assertEqual(res[6][1], 'int4')
+        self.assertEqual(res[7][0], 'open_interest')
+        self.assertEqual(res[7][1], 'int4')
+
 
 class Test2StxCal(unittest.TestCase):
 
