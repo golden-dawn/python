@@ -48,6 +48,30 @@ def db_create_missing_table(tbl_name, sql_create_tbl_cmd):
         db_write_cmd(sql_create_tbl_cmd.format(tbl_name))
 
 
+# Create a database table if it doesn't exist
+def db_create_table_like(tbl_name, new_tbl_name):
+    if tbl_name is None or tbl_name == '':
+        print('Empty tbl_name parameter for db_create_table_like request')
+        return
+    if new_tbl_name is None or new_tbl_name == '':
+        print('Empty new_tbl_name parameter for db_create_table_like request')
+        return
+    res = db_read_cmd("SELECT table_name FROM information_schema.tables "
+                      "WHERE table_schema='public' AND table_name='{0:s}'".
+                      format(tbl_name))
+    if not res:
+        print("Table {0:s} does not exist".format(tbl_name))
+        return
+    res = db_read_cmd("SELECT table_name FROM information_schema.tables "
+                      "WHERE table_schema='public' AND table_name='{0:s}'".
+                      format(new_tbl_name))
+    if not not res:
+        print("Table {0:s} already exists".format(new_tbl_name))
+        return
+    res = db_write_cmd("SELECT create_table_like('{0:s}', '{1:s}')".
+                       format(tbl_name, new_tbl_name))
+
+
 def db_get_table_columns(tbl_name):
     res = db_read_cmd("select column_name,udt_name,character_maximum_length,"
                       "numeric_precision,numeric_scale from "
