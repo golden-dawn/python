@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from opteod import OptEOD
 import os
 import unittest
 from shutil import copyfile
@@ -281,7 +282,24 @@ class Test2StxCal(unittest.TestCase):
 #                         (res2.c == 34.12) and (res2.v == 38797400))
 
 
-class Test4StxEod(unittest.TestCase):
+class Test4OptEod(unittest.TestCase):
+
+    def setUp(self):
+        self.start_date = '2002-02'
+        self.end_date = '2002-02'
+
+    def teardown(self):
+        pass
+
+    def test_01_load_data(self):
+        opt_eod = OptEOD()
+        opt_eod.load_opts(self.start_date, self.end_date)
+        res1 = stxdb.db_read_cmd('Select count(*) from equities')
+        print('res1 = {0:s}'.format(res1))
+        self.assertEqual(res1[0][0], 1944)
+
+
+class Test5StxEod(unittest.TestCase):
 
     def setUp(self):
         self.data_dir = os.getenv('DATA_DIR')
