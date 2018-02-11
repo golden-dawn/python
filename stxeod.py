@@ -18,52 +18,11 @@ class StxEOD:
     data_dir = os.getenv('DATA_DIR')
     sh_dir = '{0:s}/stockhistory_2017'.format(data_dir)
     upload_dir = '/tmp'
-    ed_dir = '/media/cma/{0:s}/EODData'
-    dload_dir = '/media/cma/{0:s}/Downloads'
+    ed_dir = '{0:s}/EODData'.format(data_dir)
+    dload_dir = '{0:s}/Downloads'.format(data_dir)
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
     yhoo_url = 'http://chart.finance.yahoo.com/table.csv?s={0:s}&a={1:d}&'\
         'b={2:d}&c={3:d}&d={4:d}&e={5:d}&f={6:d}&g={7:s}&ignore=.csv'
-    # when changing the dt column from varchar(10) to date need to do this:
-    # alter table ed_eod modify dt date;
-    # delete from my_eod where char_length(dt) < 10;
-    # alter table my_eod modify dt date;
-    # alter table md_eod modify dt date;
-    # alter table dn_eod modify dt date;
-    # alter table eod modify dt date;
-    # alter table splits modify dt date;
-    # alter table ed_split modify dt date;
-    # alter table md_split modify dt date;
-    # alter table my_split modify dt date;
-    # alter table dn_split modify dt date;
-    # alter table split modify dt date;
-    sql_create_eod = 'CREATE TABLE {0:s} ('\
-                     'stk varchar(8) NOT NULL,'\
-                     'dt date NOT NULL,'\
-                     'o decimal(9,2) DEFAULT NULL,'\
-                     'hi decimal(9,2) DEFAULT NULL,'\
-                     'lo decimal(9,2) DEFAULT NULL,'\
-                     'c decimal(9,2) DEFAULT NULL,'\
-                     'v integer DEFAULT NULL,'\
-                     'PRIMARY KEY (stk,dt)'\
-                     ')'
-    sql_create_split = 'CREATE TABLE {0:s} ('\
-                       'stk varchar(8) NOT NULL,'\
-                       'dt date NOT NULL,'\
-                       'ratio decimal(8,4) DEFAULT NULL,'\
-                       'implied smallint DEFAULT 0,'\
-                       'PRIMARY KEY (stk,dt)'\
-                       ')'
-    sql_create_fxs = 'CREATE TABLE {0:s} ('\
-                     'stk varchar(8) NOT NULL,'\
-                     'dt date NOT NULL,'\
-                     'o decimal(9,2) DEFAULT NULL,'\
-                     'hi decimal(9,2) DEFAULT NULL,'\
-                     'lo decimal(9,2) DEFAULT NULL,'\
-                     'c decimal(9,2) DEFAULT NULL,'\
-                     'v integer DEFAULT NULL,'\
-                     'oi integer DEFAULT NULL,'\
-                     'PRIMARY KEY (stk,dt)'\
-                     ')'
     sql_create_recon = 'CREATE TABLE {0:s} ('\
                        'stk varchar(8) NOT NULL,'\
                        'recon_name varchar(16) NOT NULL,'\
@@ -84,21 +43,27 @@ class StxEOD:
     status_ok = 1
     status_ko = 2
 
-    def __init__(self, in_dir, eod_tbl, split_tbl, recon_tbl, ftr_tbl='',
-                 extension='.txt'):
+    def __init__(self, in_dir, prefix, recon_tbl, extension='.txt'):
         self.in_dir = in_dir
-        self.eod_tbl = eod_tbl
-        self.rec_name = eod_tbl
-        self.split_tbl = split_tbl
-        self.ftr_tbl = ftr_tbl
+        self.eod_tbl = 'eods' if prefix == '' else '{0:s}_eods'.format(prefix)
+        self.rec_name = self.eod_tbl
+        self.divi_tbl = 'dividends' if prefix == '' else \
+                        '{0:s}_dividends'.format(prefix)
         self.recon_tbl = recon_tbl
         self.extension = extension
-        stxdb.db_create_missing_table(eod_tbl, self.sql_create_eod)
-        stxdb.db_create_missing_table(split_tbl, self.sql_create_split)
-        stxdb.db_create_missing_table(ftr_tbl, self.sql_create_fxs)
+        stxdb.db_create_table_like('eods', self.eod_tbl)
+        stxdb.db_create_table_like('dividends', self.divi_tbl)
         stxdb.db_create_missing_table(recon_tbl, self.sql_create_recon)
         if not os.path.exists(self.upload_dir):
             os.makedirs(self.upload_dir)
+
+    def create_exchange(self):
+        xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
+        if not xchgs:
+            stxdb.db_write_cmd("insert into exchanges values('US')")
+        db_stx = {x[0]: '' for x in stxdb.db_read_cmd("select * from equities")}
+        stx = {}
+        return db_stx, stx
 
     # Load my historical data.  Load each stock and accumulate splits.
     # Upload splits at the end.
@@ -120,14 +85,15 @@ class StxEOD:
                 lst.append('{0:s}{1:s}'.format(stk.strip(), self.extension))
         num_stx = len(lst)
         print('Loading data for {0:d} stocks'.format(num_stx))
+        db_stx, stx_dct = self.create_exchange()
         ixx = 0
         for fname in lst:
-            self.load_my_stk(fname, split_fname)
+            self.load_my_stk(fname, split_fname, db_stx, stx_dct)
             ixx += 1
             if ixx % 500 == 0 or ixx == num_stx:
                 print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
         try:
-            stxdb.db_upload_file(split_fname, self.split_tbl, '\t')
+            stxdb.db_upload_file(split_fname, self.divi_tbl, '\t')
             print('Successfully uploaded the splits in the DB')
         except Exception as ex:
             print('Failed to upload the splits from file {0:s}, error {1:s}'.
@@ -135,9 +101,14 @@ class StxEOD:
 
     # Upload each stock.  Split lines are prefixed with '*'.  Upload
     # stock data separately and then accumulate each stock.
-    def load_my_stk(self, short_fname, split_fname):
+    def load_my_stk(self, short_fname, split_fname, db_stx, stx_dct):
         fname = '{0:s}/{1:s}'.format(self.in_dir, short_fname)
         stk = short_fname[:-4].upper()
+        if (stk not in db_stx) and (stk not in stx_dct):
+            insert_stx = "INSERT INTO equities VALUES "\
+                         "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+            stxdb.db_write_cmd(insert_stx)
+            stx_dct[stk] = stk
         try:
             with open(fname, 'r') as ifile:
                 lines = ifile.readlines()
@@ -157,7 +128,7 @@ class StxEOD:
                     if o > 0.05 and h > 0.05 and l > 0.05 and c > 0.05 and \
                        v > 0:
                         eod.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
-                                  '{5:.2f}\t{6:d}\n'.
+                                  '{5:.2f}\t{6:d}\t0\n'.
                                   format(stk, toks[0], o, h, l, c, v))
                     eods += 1
                     if start == 1:
@@ -244,7 +215,7 @@ class StxEOD:
                                  format(stk, stxcal.prev_busday(dt),
                                         num / denom))
         try:
-            stxdb.db_upload_file(out_fname, self.split_tbl, '\t')
+            stxdb.db_upload_file(out_fname, self.divi_tbl, '\t')
             print('Uploaded delta neutral splits')
         except Exception as ex:
             print('Failed to upload splits, error {0:s}'.format(str(ex)))
@@ -274,7 +245,7 @@ class StxEOD:
                         # and a dividend payment on the same date
                         res = stxdb.db_read_cmd("select * from {0:s} where "
                                                 "stk='{1:s}' and dt='{2:s}'".
-                                                format(self.split_tbl, stk,
+                                                format(self.divi_tbl, stk,
                                                        dt))
                         if res:
                             print('Cannot upload {0:s}, because there is '
@@ -287,7 +258,7 @@ class StxEOD:
                         print('Failed to process {0:s}, error: {1:s}'.
                               format(str(row), str(ex)))
         try:
-            stxdb.db_upload_file(out_fname, self.split_tbl, '\t')
+            stxdb.db_upload_file(out_fname, self.divi_tbl, '\t')
             print('Uploaded delta neutral splits')
         except Exception as ex:
             print('Failed to upload splits, error {0:s}'.format(str(ex)))
@@ -417,7 +388,7 @@ class StxEOD:
                           format(stk, dt, ratio, iratio, sd_type, validation))
             stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "
                                "{3:f}, {4:d})".
-                               format(self.split_tbl, stk, dt, ratio, sd_type))
+                               format(self.divi_tbl, stk, dt, ratio, sd_type))
         for dt in reversed(sorted(splits_dict.keys())):
             s_ix, e_ix = 0, dt_dict[dt]
             df.loc[s_ix:e_ix, 'Volume'] = df['Volume'] / splits_dict[dt]
@@ -512,7 +483,7 @@ class StxEOD:
         s_df, e_df = str(df.index[0].date()), str(df.index[-1].date())
         res = stxdb.db_read_cmd("select * from {0:s} where stk = '{1:s}'"
                                 " and dt between '{2:s}' and '{3:s}' and "
-                                "implied = 1".format(self.split_tbl, stk, sd,
+                                "implied = 1".format(self.divi_tbl, stk, sd,
                                                      ed))
         if dbg:
             print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.
@@ -532,7 +503,7 @@ class StxEOD:
     def calc_implied_splits(self, df, stk, sd, ed):
         stxdb.db_write_cmd("delete from {0:s} where stk = '{1:s}' and "
                            "dt between '{2:s}' and '{3:s}' and implied = 1".
-                           format(self.split_tbl, stk, sd, ed))
+                           format(self.divi_tbl, stk, sd, ed))
         df['r'] = df['spot'] / df['c']
         for i in [x for x in range(-3, 4) if x != 0]:
             df['r{0:d}'.format(i)] = df['r'].shift(-i)
@@ -546,7 +517,7 @@ class StxEOD:
                    (df['v'] > 0)]
         for r in df_f1.iterrows():
             stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "
-                               "{3:.4f}, 1)".format(self.split_tbl, stk,
+                               "{3:.4f}, 1)".format(self.divi_tbl, stk,
                                                     str(r[0].date()),
                                                     r[1]['rr']))
 
@@ -567,7 +538,7 @@ class StxEOD:
         ts.splits.clear()
         splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where"
                                    " stk='{1:s}' and implied = 1".
-                                   format(self.split_tbl, ts.stk))
+                                   format(self.divi_tbl, ts.stk))
         for s in splits:
             ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = \
                 [float(s[1]), int(s[2])]
@@ -589,7 +560,7 @@ class StxEOD:
     def cleanup(self):
         # drop the EOD and splits tables
         stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_tbl))
-        stxdb.db_write_cmd('drop table {0:s}'.format(self.split_tbl))
+        stxdb.db_write_cmd('drop table {0:s}'.format(self.divi_tbl))
         # if reconciliation table exists, delete all the records that
         # correspond to the self.recon_name variable
         res = stxdb.db_read_cmd(self.sql_show_tables.format(self.recon_tbl))
@@ -658,7 +629,7 @@ class StxEOD:
             # print('split_adjs = {0:s}'.format(str(split_adjs)))
             for s in split_adjs:
                 stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}'"
-                                   ", {3:.4f}, 1)".format(self.split_tbl, stk,
+                                   ", {3:.4f}, 1)".format(self.divi_tbl, stk,
                                                           str(s[0].date()),
                                                           s[1]))
         df, ts = self.build_df_ts(spot_df, stk, sd, ed)
@@ -668,7 +639,7 @@ class StxEOD:
     # frame that will include the reconciliation calculations.
     def build_df_ts(self, spot_df, stk, sd, ed):
         try:
-            ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+            ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         except Exception as ex:
             print('Failed to build StxTS: error {0:s}'.format(str(ex)))
             return None, None
@@ -729,11 +700,11 @@ class StxEOD:
         print('{0:s} - uploaded {1:d} stocks'.format(self.rec_name, num))
 
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
-        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.splits.clear()
         impl_splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s}"
                                         " where stk='{1:s}' and implied = 1".
-                                        format(self.split_tbl, stk))
+                                        format(self.divi_tbl, stk))
         # for implied splits, need to perform a reverse adjustment
         # for the adjustment to work, move the split date to next business day
         for s in impl_splits:
@@ -754,7 +725,7 @@ class StxEOD:
         stxdb.db_write_cmd('insert into {0:s} (stk,dt,ratio,implied) '
                            'select stk, dt, ratio, implied from {1:s} '
                            "where stk='{2:s}'".
-                           format(split_table, self.split_tbl, stk))
+                           format(split_table, self.divi_tbl, stk))
         # update the reconciilation table
         stxdb.db_write_cmd("update {0:s} set status={1:d} where "
                            "stk='{2:s}' and recon_interval='{3:s}' and "
@@ -793,7 +764,7 @@ class StxEOD:
                           ' stocks'.format(num, num_stx))
 
     def reconcile_big_changes(self, stk, sd, ed, split_tbls):
-        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
         ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
@@ -821,7 +792,7 @@ class StxEOD:
                 db_splits = '{0:s}{1:9s} {2:7.4f} '.\
                             format(db_splits, tbl_name, splits[big_chg_dt])
                 sql = "insert into {0:s} values ('{1:s}','{2:s}',"\
-                      "{3:.4f},0)".format(self.split_tbl, stk,
+                      "{3:.4f},0)".format(self.divi_tbl, stk,
                                           stxcal.prev_busday(big_chg_dt),
                                           splits[big_chg_dt])
                 try:
@@ -849,7 +820,7 @@ class StxEOD:
                     stk, dt = tokens[0], tokens[1]
                     sql = "update {0:s} set dt='{1:s}' where "\
                         "stk='{2:s}' and dt='{3:s}'".\
-                        format(self.split_tbl, stxcal.prev_busday(dt), stk, dt)
+                        format(self.divi_tbl, stxcal.prev_busday(dt), stk, dt)
                     stxdb.db_write_cmd(sql)
 
     # Capture all the large price changes without a volume that is
@@ -883,7 +854,7 @@ class StxEOD:
                           ' stocks'.format(num, num_stx))
 
     def reconcile_stk_eod(self, c, stk, sd, ed):
-        ts = StxTS(stk, sd, ed, self.eod_tbl, self.split_tbl)
+        ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
         ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
@@ -925,7 +896,7 @@ class StxEOD:
                     db_cmd = "insert into {0:s} values('{1:s}','{2:s}',"\
                              "{3:4f},0) on duplicate key update "\
                              "ratio={4:4f}, implied=0".\
-                             format(self.split_tbl, stk, px1[0],
+                             format(self.divi_tbl, stk, px1[0],
                                     np.round(split, 4), np.round(split, 4))
                     stxdb.db_write_cmd(db_cmd)
             ofname = '{0:s}/big_change_recon_{1:s}_{2:s}.txt'.\
@@ -1108,7 +1079,7 @@ class StxEOD:
                 continue
             db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:8.4f},0) "\
                      "on duplicate key update ratio={4:8.4f}".\
-                     format(self.split_tbl, stk, dt, ratio, ratio)
+                     format(self.divi_tbl, stk, dt, ratio, ratio)
             stxdb.db_write_cmd(db_cmd)
             num_splits += 1
         print('{0:s}: uploaded/updated {1:d} splits'.format(split_file,
