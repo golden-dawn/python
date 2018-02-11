@@ -59,6 +59,9 @@ def db_create_table_like(tbl_name, new_tbl_name):
     res = db_read_cmd("SELECT table_name FROM information_schema.tables "
                       "WHERE table_schema='public' AND table_name='{0:s}'".
                       format(tbl_name))
+    if tbl_name == new_tbl_name:
+        print('Cannot create a table like itself')
+        return
     if not res:
         print("Table {0:s} does not exist".format(tbl_name))
         return
