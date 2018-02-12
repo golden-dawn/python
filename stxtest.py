@@ -603,29 +603,31 @@ class Test5StxEod(unittest.TestCase):
     #                     res5[2] == ('NFLX', 1) and
     #                     res5[3] == ('TIE', 2))
 
-    # def test_08_load_md_data(self):
-    #     md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
-    #                     self.recon_tbl)
-    #     log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
-    #                                                   strftime('%Y%m%d%H%M%S'))
-    #     with open(log_fname, 'w') as logfile:
-    #         md_eod.load_marketdata_file('{0:s}/NASDAQ/EXPE.csv'.
-    #                                     format(self.md_in_dir), logfile)
-    #         md_eod.load_marketdata_file('{0:s}/NASDAQ/NFLX.csv'.
-    #                                     format(self.md_in_dir), logfile)
-    #     os.remove(log_fname)
-    #     res1 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.md_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.md_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.md_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('NFLX', 'EXPE') group by stk order by stk".
-    #                              format(self.md_eod_tbl))
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 2
-    #                     and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
-    #                     res4[1][0] == 'NFLX' and res4[1][1] == 3616)
+    def test_08_load_md_data(self):
+        md_eod = StxEOD(self.md_in_dir, 'md', self.recon_tbl)
+        log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
+                                                      strftime('%Y%m%d%H%M%S'))
+        db_stx, stx_dct = md_eod.create_exchange()
+        with open(log_fname, 'w') as logfile:
+            md_eod.load_marketdata_file(os.path.join(
+                self.md_in_dir, 'NASDAQ', 'EXPE.csv'), logfile, db_stx)
+            md_eod.load_marketdata_file(os.path.join(
+                self.md_in_dir, 'NASDAQ', 'NFLX.csv'), logfile, db_stx)
+            md_eod.load_marketdata_file(os.path.join(
+                self.md_in_dir, 'NYSE', 'IBM.csv'), logfile, db_stx)
+        os.remove(log_fname)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.md_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.md_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} group by stk"
+                                 " order by stk".format(self.md_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 3
+                        and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
+                        res4[1][0] == 'IBM' and res4[1][1] == 13783 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 3616)
 
     def test_09_load_ed_data(self):
         ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)

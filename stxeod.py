@@ -327,9 +327,10 @@ class StxEOD:
         log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
                                                     strftime('%Y%m%d%H%M%S'))
         exchanges = ['AMEX', 'NASDAQ', 'NYSE']
+        db_stx, stx_dct = self.create_exchange()
         with open(log_fname, 'w') as logfile:
             for exchange in exchanges:
-                exch_dir = '{0:s}/{1:s}'.format(self.in_dir, exchange)
+                exch_dir = os.path.join(self.in_dir, exchange)
                 num = 0
                 files = os.listdir(exch_dir)
                 total = len(files)
@@ -337,9 +338,8 @@ class StxEOD:
                       format(stxcal.print_current_time(), total, exchange))
                 for fname in files:
                     try:
-                        self.load_marketdata_file('{0:s}/{1:s}'.
-                                                  format(exch_dir, fname),
-                                                  logfile)
+                        self.load_marketdata_file(
+                            os.path.join(exch_dir, fname), logfile, db_stx)
                     except Exception as ex:
                         print('Failed to load {0:s}: {1:s}'.
                               format(fname, str(ex)))
@@ -352,12 +352,16 @@ class StxEOD:
     # For each marketdata file, back out splits and dividends; adjust
     # volume for splits (but not dividends).  Update the database with
     # the splits / divis, and the eod data
-    def load_marketdata_file(self, ifname, logfile):
+    def load_marketdata_file(self, ifname, logfile, db_stx):
         df = pd.read_csv(ifname)
         dt_dict = {}
         for row in df.iterrows():
             dt_dict[row[1][0]] = row[0]
         stk = ifname[ifname.rfind('/') + 1:ifname.rfind('.')]
+        if stk not in db_stx:
+            insert_stx = "INSERT INTO equities VALUES "\
+                         "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+            stxdb.db_write_cmd(insert_stx)
         df['R'] = df['Close'] / df['Adj Close']
         df['R_1'] = df['R'].shift()
         df.R_1.fillna(df.R, inplace=True)
@@ -370,7 +374,7 @@ class StxEOD:
         splits_divis = df.query('RR_1<0.999 | RR_1>1.001')
         splits_dict = {}
         split_tables = []
-        for tbl in ['dn_split', 'splits', 'split']:
+        for tbl in ['dn_dividends', 'dividends', 'split']:
             res = stxdb.db_read_cmd(self.sql_show_tables.format(tbl))
             if len(res) == 1:
                 split_tables.append(tbl)
@@ -380,8 +384,8 @@ class StxEOD:
             sd_type = 0 if ratio <= 0.95 or ratio >= 1.05 else 2
             validation = ''
             for tbl in split_tables:
-                sql = "select * from {0:s} where stk='{1:s}' and dt='{2:s}'".\
-                    format(tbl, stk, dt)
+                sql = "select * from {0:s} where stk='{1:s}' and "\
+                      "date='{2:s}'".format(tbl, stk, dt)
                 res = stxdb.db_read_cmd(sql)
                 if len(res) > 0:
                     tbl_sd_type = res[0][3]
@@ -411,7 +415,7 @@ class StxEOD:
                    pd.isnull(r[1]['Close']) or pd.isnull(r[1]['Volume']):
                     continue
                 ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
-                            '{5:.2f}\t{6:.0f}\n'.
+                            '{5:.2f}\t{6:.0f}\t0\n'.
                             format(stk, r[1]['Date'], r[1]['Open'],
                                    r[1]['High'], r[1]['Low'], r[1]['Close'],
                                    r[1]['Volume']))
