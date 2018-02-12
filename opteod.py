@@ -16,23 +16,6 @@ class OptEOD:
     month_names = {1: 'January', 2: 'February', 3: 'March', 4: 'April',
                    5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September',
                    10: 'October', 11: 'November', 12: 'December'}
-    sql_create_opts = 'CREATE TABLE {0:s} ('\
-                      'exp date NOT NULL,'\
-                      'und varchar(8) NOT NULL,'\
-                      'cp varchar(1) NOT NULL,'\
-                      'strike decimal(10, 2) NOT NULL,'\
-                      'dt date NOT NULL,'\
-                      'bid decimal(10, 2) NOT NULL,'\
-                      'ask decimal(10, 2) NOT NULL,'\
-                      'volume integer NOT NULL,'\
-                      'PRIMARY KEY (exp,und,cp,strike,dt)'\
-                      ')'
-    sql_create_spots = 'CREATE TABLE {0:s} ('\
-                       'stk varchar(8) NOT NULL,'\
-                       'dt date NOT NULL,'\
-                       'spot decimal(10, 2) NOT NULL,'\
-                       'PRIMARY KEY (stk,dt)'\
-                       ')'
 
     def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots',
                  upload_options=True, upload_spots=True):
@@ -41,8 +24,6 @@ class OptEOD:
         self.spot_tbl = spot_tbl
         self.upload_spots = upload_spots
         self.upload_options = upload_options
-        stxdb.db_create_missing_table(opt_tbl, self.sql_create_opts)
-        stxdb.db_create_missing_table(spot_tbl, self.sql_create_spots)
 
     def load_opts(self, start_date, end_date):
         start_year, start_month = [int(x) for x in start_date.split('-')]
