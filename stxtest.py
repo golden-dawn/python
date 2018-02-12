@@ -321,7 +321,7 @@ class Test5StxEod(unittest.TestCase):
         self.ed_split_tbl = 'ed_dividends'
         self.recon_tbl = 'reconciliation_test'
         self.my_in_dir = '{0:s}/my_test'.format(self.data_dir)
-        self.dn_in_dir = '{0:s}/dn_test'.format(self.data_dir)
+        self.dn_in_dir = '/tmp/dn_test'
         self.md_in_dir = '{0:s}/md'.format(self.data_dir)
         self.ed_in_dir = '{0:s}/EODData'.format(self.data_dir)
         self.my_dir = '{0:s}/bkp'.format(self.data_dir)
@@ -408,42 +408,41 @@ class Test5StxEod(unittest.TestCase):
                         res5[0][0] == 'AEOS' and float(res5[0][1]) == 3.68 and
                         res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
 
-    # def test_03_load_dn_data(self):
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod.load_deltaneutral_files(self.stx)
-    #     res1 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.dn_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <= "
-    #                              "'2012-12-31' group by stk order by stk".
-    #                              format(self.dn_eod_tbl))
-    #     res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
-    #                              "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and dt <="
-    #                              " '2012-12-31' group by stk order by stk".
-    #                              format(self.dn_split_tbl))
-    #     print('test_03_load_dn_data')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     print('res3')
-    #     print(res3)
-    #     print('res4')
-    #     print(res4)
-    #     print('res5')
-    #     print(res5)
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-    #                     and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
-    #                     res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
-    #                     res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
-    #                     res4[3][0] == 'TIE' and res4[3][1] == 3017 and
-    #                     res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
-    #                     res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
+    def test_03_load_dn_data(self):
+        dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
+        dn_eod.load_deltaneutral_files(self.stx)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.dn_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'AEOS', 'TIE', 'EXPE') and date <= "
+                                 "'2012-12-31' group by stk order by stk".
+                                 format(self.dn_eod_tbl))
+        res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
+                                 "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and date "
+                                 " <= '2012-12-31' group by stk order by stk".
+                                 format(self.dn_split_tbl))
+        print('test_03_load_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
+                        res4[3][0] == 'TIE' and res4[3][1] == 3017 and
+                        res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
+                        res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
     # def test_04_reconcile_my_data(self):
     #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,

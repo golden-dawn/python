@@ -152,8 +152,9 @@ class StxEOD:
     # all the splits into the database.  We will worry about
     # missing/wrong splits and volume adjustments later.
     def load_deltaneutral_files(self, stks=''):
-        if not os.path.exists(self.in_dir):
-            os.makedirs(self.in_dir)
+        if os.path.exists(self.in_dir):
+            rmtree(self.in_dir)
+        os.makedirs(self.in_dir)
         for yr in range(2001, 2017):
             fname = '{0:s}/stockhistory_{1:d}.csv'.format(self.sh_dir, yr)
             stx = {}
@@ -171,7 +172,7 @@ class StxEOD:
                     if o > 0.05 and h > 0.05 and l > 0.05 and c > 0.05 and \
                        v > 0:
                         data.append('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
-                                    '{5:.2f}\t{6:d}\n'.
+                                    '{5:.2f}\t{6:d}\t0\n'.
                                     format(stk, str(datetime.strptime
                                                     (row[1], '%m/%d/%Y').
                                                     date()),
@@ -186,9 +187,9 @@ class StxEOD:
         lst = [f for f in os.listdir(self.in_dir)
                if f.endswith(self.extension)]
         for fname in lst:
-            copyfile('{0:s}/{1:s}'.format(self.in_dir, fname), self.eod_name)
             try:
-                stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
+                stxdb.db_upload_file(os.path.join(self.in_dir, fname),
+                                     self.eod_tbl, '\t')
                 print('{0:s}: uploaded eods'.format(stk))
             except Exception as ex:
                 print('Upload failed {0:s}, error {1:s}'.format(stk, str(ex)))
