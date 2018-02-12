@@ -8,7 +8,7 @@ import numpy as np
 import os
 import pandas as pd
 import requests
-from shutil import copyfile, rmtree
+from shutil import rmtree
 import stxcal
 import stxdb
 from stxts import StxTS
@@ -61,7 +61,7 @@ class StxEOD:
         xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
         if not xchgs:
             stxdb.db_write_cmd("insert into exchanges values('US')")
-        db_stx = {x[0]: '' for x in stxdb.db_read_cmd("select * from equities")}
+        db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
         stx = {}
         return db_stx, stx
 
@@ -160,6 +160,7 @@ class StxEOD:
             stx = {}
             stk_list = [] if stks == '' else stks.split(',')
             with open(fname) as csvfile:
+                db_stx, stx_dct = self.create_exchange()
                 frdr = csv.reader(csvfile)
                 for row in frdr:
                     stk = row[0].strip()
@@ -180,6 +181,10 @@ class StxEOD:
                     stx[stk] = data
             print('{0:s}: got data for {1:d} stocks'.format(fname, len(stx)))
             for stk, recs in stx.items():
+                if stk not in db_stx:
+                    insert_stx = "INSERT INTO equities VALUES "\
+                                 "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+                    stxdb.db_write_cmd(insert_stx)
                 with open('{0:s}/{1:s}.txt'.format(self.in_dir, stk), 'a') \
                         as ofile:
                     for rec in recs:
@@ -271,9 +276,9 @@ class StxEOD:
     def load_eoddata_files(self, sd='2013-01-02', ed='2013-11-15', stks=''):
         dt = sd
         # dt = stxcal.move_busdays(sd, -25)
-        fnames = [self.in_dir + '/AMEX_{0:s}.txt',
-                  self.in_dir + '/NASDAQ_{0:s}.txt',
-                  self.in_dir + '/NYSE_{0:s}.txt']
+        fnames = [os.path.join(self.in_dir, 'AMEX_{0:s}.txt'),
+                  os.path.join(self.in_dir, 'NASDAQ_{0:s}.txt'),
+                  os.path.join(self.in_dir, 'NYSE_{0:s}.txt')]
         while dt <= ed:
             dtc = dt.replace('-', '')
             with open(self.eod_name, 'w') as ofile:
@@ -293,6 +298,7 @@ class StxEOD:
     # is 0, or where the open/close are outside the [low, high] range.
     def load_eoddata_file(self, ofile, ifname, dt, dtc, stks=''):
         stk_list = [] if stks == '' else stks.split(',')
+        db_stx, stx_dct = self.create_exchange()
         with open(ifname, 'r') as ifile:
             lines = ifile.readlines()
             for line in lines[1:]:
@@ -301,6 +307,10 @@ class StxEOD:
                 if (stk_list and stk not in stk_list) or ('/' in stk) or \
                    ('*' in stk) or (stk in ['AUX', 'PRN']):
                     continue
+                if stk not in db_stx:
+                    insert_stx = "INSERT INTO equities VALUES "\
+                                 "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+                    stxdb.db_write_cmd(insert_stx)
                 o = float(tokens[2])
                 hi = float(tokens[3])
                 lo = float(tokens[4])
@@ -309,7 +319,7 @@ class StxEOD:
                 if v == 0 or o < lo or o > hi or c < lo or c > hi or \
                    len(tokens[0]) > 6:
                     continue
-                ofile.write('{0:s}\n'.format('\t'.join(tokens)))
+                ofile.write('{0:s}\t0\n'.format('\t'.join(tokens)))
 
     # Load data from the market archive.  Data is located in three
     # different directories (AMEX, NASDAQ and NYSE)

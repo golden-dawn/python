@@ -192,6 +192,6 @@ if __name__ == '__main__':
         upload_options = False
     opt_eod = OptEOD(opt_tbl='options', spot_tbl='opt_spots',
                      upload_options=upload_options, upload_spots=upload_spots)
-    opt_eod.load_opts('2002-02', '2009-03')
+    opt_eod.load_opts('2002-02', '2017-12')
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)

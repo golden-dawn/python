@@ -282,30 +282,29 @@ class Test2StxCal(unittest.TestCase):
 #                         (res2.c == 34.12) and (res2.v == 38797400))
 
 
-class Test4OptEod(unittest.TestCase):
+# class Test4OptEod(unittest.TestCase):
 
-    def setUp(self):
-        self.start_date = '2002-02'
-        self.end_date = '2002-02'
+#     def setUp(self):
+#         self.start_date = '2002-02'
+#         self.end_date = '2002-02'
 
-    def teardown(self):
-        pass
+#     def teardown(self):
+#         pass
 
-    def test_01_load_data(self):
-        opt_eod = OptEOD()
-        opt_eod.load_opts(self.start_date, self.end_date)
-        res1 = stxdb.db_read_cmd('select count(*) from equities')
-        print('res1 = {0:s}'.format(res1))
-        self.assertEqual(res1[0][0], 1944)
-        res2 = stxdb.db_read_cmd('select sum(spot) from opt_spots')
-        print('res2 = {0:s}'.format(res2))
-        self.assertEqual(res2[0][0], 929973.0)
-        res3 = stxdb.db_read_cmd(
-            "select count(*) from options where expiry='2002-06-22'")
-        print('res3 = {0:s}'.format(res3))
-        self.assertEqual(res3[0][0], 101550)
+#     def test_01_load_data(self):
+#         opt_eod = OptEOD()
+#         opt_eod.load_opts(self.start_date, self.end_date)
+#         res1 = stxdb.db_read_cmd('select count(*) from equities')
+#         print('res1 = {0:s}'.format(res1))
+#         self.assertEqual(res1[0][0], 1944)
+#         res2 = stxdb.db_read_cmd('select sum(spot) from opt_spots')
+#         print('res2 = {0:s}'.format(res2))
+#         self.assertEqual(res2[0][0], 929973.0)
+#         res3 = stxdb.db_read_cmd(
+#             "select count(*) from options where expiry='2002-06-22'")
+#         print('res3 = {0:s}'.format(res3))
+#         self.assertEqual(res3[0][0], 101550)
         
-
 
 class Test5StxEod(unittest.TestCase):
 
@@ -628,24 +627,23 @@ class Test5StxEod(unittest.TestCase):
     #                     and res4[0][0] == 'EXPE' and res4[0][1] == 2820 and
     #                     res4[1][0] == 'NFLX' and res4[1][1] == 3616)
 
-    # def test_09_load_ed_data(self):
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     ed_eod.load_eoddata_files(sd=self.sd_01, stks=self.ed_stx)
-    #     res1 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.ed_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.ed_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.ed_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
-    #                              "order by stk".format(self.ed_eod_tbl))
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-    #                     and res4[0][0] == 'AA' and res4[0][1] == 242 and
-    #                     res4[1][0] == 'EXPE' and res4[1][1] == 242 and
-    #                     res4[2][0] == 'NFLX' and res4[2][1] == 242 and
-    #                     res4[3][0] == 'VXX' and res4[3][1] == 241)
+    def test_09_load_ed_data(self):
+        ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
+        ed_eod.load_eoddata_files(sd=self.sd_01, stks=self.ed_stx)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.ed_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
+                                 "order by stk".format(self.ed_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AA' and res4[0][1] == 242 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 242 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 242 and
+                        res4[3][0] == 'VXX' and res4[3][1] == 241)
 
     # def test_10_reconcile_ed_data(self):
     #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
