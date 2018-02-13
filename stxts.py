@@ -12,10 +12,10 @@ class StxTS:
         self.stk = stk
         self.sd = pd.to_datetime(sd)
         self.ed = pd.to_datetime(ed)
-        q = "select * from %s where stk='%s' and dt between '%s' and '%s'" % \
-            (eod_tbl, stk, sd, ed)
-        df = pd.read_sql(q, stxdb.db_get_cnx(), index_col='dt',
-                         parse_dates=['dt'])
+        q = "select * from {0:s} where stk='{1:s}' and date between '{2:s}' "\
+            "and '{3:s}'".format(eod_tbl, stk, sd, ed)
+        df = pd.read_sql(q, stxdb.db_get_cnx(), index_col='date',
+                         parse_dates=['date'])
         if self.sd < df.index[0]:
             self.sd = df.index[0]
         if self.ed > df.index[-1]:
@@ -24,8 +24,8 @@ class StxTS:
         self.ed_str = str(self.ed.date())
         self.gaps = self.get_gaps(df)
         df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
-        s_lst = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where "
-                                  "stk='{1:s}'".format(split_tbl, stk))
+        s_lst = stxdb.db_read_cmd("select date, ratio, divi_type from {0:s} "
+                                  "where stk='{1:s}'".format(split_tbl, stk))
         self.splits = {pd.to_datetime(stxcal.next_busday(s[0])):
                        [float(s[1]), int(s[2])] for s in s_lst}
         self.df = self.fill_gaps(df)
@@ -56,7 +56,8 @@ class StxTS:
         else:
             gaps.append(tuple([self.sd, df.loc[glist[0]]['prev_date']]))
             for i in range(1, len(glist)):
-                gaps.append(tuple([glist[i-1], df.loc[glist[i]]['prev_date']]))
+                gaps.append(
+                    tuple([glist[i - 1], df.loc[glist[i]]['prev_date']]))
             gaps.append(tuple([glist[-1], self.ed]))
         return gaps
 
@@ -64,10 +65,10 @@ class StxTS:
         idx = pd.date_range(self.sd, self.ed, freq=StxTS.busday_us)
         df = df.reindex(idx)
         df['c'] = df['c'].ffill()
-        df['v'] = df['v'].fillna(0)
+        df['volume'] = df['volume'].fillna(0)
         df.loc[df['o'].isnull(), 'o'] = df['c']
-        df.loc[df['h'].isnull(), 'h'] = df['c']
-        df.loc[df['l'].isnull(), 'l'] = df['c']
+        df.loc[df['hi'].isnull(), 'hi'] = df['c']
+        df.loc[df['lo'].isnull(), 'lo'] = df['c']
         return df
 
     def data(self):
@@ -119,10 +120,10 @@ class StxTS:
             for adj_dt in self.adj_splits:
                 split_ratio, split_divi = self.splits.get(adj_dt)
                 self.adjust(sdd, stxcal.prev_busday(adj_dt), 1 / split_ratio,
-                            ['o', 'h', 'l', 'c'])
+                            ['o', 'hi', 'lo', 'c'])
                 if split_divi in [0, 1, 3, 6]:
                     self.adjust(sdd, stxcal.prev_busday(adj_dt), split_ratio,
-                                ['v'])
+                                ['volume'])
             self.adj_splits.clear()
             self.start = new_s
             self.end = new_e
@@ -144,9 +145,9 @@ class StxTS:
         splts = {k: v for k, v in self.splits.items() if sdd < k <= edd}
         for k, v in splts.items():
             r = v[0] if inv == 0 else 1 / v[0]
-            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'h', 'l', 'c'])
+            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'hi', 'lo', 'c'])
             if v[1] in [0, 1, 3, 6]:
-                self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['v'])
+                self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['volume'])
             self.adj_splits.append(k)
 
     def adjust(self, s_idx, e_idx, ratio, col_names):
@@ -154,11 +155,11 @@ class StxTS:
             self.df.loc[s_idx:e_idx, c_name] = self.df[c_name] * ratio
 
     def mergetbl(self, tbl_name, col_list, addl_cond=None):
-        q = "select dt,%s from %s where stk='%s' and dt between '%s' and '%s'"
+        q = "select date,%s from %s where stk='%s' and date between '%s' and '%s'"
         " %s" % (','.join(col_list), tbl_name, self.stk, self.sd, self.ed,
                  "" if addl_cond is None else addl_cond)
-        sql_res = pd.read_sql(q, stxdb.db_get_cnx(), index_col='dt',
-                              parse_dates=['dt'])
+        sql_res = pd.read_sql(q, stxdb.db_get_cnx(), index_col='date',
+                              parse_dates=['date'])
         self.df = self.df.merge(sql_res, how='left', left_index=True,
                                 right_index=True)
 
@@ -182,7 +183,7 @@ class StxTS:
         # print("Found %d leader time intervals for %s" % (len(ldr), self.stk))
         ldrs = tdf.merge(ldr, how='left', on=['exp'])
         # print("%5s merged with TDF: %s" % (" ", datetime.datetime.now()))
-        ldrs.set_index('dt', inplace=True)
+        ldrs.set_index('date', inplace=True)
         # print("%5s set the index: %s" % (" ", datetime.datetime.now()))
 
         def ldrfun1(x):
@@ -226,11 +227,11 @@ class StxTS:
 
     @staticmethod
     def gen_tdf(sd, ed):
-        tdf = pd.DataFrame(data={'dt': pd.date_range(sd, ed,
-                                                     freq=StxTS.busday_us)})
+        tdf = pd.DataFrame(data={'date': pd.date_range(sd, ed,
+                                                       freq=StxTS.busday_us)})
 
         def funexp(x):
-            return stxcal.prev_expiry(np.datetime64(x['dt'].date()))
+            return stxcal.prev_expiry(np.datetime64(x['date'].date()))
         tdf['exp'] = tdf.apply(funexp, axis=1)
         return tdf
 
