@@ -128,9 +128,9 @@ def db_sql_timeframe(sd, ed, include_and):
     res = ''
     prefix = ' and' if include_and else ' where'
     if sd is not None and ed is not None:
-        res = "{0:s} dt between '{1:s}' and '{2:s}'".format(prefix, sd, ed)
+        res = "{0:s} date between '{1:s}' and '{2:s}'".format(prefix, sd, ed)
     elif sd is not None:
-        res = "{0:s} dt >= '{1:s}'".format(prefix, sd)
+        res = "{0:s} date >= '{1:s}'".format(prefix, sd)
     elif ed is not None:
-        res = "{0:s} dt <= '{1:s}'".format(prefix, ed)
+        res = "{0:s} date <= '{1:s}'".format(prefix, ed)
     return res
