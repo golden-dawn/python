@@ -244,13 +244,13 @@ class StxEOD:
                         continue
                     try:
                         res = stxdb.db_read_cmd("select c from {0:s} where "
-                                                "stk='{1:s}' and dt='{2:s}'".
+                                                "stk='{1:s}' and date='{2:s}'".
                                                 format(self.eod_tbl, stk, dt))
                         cc = float(res[0][0])
                         # Cannot handle cases when there is a split
                         # and a dividend payment on the same date
                         res = stxdb.db_read_cmd("select * from {0:s} where "
-                                                "stk='{1:s}' and dt='{2:s}'".
+                                                "stk='{1:s}' and date='{2:s}'".
                                                 format(self.divi_tbl, stk,
                                                        dt))
                         if res:
@@ -475,10 +475,10 @@ class StxEOD:
     # available, the start and end dates between which there is eod
     # data, and then the mse and percentage of coverage
     def reconcile_opt_spots(self, stk, sd, ed, dbg=False):
-        q = "select dt, spot from opt_spots where stk='{0:s}' {1:s}".\
+        q = "select date, spot from opt_spots where stk='{0:s}' {1:s}".\
             format(stk, stxdb.db_sql_timeframe(sd, ed, True))
         spot_df = pd.read_sql(q, stxdb.db_get_cnx())
-        spot_df.set_index('dt', inplace=True)
+        spot_df.set_index('date', inplace=True)
         s_spot, e_spot = str(spot_df.index[0]), str(spot_df.index[-1])
         df, ts = self.build_df_ts(spot_df, stk, sd, ed)
         if df is None:
@@ -497,9 +497,9 @@ class StxEOD:
             df, cov, mse = self.quality(df, ts, spot_df, dbg)
         s_df, e_df = str(df.index[0].date()), str(df.index[-1].date())
         res = stxdb.db_read_cmd("select * from {0:s} where stk = '{1:s}'"
-                                " and dt between '{2:s}' and '{3:s}' and "
-                                "implied = 1".format(self.divi_tbl, stk, sd,
-                                                     ed))
+                                " and date between '{2:s}' and '{3:s}' and "
+                                "divi_type = 1".format(self.divi_tbl, stk, sd,
+                                                       ed))
         if dbg:
             print('{0:s}: {1:s} {2:s} {3:s} {4:s} {5:s} {6:d} {7:.2f} {8:.4f}'.
                   format(self.eod_tbl, stk, s_spot, e_spot, s_df, e_df,
@@ -517,7 +517,7 @@ class StxEOD:
     # day where the ratio change and 2 days after.
     def calc_implied_splits(self, df, stk, sd, ed):
         stxdb.db_write_cmd("delete from {0:s} where stk = '{1:s}' and "
-                           "dt between '{2:s}' and '{3:s}' and implied = 1".
+                           "date between '{2:s}' and '{3:s}' and divi_type = 1".
                            format(self.divi_tbl, stk, sd, ed))
         df['r'] = df['spot'] / df['c']
         for i in [x for x in range(-3, 4) if x != 0]:
@@ -529,7 +529,7 @@ class StxEOD:
                    (np.round(df['r-3'] - df['r'], 2) == 0) &
                    (np.round(df['r2'] - df['r1'], 2) == 0) &
                    (np.round(df['r3'] - df['r1'], 2) == 0) &
-                   (df['v'] > 0)]
+                   (df['volume'] > 0)]
         for r in df_f1.iterrows():
             stxdb.db_write_cmd("insert into {0:s} values ('{1:s}', '{2:s}', "
                                "{3:.4f}, 1)".format(self.divi_tbl, stk,
@@ -551,8 +551,8 @@ class StxEOD:
         coverage = np.round(100.0 * ts_days / spot_days, 2)
         # apply the split adjustments
         ts.splits.clear()
-        splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s} where"
-                                   " stk='{1:s}' and implied = 1".
+        splits = stxdb.db_read_cmd("select date, ratio, divi_type from {0:s} "
+                                   "where stk='{1:s}' and divi_type = 1".
                                    format(self.divi_tbl, ts.stk))
         for s in splits:
             ts.splits[pd.to_datetime(stxcal.next_busday(s[0]))] = \
@@ -563,7 +563,7 @@ class StxEOD:
 
         # calculate statistics: coverage and mean square error
         def msefun(x):
-            return 0 if x['spot'] == trunc(x['c']) or x['v'] == 0 \
+            return 0 if x['spot'] == trunc(x['c']) or x['volume'] == 0 \
                 else pow(1 - x['c'] / x['spot'], 2)
         df['mse'] = df.apply(msefun, axis=1)
         mse = pow(df['mse'].sum() / min(len(df['mse']), len(spot_df)), 0.5)
@@ -631,7 +631,7 @@ class StxEOD:
                     adj_factor = 1 / ratio
                 start = end - 1
         if len(wrong_recs) > 0:
-            sql = "delete from {0:s} where stk='{1:s}' and dt in (".\
+            sql = "delete from {0:s} where stk='{1:s}' and date in (".\
                 format(self.eod_tbl, stk)
             for wrong_rec in wrong_recs:
                 sql += "'{0:s}',".format(str(wrong_rec.date()))
@@ -717,9 +717,9 @@ class StxEOD:
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.splits.clear()
-        impl_splits = stxdb.db_read_cmd("select dt, ratio, implied from {0:s}"
-                                        " where stk='{1:s}' and implied = 1".
-                                        format(self.divi_tbl, stk))
+        impl_splits = stxdb.db_read_cmd(
+            "select date, ratio, divi_type from {0:s} where stk='{1:s}' "
+            "and divi_type = 1".format(self.divi_tbl, stk))
         # for implied splits, need to perform a reverse adjustment
         # for the adjustment to work, move the split date to next business day
         for s in impl_splits:
@@ -728,17 +728,17 @@ class StxEOD:
         ts.adjust_splits_date_range(0, len(ts.df) - 1, inv=1)
         with open(self.eod_name, 'w') as ofile:
             for idx, row in ts.df.iterrows():
-                if row['v'] > 0:
+                if row['volume'] > 0:
                     ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t'
                                 '{4:.2f}\t{5:.2f}\t{6:.0f}\n'.
                                 format(stk, str(idx.date()), row['o'],
-                                       row['h'], row['l'], row['c'],
-                                       row['v']))
+                                       row['hi'], row['lo'], row['c'],
+                                       row['volume']))
         # upload the eod data in the database
         stxdb.db_upload_file(self.eod_name, eod_table, '\t')
         # finally, upload all the splits into the final split table
-        stxdb.db_write_cmd('insert into {0:s} (stk,dt,ratio,implied) '
-                           'select stk, dt, ratio, implied from {1:s} '
+        stxdb.db_write_cmd('insert into {0:s} (stk,date,ratio,divi_type) '
+                           'select stk, date, ratio, divi_type from {1:s} '
                            "where stk='{2:s}'".
                            format(split_table, self.divi_tbl, stk))
         # update the reconciilation table
@@ -756,7 +756,7 @@ class StxEOD:
     # sure that they are added to the splits database.
     def split_reconciliation(self, stx, sd, ed, split_tbls):
         if stx == '':
-            sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
+            sql = "select distinct stk from {0:s} where date between '{1:s}'"\
                   " and '{2:s}'".format(self.eod_tbl, sd, ed)
             res = stxdb.db_read_cmd(sql)
             stk_list = [x[0] for x in res]
@@ -781,18 +781,18 @@ class StxEOD:
     def reconcile_big_changes(self, stk, sd, ed, split_tbls):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
-        ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
+        ts.df['id_chg'] = (ts.df['hi'] - ts.df['lo']) / ts.df['c']
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
-        ts.df['avg_v20'] = ts.df['v'].shift().rolling(20).mean()
-        ts.df['avg_v50'] = ts.df['v'].shift().rolling(50).mean()
+        ts.df['avg_v20'] = ts.df['volume'].shift().rolling(20).mean()
+        ts.df['avg_v50'] = ts.df['volume'].shift().rolling(50).mean()
         df_review = ts.df.query('chg>=0.15 and chg>2*avg_chg20 and '
-                                'v<(0.5+10*chg)*avg_v50 and avg_v20>1000 and '
-                                'id_chg<0.6*chg and c>3 and '
+                                'volume<(0.5+10*chg)*avg_v50 and avg_v20>1000 '
+                                'and id_chg<0.6*chg and c>3 and '
                                 '(chg-id_chg)>2*avg_chg20 and (c>8 or chg>1)')
         all_splits = {}
         for split_table in split_tbls:
-            res = stxdb.db_read_cmd('select dt, ratio from {0:s} where '
-                                    "stk='{1:s}' and implied=0".
+            res = stxdb.db_read_cmd('select date, ratio from {0:s} where '
+                                    "stk='{1:s}' and divi_type=0".
                                     format(split_table, stk))
             all_splits[split_table] = {stxcal.next_busday(x[0]): x[1]
                                        for x in res}
@@ -821,10 +821,10 @@ class StxEOD:
             with open(ofname, 'a') as ofile:
                 ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} {5:6.2f} '
                             '{6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f} {10:s}\n'.
-                            format(stk, big_chg_dt, row['o'], row['h'],
-                                   row['l'], row['c'], row['v'], row['chg'],
-                                   row['avg_chg20'], row['avg_v50'],
-                                   db_splits))
+                            format(stk, big_chg_dt, row['o'], row['hi'],
+                                   row['lo'], row['c'], row['volume'],
+                                   row['chg'], row['avg_chg20'],
+                                   row['avg_v50'], db_splits))
 
     def correct_split_adjustment_error(self, fname):
         with open(fname, 'r') as ifile:
@@ -833,8 +833,8 @@ class StxEOD:
                 tokens = line.split()
                 if len(tokens) > 10:
                     stk, dt = tokens[0], tokens[1]
-                    sql = "update {0:s} set dt='{1:s}' where "\
-                        "stk='{2:s}' and dt='{3:s}'".\
+                    sql = "update {0:s} set date='{1:s}' where "\
+                        "stk='{2:s}' and date='{3:s}'".\
                         format(self.divi_tbl, stxcal.prev_busday(dt), stk, dt)
                     stxdb.db_write_cmd(sql)
 
@@ -845,7 +845,7 @@ class StxEOD:
     # reflected in the EOD data, and, if they are, make sure that they
     # are added to the splits database.
     def eod_reconciliation(self, sd, ed):
-        sql = "select distinct stk from {0:s} where dt between '{1:s}'"\
+        sql = "select distinct stk from {0:s} where date between '{1:s}'"\
               " and '{2:s}'".format(self.eod_tbl, sd, ed)
         # c = pycurl.Curl()
         # c.setopt(pycurl.SSL_VERIFYPEER, 0)
@@ -871,10 +871,10 @@ class StxEOD:
     def reconcile_stk_eod(self, c, stk, sd, ed):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         ts.df['chg'] = ts.df['c'].pct_change().abs()
-        ts.df['id_chg'] = (ts.df['h'] - ts.df['l']) / ts.df['c']
+        ts.df['id_chg'] = (ts.df['hi'] - ts.df['lo']) / ts.df['c']
         ts.df['avg_chg20'] = ts.df['chg'].rolling(20).mean()
-        ts.df['avg_v20'] = ts.df['v'].shift().rolling(20).mean()
-        ts.df['avg_v50'] = ts.df['v'].shift().rolling(50).mean()
+        ts.df['avg_v20'] = ts.df['volume'].shift().rolling(20).mean()
+        ts.df['avg_v50'] = ts.df['volume'].shift().rolling(50).mean()
         df_review = ts.df.query('chg>=0.15 and chg>2*avg_chg20 and '
                                 'v<(0.5+10*chg)*avg_v50 and avg_v20>1000 and '
                                 'id_chg<0.6*chg and c>3 and '
@@ -884,7 +884,7 @@ class StxEOD:
             edy, edm, edd = ed.split('-')
             c.setopt(c.URL, self.yhoo_url.format(stk, int(sdm) - 1, int(sdd),
                                                  int(sdy), int(edm) - 1,
-                                                 int(edd), int(edy), 'v'))
+                                                 int(edd), int(edy), 'volume'))
             res_buffer = BytesIO()
             c.setopt(c.WRITEDATA, res_buffer)
             c.perform()
@@ -910,7 +910,7 @@ class StxEOD:
                                                          np.round(split, 4)))
                     db_cmd = "insert into {0:s} values('{1:s}','{2:s}',"\
                              "{3:4f},0) on duplicate key update "\
-                             "ratio={4:4f}, implied=0".\
+                             "ratio={4:4f}, divi_type=0".\
                              format(self.divi_tbl, stk, px1[0],
                                     np.round(split, 4), np.round(split, 4))
                     stxdb.db_write_cmd(db_cmd)
@@ -923,8 +923,8 @@ class StxEOD:
                     ofile.write('{0:5s} {1:s} {2:6.2f} {3:6.2f} {4:6.2f} '
                                 '{5:6.2f} {6:9.0f} {7:5.3f} {8:5.3f} {9:9.0f}'
                                 ' {10:s}\n'.
-                                format(stk, big_chg_dt, row['o'], row['h'],
-                                       row['l'], row['c'], row['v'],
+                                format(stk, big_chg_dt, row['o'], row['hi'],
+                                       row['lo'], row['c'], row['volume'],
                                        row['chg'], row['avg_chg20'],
                                        row['avg_v50']))
 
@@ -936,10 +936,10 @@ class StxEOD:
     def volume_check(self):
         # ts.set_day('2006-12-18')
         # ts.next_day()
-        # df1 = ts.df[['v']].ix[ts.pos-20:ts.pos]
-        # av1 = round(df1[['v']].mean()['v'], 0)
-        # df2 = ts.df[['v']].ix[ts.pos+1:ts.pos+21]
-        # av2 = round(df2[['v']].mean()['v'], 0)
+        # df1 = ts.df[['volume']].ix[ts.pos-20:ts.pos]
+        # av1 = round(df1[['volume']].mean()['volume'], 0)
+        # df2 = ts.df[['volume']].ix[ts.pos+1:ts.pos+21]
+        # av2 = round(df2[['volume']].mean()['volume'], 0)
         # av2/av1
         pass
 
