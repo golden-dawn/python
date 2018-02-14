@@ -444,6 +444,9 @@ class Test5StxEod(unittest.TestCase):
     #                     res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
     def test_04_reconcile_my_data(self):
+        # to generate /tmp/opt_spots.txt from the stx DB, use this command:
+        # copy (select * from opt_spots where stk in \
+        # ('AEOS', 'EXPE', 'NFLX', 'TIE')) to '/tmp/opt_spots.txt';
         stxdb.db_write_cmd("COPY opt_spots FROM '/tmp/opt_spots.txt'")
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         my_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
@@ -457,6 +460,17 @@ class Test5StxEod(unittest.TestCase):
         print(res1)
         print('res2')
         print(res2)
+        self.assertEqual(res1[0][0], 'AEOS')
+        self.assertEqual(res1[0][1], my_eod.rec_name)
+        self.assertEqual(res1[0][2], '20020201_20121231')
+        self.assertEqual(res1[0][3], '2002-02-08')
+        self.assertEqual(res1[0][4], '2007-03-09')
+        self.assertEqual(res1[0][5], '2002-02-04')
+        self.assertEqual(res1[0][6], '2007-01-26')
+        self.assertEqual(res1[0][7], 0)
+        self.assertEqual(res1[0][8], 97.73)
+        self.assertEqual(res1[0][9], 0.0016)
+        self.assertEqual(res1[0][10], 0)
         self.assertTrue(res1[0] == ('AEOS', my_eod.rec_name,
                                     '20020201_20121231',
                                     '2002-02-08', '2007-03-09', '2002-02-04',

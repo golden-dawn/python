@@ -26,7 +26,7 @@ class StxEOD:
     sql_create_recon = 'CREATE TABLE {0:s} ('\
                        'stk varchar(8) NOT NULL,'\
                        'recon_name varchar(16) NOT NULL,'\
-                       'recon_interval char(18) NOT NULL,'\
+                       'recon_interval varchar(18) NOT NULL,'\
                        's_spot char(10) DEFAULT NULL,'\
                        'e_spot char(10) DEFAULT NULL,'\
                        'sdf char(10) DEFAULT NULL,'\
