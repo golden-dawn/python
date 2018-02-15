@@ -672,8 +672,6 @@ class StxEOD:
     # data in the final EOD table.
     def upload_eod(self, eod_table, split_table, stx='', sd=None, ed=None,
                    max_mse=0.02, min_coverage=80):
-        stxdb.db_create_missing_table(eod_table, self.sql_create_eod)
-        stxdb.db_create_missing_table(split_table, self.sql_create_split)
         if sd is None:
             sd = '2001-01-01'
         if ed is None:
@@ -730,7 +728,7 @@ class StxEOD:
             for idx, row in ts.df.iterrows():
                 if row['volume'] > 0:
                     ofile.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t'
-                                '{4:.2f}\t{5:.2f}\t{6:.0f}\n'.
+                                '{4:.2f}\t{5:.2f}\t{6:.0f}\t0\n'.
                                 format(stk, str(idx.date()), row['o'],
                                        row['hi'], row['lo'], row['c'],
                                        row['volume']))
