@@ -1,4 +1,9 @@
 #!/bin/bash
+
+echo 'Copy the spots to file'
+psql -d stx -c "copy (select * from opt_spots where stk in ('AEOS', 'EXPE', 'NFLX', 'TIE')) to '/tmp/opt_spots.txt'"
+psql -d stx -c "copy (select * from opt_spots where stk in ('AA', 'VXX')) to '/tmp/opt_spots_ed.txt'"
+
 if [ -z "$1" ]
 then
     echo "No test database name supplied, using default (stx_test)"
