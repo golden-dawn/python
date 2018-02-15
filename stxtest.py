@@ -407,41 +407,41 @@ class Test5StxEod(unittest.TestCase):
                         res5[0][0] == 'AEOS' and float(res5[0][1]) == 3.68 and
                         res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
 
-    # def test_03_load_dn_data(self):
-    #     dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
-    #     dn_eod.load_deltaneutral_files(self.stx)
-    #     res1 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_split_tbl))
-    #     res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-    #                              format(self.dn_eod_tbl))
-    #     res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-    #                              " ('NFLX', 'AEOS', 'TIE', 'EXPE') and date <= "
-    #                              "'2012-12-31' group by stk order by stk".
-    #                              format(self.dn_eod_tbl))
-    #     res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
-    #                              "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and date "
-    #                              " <= '2012-12-31' group by stk order by stk".
-    #                              format(self.dn_split_tbl))
-    #     print('test_03_load_dn_data')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     print('res3')
-    #     print(res3)
-    #     print('res4')
-    #     print(res4)
-    #     print('res5')
-    #     print(res5)
-    #     self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-    #                     and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
-    #                     res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
-    #                     res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
-    #                     res4[3][0] == 'TIE' and res4[3][1] == 3017 and
-    #                     res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
-    #                     res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
+    def test_03_load_dn_data(self):
+        dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
+        dn_eod.load_deltaneutral_files(self.stx)
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.dn_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.dn_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('NFLX', 'AEOS', 'TIE', 'EXPE') and date <= "
+                                 "'2012-12-31' group by stk order by stk".
+                                 format(self.dn_eod_tbl))
+        res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
+                                 "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and date "
+                                 " <= '2012-12-31' group by stk order by stk".
+                                 format(self.dn_split_tbl))
+        print('test_03_load_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        print('res5')
+        print(res5)
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
+                        res4[3][0] == 'TIE' and res4[3][1] == 3017 and
+                        res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
+                        res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
     def test_04_reconcile_my_data(self):
         # to generate /tmp/opt_spots.txt from the stx DB, use this command:
@@ -494,38 +494,37 @@ class Test5StxEod(unittest.TestCase):
         self.assertTrue(res2[2] == ('TIE', datetime.date(2006, 5, 15),
                                     Decimal('0.5000'), 1))
 
-    # def test_05_reconcile_dn_data(self):
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
-    #     res1 = stxdb.db_read_cmd("select * from {0:s} where "
-    #                              "recon_name='{1:s}' order by stk".
-    #                              format(self.recon_tbl, dn_eod.rec_name))
-    #     res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order"
-    #                              " by stk, date".format(self.dn_split_tbl))
-    #     print('test_05_reconcile_dn_data')
-    #     print('res1')
-    #     print(res1)
-    #     print('res2')
-    #     print(res2)
-    #     self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
-    #                                 '20020201_20121231',
-    #                                 '2002-02-08', '2007-03-09', '2002-02-04',
-    #                                 '2007-03-09', 1, 100.0, 0.0017, 0) and
-    #                     res1[1] == ('EXPE', dn_eod.rec_name,
-    #                                 '20020201_20121231',
-    #                                 '2002-02-08', '2012-12-31', '2005-07-21',
-    #                                 '2012-12-31', 0, 68.34, 0.0001, 0) and
-    #                     res1[2] == ('NFLX', dn_eod.rec_name,
-    #                                 '20020201_20121231',
-    #                                 '2002-12-11', '2012-12-31', '2002-05-23',
-    #                                 '2012-12-31', 0, 100.0, 0.0012, 0) and
-    #                     res1[3] == ('TIE', dn_eod.rec_name,
-    #                                 '20020201_20121231',
-    #                                 '2005-10-03', '2012-12-31', '2002-02-01',
-    #                                 '2012-12-31', 0, 100.0, 0.0041, 0) and
-    #                     res2[0] == ('AEOS', datetime.date(2005, 3, 7),
-    #                                 Decimal('0.4999'), 1))
+    def test_05_reconcile_dn_data(self):
+        dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
+        dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
+        res1 = stxdb.db_read_cmd("select * from {0:s} where "
+                                 "recon_name='{1:s}' order by stk".
+                                 format(self.recon_tbl, dn_eod.rec_name))
+        res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order"
+                                 " by stk, date".format(self.dn_split_tbl))
+        print('test_05_reconcile_dn_data')
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        self.assertTrue(res1[0] == ('AEOS', dn_eod.rec_name,
+                                    '20020201_20121231',
+                                    '2002-02-08', '2007-03-09', '2002-02-04',
+                                    '2007-03-09', 1, 100.0, 0.0017, 0) and
+                        res1[1] == ('EXPE', dn_eod.rec_name,
+                                    '20020201_20121231',
+                                    '2002-02-08', '2012-12-31', '2005-07-21',
+                                    '2012-12-31', 0, 68.34, 0.0001, 0) and
+                        res1[2] == ('NFLX', dn_eod.rec_name,
+                                    '20020201_20121231',
+                                    '2002-12-11', '2012-12-31', '2002-05-23',
+                                    '2012-12-31', 0, 100.0, 0.0012, 0) and
+                        res1[3] == ('TIE', dn_eod.rec_name,
+                                    '20020201_20121231',
+                                    '2005-10-03', '2012-12-31', '2002-02-01',
+                                    '2012-12-31', 0, 100.0, 0.0041, 0) and
+                        res2[0] == ('AEOS', datetime.date(2005, 3, 7),
+                                    Decimal('0.4999'), 1))
 
     # def test_06_split_recon(self):
     #     # my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl)
