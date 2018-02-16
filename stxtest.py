@@ -327,6 +327,7 @@ class Test5StxEod(unittest.TestCase):
         self.dn_dir = '{0:s}/stockhistory_2017'.format(self.data_dir)
         self.md_dir = '{0:s}/md'.format(self.data_dir)
         self.stx = 'AEOS,EXPE,NFLX,TIE'
+        self.dn_stx = 'AEOS,EXPE,NFLX,TIE,VXX'
         self.ed_stx = 'AA,EXPE,NFLX,VXX'
         self.sd = '2002-02-01'
         self.ed = '2012-12-31'
@@ -409,7 +410,7 @@ class Test5StxEod(unittest.TestCase):
 
     def test_03_load_dn_data(self):
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
-        dn_eod.load_deltaneutral_files(self.stx)
+        dn_eod.load_deltaneutral_files(self.dn_stx)
         res1 = stxdb.db_read_cmd(
             StxEOD.sql_show_tables.format(self.dn_eod_tbl))
         res2 = stxdb.db_read_cmd(
@@ -435,7 +436,7 @@ class Test5StxEod(unittest.TestCase):
         print(res4)
         print('res5')
         print(res5)
-        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 5
                         and res4[0][0] == 'AEOS' and res4[0][1] == 1549 and
                         res4[1][0] == 'EXPE' and res4[1][1] == 1875 and
                         res4[2][0] == 'NFLX' and res4[2][1] == 2671 and
@@ -702,7 +703,7 @@ class Test5StxEod(unittest.TestCase):
         stk_list = self.ed_stx.split(',')
         for stk in stk_list:
             ed_eod.reconcile_big_changes(stk, '2013-01-01', '2013-12-31',
-                                         ['dividends', 'md_dividends'])
+                                         ['dividends', 'dn_dividends'])
         res = stxdb.db_read_cmd("select * from {0:s}".format(ed_eod.divi_tbl))
         print('res')
         print(res)
@@ -713,10 +714,13 @@ class Test5StxEod(unittest.TestCase):
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
+        md_eod = StxEOD(self.md_in_dir, 'md', self.recon_tbl)
         my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
                           self.ed)
         dn_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
                           self.ed)
+        md_eod.upload_eod(self.eod_test, self.split_test, 'VXX',
+                          self.sd, self.ed_1)
         ed_eod.upload_eod(self.eod_test, self.split_test, self.ed_stx,
                           self.sd_1, self.ed_1)
         res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
@@ -731,8 +735,8 @@ class Test5StxEod(unittest.TestCase):
         res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
                                  "date between '2003-08-08' and '2005-07-21'".
                                  format(self.eod_test))
-        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} '
-                                 'group by stk'.format(self.split_test))
+        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by stk '
+                                 'order by stk'.format(self.split_test))
         print('test_12_merge_eod_tbls')
         print('res1')
         print(res1)
