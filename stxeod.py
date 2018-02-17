@@ -511,7 +511,7 @@ class StxEOD:
     # This function detects differences in the ratio between the spot
     # prices (from opt_spots table) and the closing prices from the
     # EOD table.  When the ratio changes, we assume there is a split.
-    # To avoid defining a split for every spike ina ratio (which can
+    # To avoid defining a spli t for every spike ina ratio (which can
     # be due, for instancem to one day with wrong data), we are
     # looking at the ratio to stay the same over three days before the
     # day where the ratio change and 2 days after.
@@ -1009,7 +1009,6 @@ class StxEOD:
         return o * factor, h * factor, l * factor, c * factor
 
     def parseeodline(self, line):
-        is_future = False
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
         dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
         if not stxcal.is_busday(dt):
@@ -1037,18 +1036,12 @@ class StxEOD:
             # multiply FX/Money Market prices by 10000
             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
         # all tickers ending in .F are futures, except the LME tickers
-        if stk.endswith('.F') and (stk[-4:-2] not in ['_3', '_C']):
-            is_future = True
         v = 1 if v == 0 else v
         tbl = self.ftr_tbl if is_future else self.eod_tbl
         db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},"\
                  "{5:2f},{6:2f},{7:d},{8:d}) on duplicate key update "\
                  "v={9:d}, oi={10:d}".format(tbl, stk, dt, o, h, l, c, v, oi,
-                                             v, oi)\
-            if is_future else \
-            "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},{5:2f},"\
-            "{6:2f},{7:d}) on duplicate key update v={8:d}".\
-            format(tbl, stk, dt, o, h, l, c, v, v)
+                                             v, oi)
         stxdb.db_write_cmd(db_cmd)
 
     def parseeodfiles(self, s_date, e_date):

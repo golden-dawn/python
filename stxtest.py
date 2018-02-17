@@ -349,29 +349,7 @@ class Test5StxEod(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # def test_01_cleanup(self):
-    #     stxdb.db_create_missing_table(
-    #         self.dn_eod_tbl,
-    #         StxEOD.sql_create_eod.format(self.dn_eod_tbl))
-    #     stxdb.db_create_missing_table(
-    #         self.dn_split_tbl,
-    #         StxEOD.sql_create_split.format(self.dn_split_tbl))
-    #     dirname = self.dn_in_dir
-        
-    #     if not os.path.exists(dirname):
-    #         os.makedirs(dirname)
-    #     seod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                   self.recon_tbl)
-    #     seod.cleanup()
-    #     seod.cleanup_data_folder()
-    #     res1 = stxdb.db_read_cmd(StxEOD.sql_show_tables.format(
-    #         self.dn_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(StxEOD.sql_show_tables.format(
-    #         self.dn_split_tbl))
-    #     self.assertTrue((not res1) and (not res2) and
-    #                     (not os.path.exists(dirname)))
-
-    def test_02_load_my_data(self):
+    def test_01_load_my_data(self):
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         my_eod.load_my_files(self.stx)
         res1 = stxdb.db_read_cmd(
@@ -408,7 +386,7 @@ class Test5StxEod(unittest.TestCase):
                         res5[0][0] == 'AEOS' and float(res5[0][1]) == 3.68 and
                         res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
 
-    def test_03_load_dn_data(self):
+    def test_02_load_dn_data(self):
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         dn_eod.load_deltaneutral_files(self.dn_stx)
         res1 = stxdb.db_read_cmd(
@@ -444,7 +422,7 @@ class Test5StxEod(unittest.TestCase):
                         res5[0][0] == 'NFLX' and float(res5[0][1]) == 0.5 and
                         res5[1][0] == 'TIE' and float(res5[1][1]) == 15.1793)
 
-    def test_04_reconcile_my_data(self):
+    def test_03_reconcile_my_data(self):
         # to generate /tmp/opt_spots.txt from the stx DB, use this command:
         # copy (select * from opt_spots where stk in \
         # ('AEOS', 'EXPE', 'NFLX', 'TIE')) to '/tmp/opt_spots.txt';
@@ -495,7 +473,7 @@ class Test5StxEod(unittest.TestCase):
         self.assertTrue(res2[2] == ('TIE', datetime.date(2006, 5, 15),
                                     Decimal('0.5000'), 1))
 
-    def test_05_reconcile_dn_data(self):
+    def test_04_reconcile_dn_data(self):
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         dn_eod.reconcile_spots('2002-02-01', '2012-12-31', self.stx)
         res1 = stxdb.db_read_cmd("select * from {0:s} where "
@@ -527,7 +505,7 @@ class Test5StxEod(unittest.TestCase):
                         res2[0] == ('AEOS', datetime.date(2005, 3, 7),
                                     Decimal('0.4999'), 1))
 
-    def test_06_split_recon(self):
+    def test_05_split_recon(self):
         # my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         dn_eod.reconcile_big_changes('AEOS', '2001-01-01', '2012-12-31',
@@ -543,7 +521,7 @@ class Test5StxEod(unittest.TestCase):
                        0))
         # self.assertTrue(res[0] == ('AEOS', '2006-12-18', 0.67, 0))
 
-    def test_07_merge_eod_tbls(self):
+    def test_06_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         my_eod.upload_eod(self.eod_test, self.split_test, self.stx, self.sd,
@@ -612,7 +590,7 @@ class Test5StxEod(unittest.TestCase):
                         res5[2] == ('NFLX', 1) and
                         res5[3] == ('TIE', 2))
 
-    def test_08_load_md_data(self):
+    def test_07_load_md_data(self):
         md_eod = StxEOD(self.md_in_dir, 'md', self.recon_tbl)
         log_fname = 'splitsdivistest{0:s}.csv'.format(datetime.datetime.now().
                                                       strftime('%Y%m%d%H%M%S'))
@@ -649,7 +627,7 @@ class Test5StxEod(unittest.TestCase):
                         res4[2][0] == 'NFLX' and res4[2][1] == 3616 and
                         res4[3][0] == 'VXX' and res4[3][1] == 1932)
 
-    def test_09_load_ed_data(self):
+    def test_08_load_ed_data(self):
         ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
         ed_eod.load_eoddata_files(sd=self.sd_01, stks=self.ed_stx)
         res1 = stxdb.db_read_cmd(
@@ -667,7 +645,7 @@ class Test5StxEod(unittest.TestCase):
                         res4[2][0] == 'NFLX' and res4[2][1] == 242 and
                         res4[3][0] == 'VXX' and res4[3][1] == 241)
 
-    def test_10_reconcile_ed_data(self):
+    def test_09_reconcile_ed_data(self):
         # to generate /tmp/opt_spots.txt from the stx DB, use this command:
         # copy (select * from opt_spots where stk in \
         # ('AA', 'VXX')) to '/tmp/opt_spots_ed.txt';
@@ -697,7 +675,7 @@ class Test5StxEod(unittest.TestCase):
                                     '2013-11-15', 0, 100.0, 0.0017, 0) and
                         len(res2) == 0)
 
-    def test_11_split_recon(self):
+    def test_10_split_recon(self):
         # my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
         stk_list = self.ed_stx.split(',')
@@ -710,7 +688,7 @@ class Test5StxEod(unittest.TestCase):
         self.assertTrue(res[0] == ('VXX', datetime.date(2013, 11, 7),
                                    Decimal('4.0000'), 0))
 
-    def test_12_merge_eod_tbls(self):
+    def test_11_merge_eod_tbls(self):
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
@@ -737,7 +715,7 @@ class Test5StxEod(unittest.TestCase):
                                  format(self.eod_test))
         res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by stk '
                                  'order by stk'.format(self.split_test))
-        print('test_12_merge_eod_tbls')
+        print('test_11_merge_eod_tbls')
         print('res1')
         print(res1)
         print('res2')
@@ -785,52 +763,23 @@ class Test5StxEod(unittest.TestCase):
                         res5[2] == ('NFLX', 1) and
                         res5[3] == ('TIE', 2) and res5[4] == ('VXX', 1))
 
-    # def test_15_teardown(self):
-    #     my_eod = StxEOD(self.my_in_dir, self.my_eod_tbl, self.my_split_tbl,
-    #                     self.recon_tbl)
-    #     dn_eod = StxEOD(self.dn_in_dir, self.dn_eod_tbl, self.dn_split_tbl,
-    #                     self.recon_tbl)
-    #     md_eod = StxEOD(self.md_in_dir, self.md_eod_tbl, self.md_split_tbl,
-    #                     self.recon_tbl)
-    #     ed_eod = StxEOD(self.ed_in_dir, self.ed_eod_tbl, self.ed_split_tbl,
-    #                     self.recon_tbl)
-    #     my_eod.cleanup()
-    #     my_eod.cleanup_data_folder()
-    #     dn_eod.cleanup()
-    #     dn_eod.cleanup_data_folder()
-    #     md_eod.cleanup()
-    #     ed_eod.cleanup()
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.eod_test))
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.split_test))
-    #     stxdb.db_write_cmd('drop table {0:s}'.format(self.recon_tbl))
-    #     res1 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.my_eod_tbl))
-    #     res2 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.my_split_tbl))
-    #     res3 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_eod_tbl))
-    #     res4 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.dn_split_tbl))
-    #     res5 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.eod_test))
-    #     res6 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.split_test))
-    #     res7 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.recon_tbl))
-    #     res8 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.md_eod_tbl))
-    #     res9 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.md_split_tbl))
-    #     res10 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.ed_eod_tbl))
-    #     res11 = stxdb.db_read_cmd(
-    #         StxEOD.sql_show_tables.format(self.ed_split_tbl))
-    #     self.assertTrue((not res1) and (not res2) and (not res3) and
-    #                     (not res4) and (not res5) and (not res6) and
-    #                     (not res7) and (not res8) and (not res9) and
-    #                     (not res10) and (not res11) and
-    #                     (not os.path.exists(self.my_in_dir)) and
-    #                     (not os.path.exists(self.dn_in_dir)))
+    def test_12_load_stooq_eod_files(self):
+        sq_eod = StxEOD(self.sq_in_dir, 'sq', self.recon_tbl)
+        sq_eod.parseeodfiles('2016-08-24', '2016-08-26')
+                res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_eod_tbl))
+        res2 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(self.ed_split_tbl))
+        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
+                                 format(self.ed_eod_tbl))
+        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
+                                 " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
+                                 "order by stk".format(self.ed_eod_tbl))
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
+                        and res4[0][0] == 'AA' and res4[0][1] == 242 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 242 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 242 and
+                        res4[3][0] == 'VXX' and res4[3][1] == 241)
 
 
 if __name__ == '__main__':
