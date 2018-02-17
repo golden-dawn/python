@@ -1,68 +1,68 @@
-# insert into split values ('ACI', '2016-01-11', 23.3735, 0)
-# delete from split where stk='ATLS' and dt in('2013-11-15', '2015-02-04')
-# insert into split values ('BF.A', '2016-08-18', 0.5, 0)
-# insert into split values ('BF.B', '2016-08-18', 0.50, 0)
-# insert into split values ('BKS', '2015-07-31', 0.6588, 0)
-# insert into split values ('BODYD', '2014-09-08', 11.3429, 0)
-# delete from eod where stk='BRE' and dt>'2014-04-01'
-# insert into split values ('BTE', '2014-11-26', 0.8595, 2)
-# delete from split where stk='CDXC'
-# delete from eod where stk='CIS' and dt>'2014-04-03'
-# delete from eod where stk='CODE' and dt>'2013-11-11'
-# delete from eod where stk='CVD' and dt='2015-02-23'
-# insert into split values ('CVO', '2016-07-13', 8.0, 0)
-# insert into split values ('CYCC', '2016-05-27', 12, 0)
-# insert into split values ('EGLE', '2014-10-15', 20, 0)
-# insert into split values ('ENR', '2015-06-11', 0.25, 0)
-# delete from eod where stk='ENTR' and dt>'2015-04-30'
-# delete from eod where stk='EQU' and dt>'2014-06-19'
-# delete from split where stk='FTAG' and dt='2016-05-02'
-# insert into split values ('GCI', '2015-06-26', 0.3781, 0)
-# delete from eod where stk='GIVN' and dt>'2014-02-27'
-# delete from eod where stk='HCT'
-# insert into split values ('HEROQ', '2015-11-09', 250, 0)
-# delete from eod where stk='HILL' and dt>'2015-10-05'
-# insert into split values ('HTZ', '2016-06-30', 4.0, 0)
-# insert into split values ('IO', '2016-02-04', 16, 0)
-# delete from eod where stk='IPCM' and dt>'2015-11-23'
-# insert into split values ('KLAC', '2014-11-25', 0.8022, 2)
-# delete from eod where stk='KMR' and dt>'2014-11-26'
-# delete from eod where stk='KYTH' and dt>'2015-09-30'
-# delete from eod where stk='LIFE' and dt>'2014-02-03'
-# delete from eod where stk='LIN' and dt>'2014-12-19'
-# insert into split values ('MSG', '2015-09-30', 2.0335, 8)
-# insert into split values ('NYLD', '2015-05-14', 0.5211, 0)
-# delete from eod where stk='OCAT' and dt<'2014-08-28'
-# delete from eod where stk='ORB' and dt>'2015-02-09'
-# delete from split  where stk='PACD' and dt='2016-05-26'
-# delete from split where stk='PGLC'
-# insert into split values ('PNK', '2016-04-28', 0.2939, 8)
-# delete from eod where stk='RCPT' and dt>'2015-08-28'
-# update split set dt='2015-08-31' where stk='RSO' and dt='2015-09-01'
-# insert into split values ('SMT', '2016-05-11', 10.0000, 0)
-# insert into split values ('SNTA', '2016-07-22', 25, 0)
-# update split set dt='2014-11-19' where stk='TRIL' and dt='2014-11-20'
-# update split set dt='2016-07-22' where stk='UXI' and dt='2016-07-25'
-# delete from split where stk='VIPS'
-# delete from eod where stk='VTSS' and dt>'2015-04-27'
-# insert into split values ('WPP', '2016-01-21', 10.2217, 8)
-# insert into split values ('Z', '2015-07-31', 0.3333, 0)
-# delete from eod where stk='ARX' and dt > '2014-09-12'
-# update split set dt='2014-07-11' where stk='ASMB' and dt='2014-07-14'
-# update split set dt='2014-07-14' where stk='ASMB' and dt='2014-07-11'
-# delete from eod where stk='ASTM' and dt>'2013-11-15'
-# insert into split values ('ATLS', '2015-02-27', 0.3354, 8)
-# delete from eod where stk='BRDR' and dt>'2015-06-10'
-# insert into split values ('CDXC', '2016-04-13', 3, 0)
-# insert into split values ('CSG', '2015-12-18', 4.4083, 8)
-# delete from eod where stk='CVD' and dt>='2015-02-23'
-# update split set dt='2015-06-30' where stk='ENR' and dt='2015-06-11'
-# delete from eod where stk='FORX' and dt='2014-12-01'
-# update split set dt='2016-05-02' where stk='FTAG' and dt='2016-04-29'
-# insert into split values ('IDT', '2016-06-01', 0.8577, 2)
-# delete from split where stk='PACD' and dt='2016-05-24'
-# insert into split values ('PGLC', '2015-06-18', 17.7273, 0)
-# update split set dt='2014-11-20' where stk='TRIL' and dt='2014-11-19'
-# update split set dt='2016-07-25' where stk='UXI' and dt='2016-07-22'
-# insert into split values ('VIPS', '2014-11-14', 0.10, 0)
-# update split set dt='2015-08-14' where stk='Z' and dt='2015-07-31'
+psql -d stx -c "insert into dividends values ('ACI', '2016-01-11', 23.3735, 0)"
+psql -d stx -c "delete from dividends where stk='ATLS' and date in ('2013-11-15', '2015-02-04')"
+psql -d stx -c "insert into dividends values ('BF.A', '2016-08-18', 0.5, 0)"
+psql -d stx -c "insert into dividends values ('BF.B', '2016-08-18', 0.50, 0)"
+psql -d stx -c "insert into dividends values ('BKS', '2015-07-31', 0.6588, 0)"
+psql -d stx -c "insert into dividends values ('BODYD', '2014-09-08', 11.3429, 0)"
+psql -d stx -c "delete from eods where stk='BRE' and date>'2014-04-01'"
+psql -d stx -c "insert into dividends values ('BTE', '2014-11-26', 0.8595, 2)"
+psql -d stx -c "delete from dividends where stk='CDXC'"
+psql -d stx -c "delete from eods where stk='CIS' and date>'2014-04-03'"
+psql -d stx -c "delete from eods where stk='CODE' and date>'2013-11-11'"
+psql -d stx -c "delete from eods where stk='CVD' and date='2015-02-23'"
+psql -d stx -c "insert into dividends values ('CVO', '2016-07-13', 8.0, 0)"
+psql -d stx -c "insert into dividends values ('CYCC', '2016-05-27', 12, 0)"
+psql -d stx -c "insert into dividends values ('EGLE', '2014-10-15', 20, 0)"
+psql -d stx -c "insert into dividends values ('ENR', '2015-06-11', 0.25, 0)"
+psql -d stx -c "delete from eods where stk='ENTR' and date>'2015-04-30'"
+psql -d stx -c "delete from eods where stk='EQU' and date>'2014-06-19'"
+psql -d stx -c "delete from dividends where stk='FTAG' and date='2016-05-02'"
+psql -d stx -c "insert into dividends values ('GCI', '2015-06-26', 0.3781, 0)"
+psql -d stx -c "delete from eods where stk='GIVN' and date>'2014-02-27'"
+psql -d stx -c "delete from eods where stk='HCT'"
+psql -d stx -c "insert into dividends values ('HEROQ', '2015-11-09', 250, 0)"
+psql -d stx -c "delete from eods where stk='HILL' and date>'2015-10-05'"
+psql -d stx -c "insert into dividends values ('HTZ', '2016-06-30', 4.0, 0)"
+psql -d stx -c "insert into dividends values ('IO', '2016-02-04', 16, 0)"
+psql -d stx -c "delete from eods where stk='IPCM' and date>'2015-11-23'"
+psql -d stx -c "insert into dividends values ('KLAC', '2014-11-25', 0.8022, 2)"
+psql -d stx -c "delete from eods where stk='KMR' and date>'2014-11-26'"
+psql -d stx -c "delete from eods where stk='KYTH' and date>'2015-09-30'"
+psql -d stx -c "delete from eods where stk='LIFE' and date>'2014-02-03'"
+psql -d stx -c "delete from eods where stk='LIN' and date>'2014-12-19'"
+psql -d stx -c "insert into dividends values ('MSG', '2015-09-30', 2.0335, 8)"
+psql -d stx -c "insert into dividends values ('NYLD', '2015-05-14', 0.5211, 0)"
+psql -d stx -c "delete from eods where stk='OCAT' and date<'2014-08-28'"
+psql -d stx -c "delete from eods where stk='ORB' and date>'2015-02-09'"
+psql -d stx -c "delete from dividends  where stk='PACD' and date='2016-05-26'"
+psql -d stx -c "delete from dividends where stk='PGLC'"
+psql -d stx -c "insert into dividends values ('PNK', '2016-04-28', 0.2939, 8)"
+psql -d stx -c "delete from eods where stk='RCPT' and date>'2015-08-28'"
+psql -d stx -c "update dividends set date='2015-08-31' where stk='RSO' and date='2015-09-01'"
+psql -d stx -c "insert into dividends values ('SMT', '2016-05-11', 10.0000, 0)"
+psql -d stx -c "insert into dividends values ('SNTA', '2016-07-22', 25, 0)"
+psql -d stx -c "update dividends set date='2014-11-19' where stk='TRIL' and date='2014-11-20'"
+psql -d stx -c "update dividends set date='2016-07-22' where stk='UXI' and date='2016-07-25'"
+psql -d stx -c "delete from dividends where stk='VIPS'"
+psql -d stx -c "delete from eods where stk='VTSS' and date>'2015-04-27'"
+psql -d stx -c "insert into dividends values ('WPP', '2016-01-21', 10.2217, 8)"
+psql -d stx -c "insert into dividends values ('Z', '2015-07-31', 0.3333, 0)"
+psql -d stx -c "delete from eods where stk='ARX' and date > '2014-09-12'"
+psql -d stx -c "update dividends set date='2014-07-11' where stk='ASMB' and date='2014-07-14'"
+psql -d stx -c "update dividends set date='2014-07-14' where stk='ASMB' and date='2014-07-11'"
+psql -d stx -c "delete from eods where stk='ASTM' and date>'2013-11-15'"
+psql -d stx -c "insert into dividends values ('ATLS', '2015-02-27', 0.3354, 8)"
+psql -d stx -c "delete from eods where stk='BRDR' and date>'2015-06-10'"
+psql -d stx -c "insert into dividends values ('CDXC', '2016-04-13', 3, 0)"
+psql -d stx -c "insert into dividends values ('CSG', '2015-12-18', 4.4083, 8)"
+psql -d stx -c "delete from eods where stk='CVD' and date>='2015-02-23'"
+psql -d stx -c "update dividends set date='2015-06-30' where stk='ENR' and date='2015-06-11'"
+psql -d stx -c "delete from eods where stk='FORX' and date='2014-12-01'"
+psql -d stx -c "update dividends set date='2016-05-02' where stk='FTAG' and date='2016-04-29'"
+psql -d stx -c "insert into dividends values ('IDATE', '2016-06-01', 0.8577, 2)"
+psql -d stx -c "delete from dividends where stk='PACD' and date='2016-05-24'"
+psql -d stx -c "insert into dividends values ('PGLC', '2015-06-18', 17.7273, 0)"
+psql -d stx -c "update dividends set date='2014-11-20' where stk='TRIL' and date='2014-11-19'"
+psql -d stx -c "update dividends set date='2016-07-25' where stk='UXI' and date='2016-07-22'"
+psql -d stx -c "insert into dividends values ('VIPS', '2014-11-14', 0.10, 0)"
+psql -d stx -c "update dividends set date='2015-08-14' where stk='Z' and date='2015-07-31'"
