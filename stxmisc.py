@@ -24,3 +24,23 @@ def format_nyse_holidays(fname='nyse_holidays.txt'):
     with open(fname.replace('.txt', '.csv'), 'w') as ofile:
         for line in new_lst:
             ofile.write(line)
+
+
+def find_max_ticker_length():
+    with open('symbol_names.txt', 'r') as f:
+        lines = f.readlines()
+    max_len = 0
+    tckr = ''
+    for line in lines:
+        if line.startswith('Category') or line.startswith('Symbol'):
+            continue
+        tokens = line.split()
+        ticker = tokens[0].strip()
+        if ticker.endswith('.US'):
+            ticker = ticker.replace("-.", ".P.").replace("_", ".")
+        if ('-WS' in ticker) or ('-CL' in ticker):
+            continue
+        if len(ticker) > max_len:
+            tckr = ticker
+            max_len = len(ticker)
+    return max_len, tckr
