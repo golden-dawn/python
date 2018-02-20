@@ -1,13 +1,13 @@
 import datetime
 from decimal import Decimal
-from opteod import OptEOD
+# from opteod import OptEOD
 import os
 import unittest
 from shutil import copyfile
 import stxcal
 import stxdb
 from stxeod import StxEOD
-from stxts import StxTS
+# from stxts import StxTS
 
 
 class Test1StxDb(unittest.TestCase):
@@ -54,7 +54,7 @@ A,2000-01-02,33.00,34.00,33.00,34.00,1000
         print('res = {0:s}'.format(res))
         self.assertEqual(len(res), 7)
         self.assertEqual(res[0][0], 'stk')
-        self.assertEqual(res[0][1],'varchar')
+        self.assertEqual(res[0][1], 'varchar')
         self.assertEqual(res[0][2], 8)
         self.assertEqual(res[1][0], 'dt')
         self.assertEqual(res[1][1], 'date')
@@ -111,7 +111,7 @@ A,2000-01-02,33.00,34.00,33.00,34.00,1000
         print('res = {0:s}'.format(res))
         self.assertEqual(len(res), 8)
         self.assertEqual(res[0][0], 'stk')
-        self.assertEqual(res[0][1],'varchar')
+        self.assertEqual(res[0][1], 'varchar')
         self.assertEqual(res[0][2], 8)
         self.assertEqual(res[1][0], 'date')
         self.assertEqual(res[1][1], 'date')
@@ -304,7 +304,6 @@ class Test2StxCal(unittest.TestCase):
 #             "select count(*) from options where expiry='2002-06-22'")
 #         print('res3 = {0:s}'.format(res3))
 #         self.assertEqual(res3[0][0], 101550)
-        
 
 class Test5StxEod(unittest.TestCase):
 
@@ -323,6 +322,7 @@ class Test5StxEod(unittest.TestCase):
         self.dn_in_dir = '/tmp/dn_test'
         self.md_in_dir = '{0:s}/md'.format(self.data_dir)
         self.ed_in_dir = '{0:s}/EODData'.format(self.data_dir)
+        self.sq_in_dir = '{0:s}/ALL'.format(self.data_dir)
         self.my_dir = '{0:s}/bkp'.format(self.data_dir)
         self.dn_dir = '{0:s}/stockhistory_2017'.format(self.data_dir)
         self.md_dir = '{0:s}/md'.format(self.data_dir)
@@ -395,10 +395,10 @@ class Test5StxEod(unittest.TestCase):
             StxEOD.sql_show_tables.format(self.dn_split_tbl))
         res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
                                  format(self.dn_eod_tbl))
-        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
-                                 " ('NFLX', 'AEOS', 'TIE', 'EXPE') and date <= "
-                                 "'2012-12-31' group by stk order by stk".
-                                 format(self.dn_eod_tbl))
+        res4 = stxdb.db_read_cmd(
+            "select stk, count(*) from {0:s} where stk in "
+            "('NFLX', 'AEOS', 'TIE', 'EXPE') and date <= '2012-12-31' "
+            "group by stk order by stk".format(self.dn_eod_tbl))
         res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
                                  "in ('NFLX', 'AEOS', 'TIE', 'EXPE') and date "
                                  " <= '2012-12-31' group by stk order by stk".
@@ -432,8 +432,8 @@ class Test5StxEod(unittest.TestCase):
         res1 = stxdb.db_read_cmd("select * from {0:s} where "
                                  "recon_name='{1:s}' order by stk".
                                  format(self.recon_tbl, my_eod.rec_name))
-        res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 "
-                                 "order by stk, date".format(self.my_split_tbl))
+        res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order "
+                                 "by stk, date".format(self.my_split_tbl))
         print('test_04_reconcile_my_data')
         print('res1')
         print(res1)
@@ -713,8 +713,8 @@ class Test5StxEod(unittest.TestCase):
         res4 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
                                  "date between '2003-08-08' and '2005-07-21'".
                                  format(self.eod_test))
-        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by stk '
-                                 'order by stk'.format(self.split_test))
+        res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by '
+                                 'stk order by stk'.format(self.split_test))
         print('test_11_merge_eod_tbls')
         print('res1')
         print(res1)
@@ -766,20 +766,28 @@ class Test5StxEod(unittest.TestCase):
     def test_12_load_stooq_eod_files(self):
         sq_eod = StxEOD(self.sq_in_dir, 'sq', self.recon_tbl)
         sq_eod.parseeodfiles('2016-08-24', '2016-08-26')
-                res1 = stxdb.db_read_cmd(
-            StxEOD.sql_show_tables.format(self.ed_eod_tbl))
+        res1 = stxdb.db_read_cmd(
+            StxEOD.sql_show_tables.format(sq_eod.eod_tbl))
         res2 = stxdb.db_read_cmd(
-            StxEOD.sql_show_tables.format(self.ed_split_tbl))
+            StxEOD.sql_show_tables.format(sq_eod.divi_tbl))
         res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-                                 format(self.ed_eod_tbl))
+                                 format(sq_eod.eod_tbl))
         res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk in"
                                  " ('AA', 'NFLX', 'VXX', 'EXPE') group by stk "
-                                 "order by stk".format(self.ed_eod_tbl))
-        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-                        and res4[0][0] == 'AA' and res4[0][1] == 242 and
-                        res4[1][0] == 'EXPE' and res4[1][1] == 242 and
-                        res4[2][0] == 'NFLX' and res4[2][1] == 242 and
-                        res4[3][0] == 'VXX' and res4[3][1] == 241)
+                                 "order by stk".format(sq_eod.eod_tbl))
+        print('res1')
+        print(res1)
+        print('res2')
+        print(res2)
+        print('res3')
+        print(res3)
+        print('res4')
+        print(res4)
+        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 8118
+                        and res4[0][0] == 'AA' and res4[0][1] == 3 and
+                        res4[1][0] == 'EXPE' and res4[1][1] == 3 and
+                        res4[2][0] == 'NFLX' and res4[2][1] == 3 and
+                        res4[3][0] == 'VXX' and res4[3][1] == 3)
 
 
 if __name__ == '__main__':
