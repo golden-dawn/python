@@ -37,7 +37,8 @@ def find_max_ticker_length():
         tokens = line.split()
         ticker = tokens[0].strip()
         if ticker.endswith('.US'):
-            ticker = ticker.replace("-.", ".P.").replace("_", ".")
+            ticker = ticker.replace(
+                "-.", ".P.").replace("_", ".").replace('-', '.')
         if ('-WS' in ticker) or ('-CL' in ticker):
             continue
         if len(ticker) > max_len:
