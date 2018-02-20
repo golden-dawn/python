@@ -1,13 +1,13 @@
 import csv
 from datetime import datetime
 from io import BytesIO
-import json
+# import json
 import logging
 from math import trunc
 import numpy as np
 import os
 import pandas as pd
-import requests
+# import requests
 from shutil import rmtree
 import stxcal
 import stxdb
@@ -298,7 +298,7 @@ class StxEOD:
     # is 0, or where the open/close are outside the [low, high] range.
     def load_eoddata_file(self, ofile, ifname, dt, dtc, stks=''):
         stk_list = [] if stks == '' else stks.split(',')
-        db_stx, stx_dct = self.create_exchange()
+        db_stx, _ = self.create_exchange()
         with open(ifname, 'r') as ifile:
             lines = ifile.readlines()
             for line in lines[1:]:
@@ -516,8 +516,8 @@ class StxEOD:
     # looking at the ratio to stay the same over three days before the
     # day where the ratio change and 2 days after.
     def calc_implied_splits(self, df, stk, sd, ed):
-        stxdb.db_write_cmd("delete from {0:s} where stk = '{1:s}' and "
-                           "date between '{2:s}' and '{3:s}' and divi_type = 1".
+        stxdb.db_write_cmd("delete from {0:s} where stk = '{1:s}' and date "
+                           "between '{2:s}' and '{3:s}' and divi_type = 1".
                            format(self.divi_tbl, stk, sd, ed))
         df['r'] = df['spot'] / df['c']
         for i in [x for x in range(-3, 4) if x != 0]:
@@ -842,29 +842,29 @@ class StxEOD:
     # and mypivots, deltaneutral, make sure that these splits are
     # reflected in the EOD data, and, if they are, make sure that they
     # are added to the splits database.
-    def eod_reconciliation(self, sd, ed):
-        sql = "select distinct stk from {0:s} where date between '{1:s}'"\
-              " and '{2:s}'".format(self.eod_tbl, sd, ed)
-        # c = pycurl.Curl()
-        # c.setopt(pycurl.SSL_VERIFYPEER, 0)
-        # c.setopt(pycurl.SSL_VERIFYHOST, 0)
-        res = stxdb.db_read_cmd(sql)
-        stk_list = [x[0] for x in res]
-        num_stx = len(stk_list)
-        print('EOD reconciliation for {0:d} stocks from {1:s}'.
-              format(num_stx, self.eod_tbl))
-        num = 0
-        for stk in stk_list:
-            try:
-                self.reconcile_stk_eod(c, stk, sd, ed)
-            except Exception as ex:
-                print('{0:s} EOD reconciliation failed: {1:s}'.
-                      format(stk, str(ex)))
-            finally:
-                num += 1
-                if num % 500 == 0 or num == num_stx:
-                    print('Reconciled EOD for {0:4d} out of {1:4d}'
-                          ' stocks'.format(num, num_stx))
+    # def eod_reconciliation(self, sd, ed):
+    #     sql = "select distinct stk from {0:s} where date between '{1:s}'"\
+    #           " and '{2:s}'".format(self.eod_tbl, sd, ed)
+    #     # c = pycurl.Curl()
+    #     # c.setopt(pycurl.SSL_VERIFYPEER, 0)
+    #     # c.setopt(pycurl.SSL_VERIFYHOST, 0)
+    #     res = stxdb.db_read_cmd(sql)
+    #     stk_list = [x[0] for x in res]
+    #     num_stx = len(stk_list)
+    #     print('EOD reconciliation for {0:d} stocks from {1:s}'.
+    #           format(num_stx, self.eod_tbl))
+    #     num = 0
+    #     for stk in stk_list:
+    #         try:
+    #             self.reconcile_stk_eod(c, stk, sd, ed)
+    #         except Exception as ex:
+    #             print('{0:s} EOD reconciliation failed: {1:s}'.
+    #                   format(stk, str(ex)))
+    #         finally:
+    #             num += 1
+    #             if num % 500 == 0 or num == num_stx:
+    #                 print('Reconciled EOD for {0:4d} out of {1:4d}'
+    #                       ' stocks'.format(num, num_stx))
 
     def reconcile_stk_eod(self, c, stk, sd, ed):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
@@ -907,8 +907,8 @@ class StxEOD:
                     print('{0:s}: {1:s} - {2:4f}'.format(stk, px1[0],
                                                          np.round(split, 4)))
                     db_cmd = "insert into {0:s} values('{1:s}','{2:s}',"\
-                             "{3:4f},0) on duplicate key update "\
-                             "ratio={4:4f}, divi_type=0".\
+                             "{3:4f},0) on conflict (stk, date) do update "\
+                             "set ratio={4:4f}, divi_type=0".\
                              format(self.divi_tbl, stk, px1[0],
                                     np.round(split, 4), np.round(split, 4))
                     stxdb.db_write_cmd(db_cmd)
@@ -1008,8 +1008,11 @@ class StxEOD:
     def multiply_prices(self, o, h, l, c, factor):
         return o * factor, h * factor, l * factor, c * factor
 
-    def parseeodline(self, line):
+    def parseeodline(self, line, db_stx):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
+        # look only at the US stocks, for the time being
+        if not stk.endswith('.US'):
+            return
         dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
         if not stxcal.is_busday(dt):
             raise Exception('{0:s} is not a business day'.format(dt))
@@ -1019,7 +1022,8 @@ class StxEOD:
         c = c if c <= h and c >= l else (h if c > h else l)
         v, oi = int(v), int(oi)
         if stk.endswith('.US'):  # proces stock tickers, volume must be > 0
-            stk = stk[:-3].replace("-.", ".P.").replace("_", ".")
+            stk = stk[:-3].replace("-.", ".P.").replace("_", ".").replace(
+                '-', '.')
             if v == 0:
                 raise Exception('Zero volume for stock')
             if len(stk) > 8:
@@ -1037,11 +1041,14 @@ class StxEOD:
             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
         # all tickers ending in .F are futures, except the LME tickers
         v = 1 if v == 0 else v
-        tbl = self.ftr_tbl if is_future else self.eod_tbl
+        if stk not in db_stx:
+            insert_stx = "INSERT INTO equities VALUES "\
+                         "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+            stxdb.db_write_cmd(insert_stx)
         db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},"\
-                 "{5:2f},{6:2f},{7:d},{8:d}) on duplicate key update "\
-                 "v={9:d}, oi={10:d}".format(tbl, stk, dt, o, h, l, c, v, oi,
-                                             v, oi)
+            "{5:2f},{6:2f},{7:d},{8:d}) on conflict (stk, date) do update "\
+            "set volume={9:d}, open_interest={10:d}".format(
+                self.eod_tbl, stk, dt, o, h, l, c, v, oi, v, oi)
         stxdb.db_write_cmd(db_cmd)
 
     def parseeodfiles(self, s_date, e_date):
@@ -1050,6 +1057,7 @@ class StxEOD:
         print('Uploading EOD data for {0:d} days'.format(num_days))
         day_num = 0
         while dt <= e_date:
+            db_stx, _ = self.create_exchange()
             try:
                 with open('{0:s}/{1:s}_d.prn'.format
                           (self.in_dir, dt.replace('-', ''))) as ifile:
@@ -1059,7 +1067,7 @@ class StxEOD:
                 continue
             for line in lines:
                 try:
-                    self.parseeodline(line)
+                    self.parseeodline(line, db_stx)
                 except Exception as ex:
                     logging.info('Error with line {0:s}: {1:s}'.format
                                  (line.strip(), str(ex)))
@@ -1084,7 +1092,7 @@ class StxEOD:
             if ratio > 9999:
                 continue
             db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:8.4f},0) "\
-                     "on duplicate key update ratio={4:8.4f}".\
+                     "on conflict (stk, date) do update set ratio={4:8.4f}".\
                      format(self.divi_tbl, stk, dt, ratio, ratio)
             stxdb.db_write_cmd(db_cmd)
             num_splits += 1
@@ -1117,7 +1125,7 @@ if __name__ == '__main__':
     # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
     # ed_eod.load_eoddata_files()
     #
-    # md_eod = StxEOD('c:/goldendawn/md', 'md_eod', 'md_split', 'reconciilation')
+    # md_eod = StxEOD('c:/goldendawn/md', 'md', 'reconciilation')
     # log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
     #                                             strftime('%Y%m%d%H%M%S'))
     # with open(log_fname, 'w') as logfile:
