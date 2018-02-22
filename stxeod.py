@@ -1102,14 +1102,27 @@ class StxEOD:
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    # s_date = '2001-01-01'
-    # e_date = '2012-12-31'
-    # my_eod = StxEOD('c:/goldendawn/bkp', 'my_eod', 'my_split',
-    #                 'reconciliation')
-    # my_eod.load_my_files()
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
-    #                 'reconciliation')
-    # dn_eod.load_deltaneutral_files()
+    s_date = '2001-01-01'
+    e_date = '2012-12-31'
+    data_dir = os.getenv('DATA_DIR')
+    my_dir = '{0:s}/bkp'.format(data_dir)
+    dn_dir = '{0:s}/stockhistory_2017'.format(data_dir)
+    ed_dir = '{0:s}/EODData'.format(data_dir)
+    md_dir = '{0:s}/md'.format(data_dir)
+    sq_dir = '{0:s}/ALL'.format(data_dir)
+    my_eod = StxEOD(my_dir, 'my', 'reconciliation')
+    dn_eod = StxEOD(dn_dir, 'dn', 'reconciliation')
+    ed_eod = StxEOD(ed_dir, 'ed', 'reconciliation')
+    md_eod = StxEOD(md_dir, 'md', 'reconciliation')
+    sq_eod = StxEOD(sq_dir, 'sq', 'reconciliation')
+    my_eod.load_my_files()
+    dn_eod.load_deltaneutral_files()
+    ed_eod.load_eoddata_files()
+    log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
+                                                strftime('%Y%m%d%H%M%S'))
+    with open(log_fname, 'w') as logfile:
+        md_eod.load_marketdata_files()
+    sq_eod.parseeodfiles(s_date, e_date)
     # my_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
     # To debug a reconciliation:
@@ -1122,22 +1135,8 @@ if __name__ == '__main__':
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split'])
     #
-    # ed_eod = StxEOD('c:/goldendawn/EODData', 'ed_eod', 'ed_split')
-    # ed_eod.load_eoddata_files()
-    #
-    # md_eod = StxEOD('c:/goldendawn/md', 'md', 'reconciilation')
-    # log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
-    #                                             strftime('%Y%m%d%H%M%S'))
-    # with open(log_fname, 'w') as logfile:
-    #     md_eod.load_marketdata_files()
-    # md_eod.load_marketdata_file('c:/goldendawn/NASDAQ/CCMP.csv', logfile)
-
     # s_date = '2013-01-02'
     # e_date = '2013-11-15'
-    # ed_eod = StxEOD('c:/goldendawn', 'ed_eod', 'ed_split', 'reconciliation')
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
-    #                 'reconciliation')
-    # md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciliation')
     # ed_eod.reconcile_spots(s_date, e_date)
     # md_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
@@ -1155,9 +1154,6 @@ if __name__ == '__main__':
 
     # s_date = '2013-11-18'
     # e_date = '2016-08-23'
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'dn_eod', 'dn_split',
-    #                 'reconciliation')
-    # md_eod = StxEOD('c:/goldendawn', 'md_eod', 'md_split', 'reconciliation')
     # md_eod.reconcile_spots(s_date, e_date)
     # dn_eod.reconcile_spots(s_date, e_date)
     # # To debug a reconciliation:
@@ -1169,9 +1165,7 @@ if __name__ == '__main__':
     # eod = StxEOD('', 'eod', 'split', 'reconciliation')
     # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
     #                                               'dn_split', 'md_split'])
-    sq_eod = StxEOD('C:/goldendawn/d_world_txt/data/daily/world', 'sq_eod',
-                    'sq_split', 'reconciliation', 'sq_fxs')
-    sq_eod.load_stooq_files('1901-01-01', '2016-08-23')
+    # sq_eod.load_stooq_files('1901-01-01', '2016-08-23')
     #
     # This reconciliation is done to check that data from stooq is
     # consistent with opt_spots.  All the stocks during this time
@@ -1181,9 +1175,6 @@ if __name__ == '__main__':
     #
     # s_date = '2016-08-24'
     # e_date = '2016-12-31'
-    # sq_eod = StxEOD(StxEOD.dload_dir, 'eod_sq', 'split_sq', 'reconciliation',
-    #                 'ftr_sq')
-    # sq_eod.parseeodfiles(s_date, e_date)
     # for sdt in ['20160928', '20161223', '20170102', '20170317']:
     #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
     # sq_eod.reconcile_spots(s_date, e_date)
