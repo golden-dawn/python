@@ -1104,6 +1104,13 @@ if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
     s_date = '2001-01-01'
     e_date = '2012-12-31'
+    e_date_dn = '2016-12-30'
+    s_date_ed = '2013-01-02'
+    e_date_ed = '2013-11-15'
+    s_date_ae = '2013-11-18'
+    e_date_md = '2016-08-23'
+    s_date_sq = '2016-08-24'
+    e_date_sq = '2017-12-29'
     data_dir = os.getenv('DATA_DIR')
     my_dir = '{0:s}/bkp'.format(data_dir)
     dn_dir = '{0:s}/stockhistory_2017'.format(data_dir)
@@ -1123,8 +1130,50 @@ if __name__ == '__main__':
     with open(log_fname, 'w') as logfile:
         md_eod.load_marketdata_files()
     sq_eod.parseeodfiles(s_date, e_date)
-    # my_eod.reconcile_spots(s_date, e_date)
-    # dn_eod.reconcile_spots(s_date, e_date)
+    my_eod.reconcile_spots(s_date, e_date)
+    dn_eod.reconcile_spots(s_date, e_date)
+    md_eod.reconcile_spots(s_date, e_date)
+    my_eod.upload_eod('eods', 'dividends', '', s_date, e_date)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date, e_date)
+    md_eod.upload_eod('eods', 'dividends', '', s_date, e_date)
+    my_eod.upload_eod('eods', 'dividends', '', s_date, e_date, 0.02, 15)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date, e_date, 0.02, 15)
+    md_eod.upload_eod('eods', 'dividends', '', s_date, e_date, 0.02, 15)
+    dn_eod.reconcile_spots(s_date_ed, e_date_ed)
+    ed_eod.reconcile_spots(s_date_ed, e_date_ed)
+    md_eod.reconcile_spots(s_date_ed, e_date_ed)
+    ed_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed)
+    md_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed)
+    ed_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed, 0.02, 15)
+    md_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed, 0.02, 15)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date_ed, e_date_ed, 0.02, 15)
+    md_eod.reconcile_spots(s_date_ae, e_date_md)
+    dn_eod.reconcile_spots(s_date_ae, e_date_md)
+    md_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md)
+    md_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md, 0.02, 15)
+    dn_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md, 0.02, 15)
+
+    # This reconciliation is done to check that data from stooq is
+    # consistent with opt_spots.  All the stocks during this time
+    # period passed the reconciliation, as it should be the case. So,
+    # there is no reason to invoke upload_eod. Instead, we will just
+    # upload the stooq data into eod.
+    # s_date = '2016-08-24'
+    # e_date = '2016-12-31'
+    # for sdt in ['20160928', '20161223', '20170102', '20170317']:
+    #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
+    # sq_eod.reconcile_spots(s_date, e_date)
+    # s_date = '2016-08-24'
+    # e_date = '2017-03-17'
+    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
+    # eod.parseeodfiles(s_date, e_date)
+    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
+    #                 'reconciliation')
+    # dn_eod.load_deltaneutral_splits([])
+    # dn_eod.load_deltaneutral_divis([])
+
     # To debug a reconciliation:
     # my_eod.reconcile_opt_spots('EXPE', '2002-02-01', '2012-12-31', True)
     # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
