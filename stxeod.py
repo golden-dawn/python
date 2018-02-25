@@ -45,6 +45,7 @@ class StxEOD:
 
     def __init__(self, in_dir, prefix, recon_tbl, extension='.txt'):
         self.in_dir = in_dir
+        self.name = self.get_name(prefix)
         self.eod_tbl = 'eods' if prefix == '' else '{0:s}_eods'.format(prefix)
         self.rec_name = self.eod_tbl
         self.divi_tbl = 'dividends' if prefix == '' else \
@@ -57,6 +58,15 @@ class StxEOD:
         if not os.path.exists(self.upload_dir):
             os.makedirs(self.upload_dir)
 
+    def get_name(self, x):
+        return {
+            'my': 'my',
+            'dn': 'deltaneutral',
+            'ed': 'eoddata',
+            'md': 'marketdata',
+            'sq': 'stooq'
+        }.get(x, 'final')
+
     def create_exchange(self):
         xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
         if not xchgs:
@@ -68,6 +78,7 @@ class StxEOD:
     # Load my historical data.  Load each stock and accumulate splits.
     # Upload splits at the end.
     def load_my_files(self, stx=''):
+        print('Loading my files...')
         split_fname = '{0:s}/my_splits.txt'.format(self.upload_dir)
         try:
             os.remove(split_fname)
@@ -98,6 +109,7 @@ class StxEOD:
         except Exception as ex:
             print('Failed to upload the splits from file {0:s}, error {1:s}'.
                   format(split_fname, str(ex)))
+        print('Loaded my files')
 
     # Upload each stock.  Split lines are prefixed with '*'.  Upload
     # stock data separately and then accumulate each stock.
@@ -152,6 +164,7 @@ class StxEOD:
     # all the splits into the database.  We will worry about
     # missing/wrong splits and volume adjustments later.
     def load_deltaneutral_files(self, stks=''):
+        print('Loading deltaneutral files...')
         if os.path.exists(self.in_dir):
             rmtree(self.in_dir)
         os.makedirs(self.in_dir)
@@ -199,6 +212,7 @@ class StxEOD:
             except Exception as ex:
                 print('Upload failed {0:s}, error {1:s}'.format(stk, str(ex)))
         self.load_deltaneutral_splits(stk_list)
+        print('Loaded deltaneutral files')
 
     # Load the delta neutral splits into the database
     def load_deltaneutral_splits(self, stk_list):
@@ -274,6 +288,7 @@ class StxEOD:
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
     def load_eoddata_files(self, sd='2013-01-02', ed='2013-11-15', stks=''):
+        print('Loading eoddata files...')
         dt = sd
         # dt = stxcal.move_busdays(sd, -25)
         fnames = [os.path.join(self.in_dir, 'AMEX_{0:s}.txt'),
@@ -292,6 +307,7 @@ class StxEOD:
                 print('Failed to upload {0:s}, error {1:s}'.format(dt,
                                                                    str(ex)))
             dt = stxcal.next_busday(dt)
+        print('Loaded eoddata files')
 
     # Load data from a single EODData file in the database Perform
     # some quality checks on the data: do not upload days where volume
@@ -324,6 +340,7 @@ class StxEOD:
     # Load data from the market archive.  Data is located in three
     # different directories (AMEX, NASDAQ and NYSE)
     def load_marketdata_files(self, sd='1962-01-02', ed='2016-12-31'):
+        print('Loading {0:s} files...'.format(self.name))
         log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
                                                     strftime('%Y%m%d%H%M%S'))
         exchanges = ['AMEX', 'NASDAQ', 'NYSE']
@@ -348,6 +365,7 @@ class StxEOD:
                         print('{0:s} uploaded {1:4d}/{2:4d} {3:s} stocks'.
                               format(stxcal.print_current_time(), num, total,
                                      exchange))
+        print('Loaded {0:s} files'.format(self.name))
 
     # For each marketdata file, back out splits and dividends; adjust
     # volume for splits (but not dividends).  Update the database with
@@ -439,6 +457,8 @@ class StxEOD:
         rec_interval = '{0:s}_{1:s}'.format(
             datetime.strptime(sd, '%Y-%m-%d').strftime('%Y%m%d'),
             datetime.strptime(ed, '%Y-%m-%d').strftime('%Y%m%d'))
+        print('Reconciling {0:s} spots for interval {1:s}...'.
+              format(self.name, rec_interval))
         num_stx = len(stk_list)
         print('Reconciling {0:d} stocks in interval {1:s}'.
               format(num_stx, rec_interval))
@@ -468,6 +488,8 @@ class StxEOD:
                 if num % 500 == 0 or num == num_stx:
                     print('Reconciled {0:4d} out of {1:4d} stocks'.
                           format(num, num_stx))
+        print('Reconciled {0:s} spots for interval {1:s}'.
+              format(self.name, rec_interval))
 
     # Perform reconciliation for a single stock. If we cannot get the
     # EOD data, return N/A. Otherwise, return, for each stock, the
@@ -678,6 +700,9 @@ class StxEOD:
             ed = datetime.now().strftime('%Y-%m-%d')
         rec_interval = '{0:s}_{1:s}'.format(sd.replace('-', ''),
                                             ed.replace('-', ''))
+        print('Uploading {0:s} eods for interval {1:s}, acc: {2:.2f}, '
+              'coverage: {3:.0f}...'.format(self.name, rec_interval, max_mse,
+                                            min_coverage))
         sql = "select stk from {0:s} where recon_name='{1:s}' and "\
               "recon_interval='{2:s}' and mse<={3:f} and coverage>={4:f}".\
               format(self.recon_tbl, self.rec_name, rec_interval, max_mse,
@@ -710,7 +735,7 @@ class StxEOD:
                 except Exception as ex:
                     print('Failed to EOD upload stock {0:s}, error {1:s}'.
                           format(stk, str(ex)))
-        print('{0:s} - uploaded {1:d} stocks'.format(self.rec_name, num))
+        print('{0:s} - uploaded {1:d} stocks'.format(self.name, num))
 
     def upload_stk(self, eod_table, split_table, stk, sd, ed, rec_interval):
         ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
@@ -1009,6 +1034,7 @@ class StxEOD:
         return o * factor, h * factor, l * factor, c * factor
 
     def parseeodline(self, line, db_stx):
+        print('Loading stooq files...')
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
         # look only at the US stocks, for the time being
         if not stk.endswith('.US'):
@@ -1050,6 +1076,7 @@ class StxEOD:
             "set volume={9:d}, open_interest={10:d}".format(
                 self.eod_tbl, stk, dt, o, h, l, c, v, oi, v, oi)
         stxdb.db_write_cmd(db_cmd)
+        print('Loaded stooq files')
 
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
