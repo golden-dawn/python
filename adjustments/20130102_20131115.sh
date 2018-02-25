@@ -1,3 +1,5 @@
+#!/bin/bash
+
 psql -d stx -c "insert into dividends values ('ADVS', '2013-07-09', 0.7446, 2)"
 psql -d stx -c "insert into dividends values ('ALVR', '2013-04-01', 10, 0)"
 psql -d stx -c "insert into dividends values ('ANTH', '2013-07-12', 7.3333, 0)"

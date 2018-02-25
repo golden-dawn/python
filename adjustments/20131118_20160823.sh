@@ -1,3 +1,4 @@
+#!/bin/bash
 psql -d stx -c "insert into dividends values ('ACI', '2016-01-11', 23.3735, 0)"
 psql -d stx -c "delete from dividends where stk='ATLS' and date in ('2013-11-15', '2015-02-04')"
 psql -d stx -c "insert into dividends values ('BF.A', '2016-08-18', 0.5, 0)"

@@ -1,3 +1,4 @@
+#!/bin/bash
 psql -d stx -c "delete from eods where stk='ARWA'"
 psql -d stx -c "insert into dividends values ('BAS', '2016-12-23', 86.6667, 0)"
 psql -d stx -c "insert into dividends values ('CDOR', '2017-03-15', 6.5359, 0)"

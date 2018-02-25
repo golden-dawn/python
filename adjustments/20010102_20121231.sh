@@ -1,3 +1,5 @@
+#!/bin/bash
+
 psql -d stx -c "update eods set c=17.00 where stk='AACC' and date='2004-09-21'"
 psql -d stx -c "insert into dividends values ('AAUKY', '2001-05-07', 0.25, 0)"
 psql -d stx -c "insert into dividends values ('AAUKY', '2006-03-03', 0.5, 0)"
