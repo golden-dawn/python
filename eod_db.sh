@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo 'Copy the spots to file'
-psql -d stx -c "copy (select * from opt_spots) to '/tmp/opt_spots.txt'"
-
 if [ -z "$1" ]
 then
     echo "No test database name supplied, using default (stx_1)"
@@ -14,12 +11,20 @@ echo 'Creating the eod database'
 createdb $DB_NAME
 echo 'Dumping the main database schema,and copying into the test database'
 pg_dump --schema-only -f /tmp/stx.sql stx
-psql $DB_NAME < /tmp/stx.sql
+psql -q $DB_NAME < /tmp/stx.sql
 echo 'adding function that duplicates a table, including indexes & foreign keys'
-psql $DB_NAME < create_table_like.sql
+psql -q $DB_NAME < create_table_like.sql
 echo 'pointing DB_URL to the test database'
 export DB_URL0=$DB_URL
 export DB_URL="${DB_URL/stx/$DB_NAME}"
+
+echo 'Copy the exchanges table from stx'
+pg_dump -a -t exchanges stx | psql -q $DB_NAME
+echo 'Copy the equities table from stx'
+pg_dump -a -t equities stx | psql -q $DB_NAME
+echo 'Copy the opt_spots table from stx'
+pg_dump -a -t opt_spots stx | psql -q $DB_NAME
+
 echo 'Populating the EOD database'
 python stxeod.py
 echo 'Applying adjustments'
