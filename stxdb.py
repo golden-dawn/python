@@ -108,9 +108,10 @@ def db_upload_file(file_name, tbl_name, sep='\t'):
             tokens = [x.strip() for x in line.strip().split(sep)]
             key = '\t'.join(tokens[:key_len])
             if key in dct:
-                print('DUPLICATE KEY: {0:s}'.format(key))
-                print('  Removed line: {0:s}'.format(line.strip()))
-                print('  Prev occurence: {0:s}'.format(dct[key].strip()))
+                pass
+                # print('DUPLICATE KEY: {0:s}'.format(key))
+                # print('  Removed line: {0:s}'.format(line.strip()))
+                # print('  Prev occurence: {0:s}'.format(dct[key].strip()))
             else:
                 dct[key] = line
                 write_lines.append('\t'.join(tokens))
