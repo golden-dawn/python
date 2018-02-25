@@ -349,6 +349,20 @@ class Test5StxEod(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_00_eod_name(self):
+        my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
+        dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
+        md_eod = StxEOD(self.md_in_dir, 'md', self.recon_tbl)
+        ed_eod = StxEOD(self.ed_in_dir, 'ed', self.recon_tbl)
+        sq_eod = StxEOD(self.sq_in_dir, 'sq', self.recon_tbl)
+        eod = StxEOD(self.sq_in_dir, '', self.recon_tbl)
+        self.assertEqual(my_eod.name, 'my')
+        self.assertEqual(dn_eod.name, 'deltaneutral')
+        self.assertEqual(md_eod.name, 'marketdata')
+        self.assertEqual(ed_eod.name, 'eoddata')
+        self.assertEqual(sq_eod.name, 'stooq')
+        self.assertEqual(eod.name, 'final')
+
     def test_01_load_my_data(self):
         my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
         my_eod.load_my_files(self.stx)
