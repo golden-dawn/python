@@ -99,7 +99,11 @@ class StxEOD:
         db_stx, stx_dct = self.create_exchange()
         ixx = 0
         for fname in lst:
-            self.load_my_stk(fname, split_fname, db_stx, stx_dct)
+            try:
+                self.load_my_stk(fname, split_fname, db_stx, stx_dct)
+            except Exception as ex:
+                print('Failed to upload data from file {0:s}: {1:s}'.
+                      format(fname, str(ex)))
             ixx += 1
             if ixx % 500 == 0 or ixx == num_stx:
                 print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
@@ -137,8 +141,12 @@ class StxEOD:
                     toks = line[start:].strip().split(' ')
                     o, h, l, c, v = float(toks[1]), float(toks[2]), \
                         float(toks[3]), float(toks[4]), int(toks[5])
+                    if v > 2147483647:
+                        v = 2147483647 - v
+                        print('Huge volume for {0:s} on {1:s}'.
+                              format(stk, toks[0]))
                     if o > 0.05 and h > 0.05 and l > 0.05 and c > 0.05 and \
-                       v > 0:
+                       v != 0:
                         eod.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
                                   '{5:.2f}\t{6:d}\t0\n'.
                                   format(stk, toks[0], o, h, l, c, v))
