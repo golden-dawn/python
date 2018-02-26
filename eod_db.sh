@@ -28,9 +28,9 @@ pg_dump -a -t opt_spots stx | psql -q $DB_NAME
 echo 'Populating the EOD database'
 python stxeod.py
 echo 'Applying adjustments'
-./adjustments/20010102_20121231.sh
-./adjustments/20130102_20131115.sh
-./adjustments/20131118_20160823.sh
+./adjustments/20010102_20121231.sh $DB_NAME
+./adjustments/20130102_20131115.sh $DB_NAME
+./adjustments/20131118_20160823.sh $DB_NAME
 echo 'resetting DB_URL to the main database'
 export DB_URL=$DB_URL0
 echo 'All done'
