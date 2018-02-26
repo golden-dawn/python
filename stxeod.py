@@ -212,13 +212,20 @@ class StxEOD:
                         ofile.write(rec)
         lst = [f for f in os.listdir(self.in_dir)
                if f.endswith(self.extension)]
+        ixx = 0
+        total = len(lst)
         for fname in lst:
             try:
                 stxdb.db_upload_file(os.path.join(self.in_dir, fname),
                                      self.eod_tbl, '\t')
-                print('{0:s}: uploaded eods'.format(stk))
+                # print('{0:s}: uploaded eods'.format(stk))
             except Exception as ex:
-                print('Upload failed {0:s}, error {1:s}'.format(stk, str(ex)))
+                print('{0:s} upload failed: {1:s}'.format(fname, str(ex)))
+            ixx += 1
+            if ixx % 250 == 0 or ixx == total:
+                print('{0:s}: uploaded {1:4d}/{2:4d} stocks'.
+                      format(self.name, ixx, total))
+
         self.load_deltaneutral_splits(stk_list)
         print('Loaded deltaneutral files')
 
@@ -1148,7 +1155,7 @@ if __name__ == '__main__':
     e_date_sq = '2017-12-29'
     data_dir = os.getenv('DATA_DIR')
     my_dir = '{0:s}/bkp'.format(data_dir)
-    dn_dir = '{0:s}/stockhistory_2017'.format(data_dir)
+    dn_dir = '/tmp/dn_test'.format(data_dir)
     ed_dir = '{0:s}/EODData'.format(data_dir)
     md_dir = '{0:s}/md'.format(data_dir)
     sq_dir = '{0:s}/ALL'.format(data_dir)
