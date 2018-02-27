@@ -1,42 +1,37 @@
 from datetime import datetime
-from io import BytesIO
-import pycurl
+import requests
 
 
 class MypivotsSplits:
 
-    fname = 'C:/goldendawn/mypivots.html'
-    out_fname = 'C:/goldendawn/mypivots_splits_1.txt'
-    prefix = '<a style="padding-right:10px" href="/stock-split-calendar/' \
+    fname = '/home/cma/mypivots_splits.csv'
+    prefix = '<td><a style="padding-right:10px" href="/stock-split-calendar/' \
         'ticker/'
-    url_base = 'http://www.mypivots.com/stock-split-calendar/ticker'
+    url_base = 'http://www.mypivots.com'
     start_row = '<tr style="text-align:center">'
     end_row = '</tr>'
 
     def get_all(self):
-        with open(self.fname, 'r') as ifile:
-            lines = ifile.readlines()
-        c = pycurl.Curl()
-        for line in lines:
-            if line.startswith(self.prefix):
-                ixx = line.find('">')
-                if ixx == -1:
-                    print('WRONG LINE: {0:s}'.format(line))
-                    continue
-                url_suffix = line[len(self.prefix): ixx]
-                ticker = line[ixx + 2: line.find('</a>')]
-                self.store_splits(c, ticker, url_suffix)
-                print('Got splits for {0:s}'.format(ticker))
-        c.close()
+        r1 = requests.get('{0:s}/stock-split-calendar/ticker'.
+                          format(self.url_base))
+        lines = r1.text.split('\n')
+        split_urls = [l[40:-9] for l in lines if l.startswith(self.prefix)]
+        split_urls = [x[:x.find('"')] for x in split_urls]
+        with open(self.fname, 'w') as f:
+            f.write('Ticker,Date,Ratio\n')
+        for split_url in split_urls:
+            r2 = requests.get('{0:s}{1:s}'.format(self.url_base, split_url))
+            if r2.status_code != 200:
+                print('Failed to get {0:s}, error_code: {1:d}'.
+                      format(split_url, r2.status_code))
+                continue
+            tokens = split_url.split('/')
+            ticker = tokens[3].strip().upper()
+            lines = r2.text.split('\n')
+            self.store_splits(ticker, lines)
 
-    def store_splits(self, c, ticker, url_suffix):
-        with open(self.out_fname, 'a') as ofile:
-            res_buffer = BytesIO()
-            c.setopt(c.URL, '{0:s}/{1:s}'.format(self.url_base, url_suffix))
-            c.setopt(c.WRITEDATA, res_buffer)
-            c.perform()
-            res = res_buffer.getvalue().decode('iso-8859-1')
-            lines = res.split('\n')
+    def store_splits(self, ticker, lines):
+        with open(self.fname, 'a') as ofile:
             started = False
             str_buffer = ''
             for line in lines:
