@@ -1,5 +1,6 @@
 from datetime import datetime
 import requests
+import stxdb
 
 
 class MypivotsSplits:
@@ -52,6 +53,26 @@ class MypivotsSplits:
                     started = False
                 else:
                     str_buffer += line.strip()
+
+    def upload_splits(self):
+        with open(self.fname, 'r') as f:
+            lines = f.readlines()
+        lines = list(set(lines))
+        dct = {}
+        for l in lines:
+            tokens = l.split('\t')
+            ticker = tokens[0].strip()
+            dct[ticker] = ''
+        db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
+        for stk in dct:
+            if stk not in db_stx:
+                insert_stx = "INSERT INTO equities VALUES "\
+                    "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+                stxdb.db_write_cmd(insert_stx)
+        try:
+            stxdb.db_upload_file(self.fname, 'dividends', '\t')
+        except Exception as ex:
+            print('Failed to upload {0:s}: {1:s}'.format(self.fname, str(ex)))
 
 
 if __name__ == '__main__':
