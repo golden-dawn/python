@@ -64,10 +64,13 @@ class MypivotsSplits:
             ticker = tokens[0].strip()
             dct[ticker] = ''
         db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
+        print('len(dct) = {0:d}, len(db_stx) = {1:d}'.
+              format(len(dct), len(db_stx)))
         for stk in dct:
             if stk not in db_stx:
                 insert_stx = "INSERT INTO equities VALUES "\
                     "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+                print('insert_stx = {0:s}'.format(insert_stx))
                 stxdb.db_write_cmd(insert_stx)
         try:
             stxdb.db_upload_file(self.fname, 'dividends', '\t')
