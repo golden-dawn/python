@@ -4,6 +4,7 @@ from io import BytesIO
 # import json
 import logging
 from math import trunc
+from mypivots_splits import MypivotsSplits
 import numpy as np
 import os
 import pandas as pd
@@ -1105,7 +1106,9 @@ class StxEOD:
                           (self.in_dir, dt.replace('-', ''))) as ifile:
                     lines = ifile.readlines()
             except IOError as ioe:
-                print(str(ioe))
+                print('{0:s} failed to read EOD file: {1:s}'.
+                      format(dt, str(ioe)))
+                dt = stxcal.next_busday(dt)
                 continue
             for line in lines:
                 try:
@@ -1171,7 +1174,9 @@ if __name__ == '__main__':
                                                 strftime('%Y%m%d%H%M%S'))
     with open(log_fname, 'w') as logfile:
         md_eod.load_marketdata_files()
-    sq_eod.parseeodfiles(s_date, e_date)
+    mps = MypivotsSplits()
+    mps.upload_splits()
+    sq_eod.parseeodfiles(s_date_sq, e_date_sq)
     my_eod.reconcile_spots(s_date, e_date)
     dn_eod.reconcile_spots(s_date, e_date)
     md_eod.reconcile_spots(s_date, e_date)
@@ -1196,90 +1201,3 @@ if __name__ == '__main__':
     dn_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md)
     md_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md, 0.02, 15)
     dn_eod.upload_eod('eods', 'dividends', '', s_date_ae, e_date_md, 0.02, 15)
-
-    # This reconciliation is done to check that data from stooq is
-    # consistent with opt_spots.  All the stocks during this time
-    # period passed the reconciliation, as it should be the case. So,
-    # there is no reason to invoke upload_eod. Instead, we will just
-    # upload the stooq data into eod.
-    # s_date = '2016-08-24'
-    # e_date = '2016-12-31'
-    # for sdt in ['20160928', '20161223', '20170102', '20170317']:
-    #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
-    # sq_eod.reconcile_spots(s_date, e_date)
-    # s_date = '2016-08-24'
-    # e_date = '2017-03-17'
-    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
-    # eod.parseeodfiles(s_date, e_date)
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
-    #                 'reconciliation')
-    # dn_eod.load_deltaneutral_splits([])
-    # dn_eod.load_deltaneutral_divis([])
-
-    # To debug a reconciliation:
-    # my_eod.reconcile_opt_spots('EXPE', '2002-02-01', '2012-12-31', True)
-    # my_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # my_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # eod = StxEOD('', 'eod', 'split', 'reconciliation')
-    # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
-    #                                               'dn_split'])
-    #
-    # s_date = '2013-01-02'
-    # e_date = '2013-11-15'
-    # ed_eod.reconcile_spots(s_date, e_date)
-    # md_eod.reconcile_spots(s_date, e_date)
-    # dn_eod.reconcile_spots(s_date, e_date)
-    # # To debug a reconciliation:
-    # # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    # ed_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # md_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # ed_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # md_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # eod = StxEOD('', 'eod', 'split', 'reconciliation')
-    # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
-    #                                               'dn_split', 'md_split'])
-
-    # s_date = '2013-11-18'
-    # e_date = '2016-08-23'
-    # md_eod.reconcile_spots(s_date, e_date)
-    # dn_eod.reconcile_spots(s_date, e_date)
-    # # To debug a reconciliation:
-    # # my_eod.reconcile_opt_spots('AEOS', '2002-02-01', '2012-12-31', True)
-    # md_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date)
-    # md_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # dn_eod.upload_eod('eod', 'split', '', s_date, e_date, 0.02, 15)
-    # eod = StxEOD('', 'eod', 'split', 'reconciliation')
-    # eod.split_reconciliation('', s_date, e_date, ['splits', 'my_split',
-    #                                               'dn_split', 'md_split'])
-    # sq_eod.load_stooq_files('1901-01-01', '2016-08-23')
-    #
-    # This reconciliation is done to check that data from stooq is
-    # consistent with opt_spots.  All the stocks during this time
-    # period passed the reconciliation, as it should be the case. So,
-    # there is no reason to invoke upload_eod. Instead, we will just
-    # upload the stooq data into eod.
-    #
-    # s_date = '2016-08-24'
-    # e_date = '2016-12-31'
-    # for sdt in ['20160928', '20161223', '20170102', '20170317']:
-    #     sq_eod.parse_ed_splits('splits_{0:s}.txt'.format(sdt))
-    # sq_eod.reconcile_spots(s_date, e_date)
-    # s_date = '2016-08-24'
-    # e_date = '2017-03-17'
-    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
-    # eod.parseeodfiles(s_date, e_date)
-    # dn_eod = StxEOD('c:/goldendawn/dn_data', 'eod', 'dn_split',
-    #                 'reconciliation')
-    # dn_eod.load_deltaneutral_splits([])
-    # dn_eod.load_deltaneutral_divis([])
-    # s_date = '2016-08-01'
-    # e_date = '2017-03-17'
-    # eod = StxEOD(StxEOD.dload_dir, 'eod', 'split', 'reconciliation', 'ftr')
-    # eod.split_reconciliation('', s_date, e_date,
-    #                          ['splits', 'split_sq', 'dn_split', 'md_split',
-    #                           'split_dn'])
