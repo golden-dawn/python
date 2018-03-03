@@ -694,7 +694,8 @@ class StxEOD:
         try:
             ts = StxTS(stk, sd, ed, self.eod_tbl, self.divi_tbl)
         except Exception as ex:
-            print('Failed to build StxTS: error {0:s}'.format(str(ex)))
+            print('{0:s}: failed to build StxTS: error {1:s}'.
+                  format(stk, str(ex)))
             return None, None
         df = ts.df.join(spot_df)
         for i in [x for x in range(-2, 3) if x != 0]:
@@ -854,7 +855,7 @@ class StxEOD:
                 except Exception as ex:
                     print('Failed to write values to DB, error {0:s}'.
                           format(str(ex)))
-            ofname = '{0:s}/big_change_recon_{1:s}_{2:s}.txt'.\
+            ofname = '/tmp/big_change_recon_{1:s}_{2:s}.txt'.\
                      format(self.data_dir, sd.replace('-', ''),
                             ed.replace('-', ''))
             with open(ofname, 'a') as ofile:
