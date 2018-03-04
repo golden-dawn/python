@@ -8,31 +8,34 @@ from stxeod import StxEOD
 
 class Test1StxEod(unittest.TestCase):
 
-    def setUp(self):
-        self.recon_tbl = 'reconciliation'
-        self.test_stx = os.getenv('TEST_STX')
-        self.s_date = '2001-01-01'
-        self.s_date_spot = '2002-02-01'
-        self.e_date = '2012-12-31'
-        self.e_date_dn = '2016-12-30'
-        self.s_date_ed = '2013-01-02'
-        self.e_date_ed = '2013-11-15'
-        self.s_date_ae = '2013-11-18'
-        self.e_date_md = '2016-08-23'
-        self.s_date_sq = '2016-08-24'
-        self.e_date_sq = '2017-12-29'
-        self.eod_test = 'eods'
-        self.split_test = 'dividends'
-        self.stx = 'AEOS,EXPE,NFLX,TIE'
-        self.dn_stx = 'AEOS,EXPE,NFLX,TIE,VXX'
-        self.ed_stx = 'AA,EXPE,NFLX,VXX'
-        self.my_eod = StxEOD('/tmp', 'my', self.recon_tbl)
-        self.dn_eod = StxEOD('/tmp', 'dn', self.recon_tbl)
-        self.md_eod = StxEOD('/tmp', 'md', self.recon_tbl)
-        self.ed_eod = StxEOD('/tmp', 'ed', self.recon_tbl)
-        self.sq_eod = StxEOD('/tmp', 'sq', self.recon_tbl)
+    @classmethod
+    def setUpClass(cls):
+        cls.recon_tbl = 'reconciliation'
+        cls.my_eod = StxEOD('/tmp', 'my', cls.recon_tbl)
+        cls.dn_eod = StxEOD('/tmp', 'dn', cls.recon_tbl)
+        cls.md_eod = StxEOD('/tmp', 'md', cls.recon_tbl)
+        cls.ed_eod = StxEOD('/tmp', 'ed', cls.recon_tbl)
+        cls.sq_eod = StxEOD('/tmp', 'sq', cls.recon_tbl)
+        cls.test_stx = os.getenv('TEST_STX')
+        cls.s_date = '2001-01-01'
+        cls.s_date_spot = '2002-02-01'
+        cls.e_date = '2012-12-31'
+        cls.e_date_dn = '2016-12-30'
+        cls.s_date_ed = '2013-01-02'
+        cls.e_date_ed = '2013-11-15'
+        cls.s_date_ae = '2013-11-18'
+        cls.e_date_md = '2016-08-23'
+        cls.s_date_sq = '2016-08-24'
+        cls.e_date_sq = '2017-12-29'
+        cls.eod_test = 'eods'
+        cls.split_test = 'dividends'
+        cls.stx = 'AEOS,EXPE,NFLX,TIE'
+        cls.dn_stx = 'AEOS,EXPE,NFLX,TIE,VXX'
+        cls.ed_stx = 'AA,EXPE,NFLX,VXX'
+        cls.load_mypivots_splits()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
 
     def test_00_eod_name(self):
@@ -169,9 +172,9 @@ class Test1StxEod(unittest.TestCase):
 
     def test_06_merge_eod_tbls(self):
         self.my_eod.upload_eod(self.eod_test, self.split_test, self.stx,
-                               self.s_date, self.e_date)
+                               self.s_date_spot, self.e_date)
         self.dn_eod.upload_eod(self.eod_test, self.split_test, self.stx,
-                               self.s_date, self.e_date)
+                               self.s_date_spot, self.e_date)
         res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
                                  "date between '2003-03-10' and '2003-03-11'".
                                  format(self.eod_test))
@@ -229,10 +232,13 @@ class Test1StxEod(unittest.TestCase):
                         res3[1][6] == 11771300 and
                         res4[0][1] == datetime.date(2003, 8, 8) and
                         res4[1][1] == datetime.date(2005, 7, 21) and
-                        res5[0] == ('AEOS', 6) and
-                        res5[1] == ('EXPE', 1) and
-                        res5[2] == ('NFLX', 1) and
-                        res5[3] == ('TIE', 2))
+                        res5[0] == ('AA', 1) and
+                        res5[1] == ('AEOS', 6) and
+                        res5[2] == ('EXPE', 1) and
+                        res5[3] == ('KO', 1) and
+                        res5[4] == ('NFLX', 2) and
+                        res5[5] == ('TIE', 4) and
+                        res5[6] == ('VXX', 2))
 
     def test_07_reconcile_ed_data(self):
         self.ed_eod.reconcile_spots(self.s_date_ed, self.e_date_ed,
@@ -241,7 +247,7 @@ class Test1StxEod(unittest.TestCase):
                                  "recon_name='{1:s}' order by stk".
                                  format(self.recon_tbl, self.ed_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order"
-                                 " by stk, date".format(self.ed_split_tbl))
+                                 " by stk, date".format(self.ed_eod.divi_tbl))
         self.assertTrue(res1[0] == ('AA', self.ed_eod.rec_name,
                                     '20130102_20131115',
                                     '2013-01-02', '2013-11-15', '2013-01-02',
@@ -339,10 +345,28 @@ class Test1StxEod(unittest.TestCase):
                         res3[1][6] == 11771300 and
                         res4[0][1] == datetime.date(2003, 8, 8) and
                         res4[1][1] == datetime.date(2005, 7, 21) and
-                        res5[0] == ('AEOS', 6) and
-                        res5[1] == ('EXPE', 1) and
-                        res5[2] == ('NFLX', 1) and
-                        res5[3] == ('TIE', 2) and res5[4] == ('VXX', 1))
+                        res5[0] == ('AA', 1) and
+                        res5[1] == ('AEOS', 6) and
+                        res5[2] == ('EXPE', 1) and
+                        res5[3] == ('KO', 1) and
+                        res5[4] == ('NFLX', 2) and
+                        res5[5] == ('TIE', 4) and
+                        res5[6] == ('VXX', 2))
+
+    @classmethod
+    def load_mypivots_splits(cls, fname='/home/cma/mypivots_splits.csv'):
+        with open(fname, 'r') as f:
+            lines = f.readlines()
+        print('self.test_stx={0:s}'.format(cls.test_stx))
+        stx_lst = cls.test_stx.replace('(', '').replace(')', '').replace(
+            ' ', '').replace("'", '')
+        stx_lst = stx_lst.split(',')
+        for line in lines:
+            tokens = line.split()
+            if tokens[0] in stx_lst:
+                stxdb.db_write_cmd("insert into dividends values "
+                                   "('{0:s}', '{1:s}', {2:.4f}, 0)".format(
+                                    tokens[0], tokens[1], float(tokens[2])))
 
 
 if __name__ == '__main__':
