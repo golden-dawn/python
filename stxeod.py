@@ -779,8 +779,8 @@ class StxEOD:
         # finally, upload all the splits into the final split table
         stxdb.db_write_cmd('insert into {0:s} (stk,date,ratio,divi_type) '
                            'select stk, date, ratio, divi_type from {1:s} '
-                           "where stk='{2:s}'".
-                           format(split_table, self.divi_tbl, stk))
+                           "where stk='{2:s}' on conflict (stk, date) do "
+                           'nothing'.format(split_table, self.divi_tbl, stk))
         # update the reconciilation table
         stxdb.db_write_cmd("update {0:s} set status={1:d} where "
                            "stk='{2:s}' and recon_interval='{3:s}' and "
