@@ -101,7 +101,8 @@ class StxEOD:
         ixx = 0
         for fname in lst:
             try:
-                self.load_my_stk(fname, split_fname, db_stx, stx_dct)
+                self.load_my_stk(self.in_dir, fname, split_fname, db_stx,
+                                 stx_dct)
             except Exception as ex:
                 print('Failed to upload data from file {0:s}: {1:s}'.
                       format(fname, str(ex)))
@@ -116,16 +117,55 @@ class StxEOD:
                   format(split_fname, str(ex)))
         print('Loaded my files')
 
+    # Load my historical data.  Load each stock and accumulate splits.
+    # Upload splits at the end.
+    def load_my_9899_files(self, stx=''):
+        print('Loading my 9899 files...')
+        dir_9899 = '{0:s}/data_9899'.format(self.data_dir)
+        split_fname = '{0:s}/my_splits.txt'.format(self.upload_dir)
+        if stx == '':
+            lst = [f for f in os.listdir(dir_9899)
+                   if f.endswith(self.extension)]
+        else:
+            lst = []
+            stk_list = stx.split(',')
+            for stk in stk_list:
+                lst.append('{0:s}{1:s}'.format(stk.strip(), self.extension))
+        num_stx = len(lst)
+        print('Loading data for {0:d} stocks'.format(num_stx))
+        db_stx, stx_dct = self.create_exchange()
+        res = stxdb.db_read_cmd('select stk, min(date) from {0:s} group by '
+                                'stk'.format(self.eod_tbl))
+        stx_dct = {x[0]: str(x[1]) for x in list(res)}
+        ixx = 0
+        for fname in lst:
+            try:
+                self.load_my_stk(dir_9899, fname, split_fname, db_stx, stx_dct)
+            except Exception as ex:
+                print('Failed to upload data from file {0:s}: {1:s}'.
+                      format(fname, str(ex)))
+            ixx += 1
+            if ixx % 500 == 0 or ixx == num_stx:
+                print('Uploaded {0:5d}/{1:5d} stocks'.format(ixx, num_stx))
+        print('Loaded my 9899 files')
+
     # Upload each stock.  Split lines are prefixed with '*'.  Upload
     # stock data separately and then accumulate each stock.
-    def load_my_stk(self, short_fname, split_fname, db_stx, stx_dct):
-        fname = '{0:s}/{1:s}'.format(self.in_dir, short_fname)
+    def load_my_stk(self, root_dir, short_fname, split_fname, db_stx, stx_dct):
+        fname = '{0:s}/{1:s}'.format(root_dir, short_fname)
         stk = short_fname[:-4].upper()
-        if (stk not in db_stx) and (stk not in stx_dct):
+        if root_dir != self.in_dir:
+            s_date = stx_dct.get(stk)
+            if s_date is not None and s_date != '2000-05-04':
+                return
+        if ((stk not in db_stx) and (
+                root_dir != self.in_dir or stk not in stx_dct)):
             insert_stx = "INSERT INTO equities VALUES "\
                          "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+            print('Inserting new 9899 stock {0:s}'.format(stk))
             stxdb.db_write_cmd(insert_stx)
             stx_dct[stk] = stk
+        print('Uploading 9899 stock {0:s}'.format(stk))
         try:
             with open(fname, 'r') as ifile:
                 lines = ifile.readlines()
@@ -1169,6 +1209,7 @@ if __name__ == '__main__':
     md_eod = StxEOD(md_dir, 'md', 'reconciliation')
     sq_eod = StxEOD(sq_dir, 'sq', 'reconciliation')
     my_eod.load_my_files()
+    my_eod.load_my_9899_files()
     dn_eod.load_deltaneutral_files()
     ed_eod.load_eoddata_files()
     log_fname = 'splits_divis_{0:s}.csv'.format(datetime.now().
