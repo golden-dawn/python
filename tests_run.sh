@@ -7,7 +7,7 @@ then
 else
     DB_NAME=$1
 fi
-export TEST_STX="('AEOS', 'EXPE', 'NFLX', 'TIE', 'AA', 'VXX', 'KO')"
+export TEST_STX="('AEOS', 'EXPE', 'NFLX', 'TIE', 'AA', 'VXX', 'KO', 'MCT')"
 echo 'Removing the existing databases'
 dropdb $DB_NAME
 echo 'Creating the test database'
