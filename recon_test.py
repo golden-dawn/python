@@ -16,7 +16,9 @@ class Test1StxEod(unittest.TestCase):
         cls.md_eod = StxEOD('/tmp', 'md', cls.recon_tbl)
         cls.ed_eod = StxEOD('/tmp', 'ed', cls.recon_tbl)
         cls.sq_eod = StxEOD('/tmp', 'sq', cls.recon_tbl)
-        cls.test_stx = os.getenv('TEST_STX')
+        stx_test = os.getenv('TEST_STX')
+        cls.test_stx = stx_test.replace('(', '').replace(')', '').replace(
+            ' ', '').replace("'", '')
         cls.s_date = '2001-01-01'
         cls.s_date_spot = '2002-02-01'
         cls.e_date = '2012-12-31'
@@ -68,7 +70,7 @@ class Test1StxEod(unittest.TestCase):
         print('res11\n{0:s}'.format(res31))
         print('res10\n{0:s}'.format(res40))
         print('res11\n{0:s}'.format(res41))
-        self.assertEqual(res00[0][0], 39400)
+        self.assertEqual(res00[0][0], 39794)
         self.assertEqual(res01[0][0], 32)
         self.assertEqual(res10[0][0], 21960)
         self.assertEqual(res11[0][0], 21)
@@ -79,14 +81,15 @@ class Test1StxEod(unittest.TestCase):
         self.assertEqual(res40[0][0], 0)
         self.assertEqual(res41[0][0], 0)
 
-    def test_03_reconcile_my_data(self):
-        self.my_eod.reconcile_spots(self.s_date_spot, self.e_date, self.stx)
+    def test_02_reconcile_my_data(self):
+        self.my_eod.reconcile_spots(self.s_date_spot, self.e_date,
+                                    self.test_stx)
         res1 = stxdb.db_read_cmd("select * from {0:s} where "
                                  "recon_name='{1:s}' order by stk".
                                  format(self.recon_tbl, self.my_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order "
                                  "by stk, date".format(self.my_eod.divi_tbl))
-        print('test_04_reconcile_my_data')
+        print('test_02_reconcile_my_data')
         print('res1')
         print(res1)
         print('res2')
@@ -125,14 +128,15 @@ class Test1StxEod(unittest.TestCase):
         self.assertTrue(res2[2] == ('TIE', datetime.date(2006, 5, 15),
                                     Decimal('0.5000'), 1))
 
-    def test_04_reconcile_dn_data(self):
-        self.dn_eod.reconcile_spots(self.s_date_spot, self.e_date, self.stx)
+    def test_03_reconcile_dn_data(self):
+        self.dn_eod.reconcile_spots(self.s_date_spot, self.e_date,
+                                    self.test_stx)
         res1 = stxdb.db_read_cmd("select * from {0:s} where "
                                  "recon_name='{1:s}' order by stk".
                                  format(self.recon_tbl, self.dn_eod.rec_name))
         res2 = stxdb.db_read_cmd("select * from {0:s} where divi_type=1 order"
                                  " by stk, date".format(self.dn_eod.divi_tbl))
-        print('test_05_reconcile_dn_data')
+        print('test_03_reconcile_dn_data')
         print('res1')
         print(res1)
         print('res2')
@@ -156,7 +160,7 @@ class Test1StxEod(unittest.TestCase):
                         res2[0] == ('AEOS', datetime.date(2005, 3, 7),
                                     Decimal('0.4999'), 1))
 
-    def test_05_split_recon(self):
+    def test_04_split_recon(self):
         self.dn_eod.reconcile_big_changes('AEOS', self.s_date, self.e_date,
                                           [self.my_eod.divi_tbl])
         res = stxdb.db_read_cmd("select * from {0:s} where stk='{1:s}'"
@@ -168,12 +172,11 @@ class Test1StxEod(unittest.TestCase):
                        1) and
             res[1] == ('AEOS', datetime.date(2006, 12, 18), Decimal('0.6700'),
                        0))
-        # self.assertTrue(res[0] == ('AEOS', '2006-12-18', 0.67, 0))
 
-    def test_06_merge_eod_tbls(self):
-        self.my_eod.upload_eod(self.eod_test, self.split_test, self.stx,
+    def test_05_merge_eod_tbls(self):
+        self.my_eod.upload_eod(self.eod_test, self.split_test, self.test_stx,
                                self.s_date_spot, self.e_date)
-        self.dn_eod.upload_eod(self.eod_test, self.split_test, self.stx,
+        self.dn_eod.upload_eod(self.eod_test, self.split_test, self.test_stx,
                                self.s_date_spot, self.e_date)
         res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
                                  "date between '2003-03-10' and '2003-03-11'".
@@ -189,7 +192,7 @@ class Test1StxEod(unittest.TestCase):
                                  format(self.eod_test))
         res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by '
                                  'stk order by stk'.format(self.split_test))
-        print('test_07_merge_eod_tbls')
+        print('test_05_merge_eod_tbls')
         print('res1')
         print(res1)
         print('res2')
@@ -240,9 +243,9 @@ class Test1StxEod(unittest.TestCase):
                         res5[5] == ('TIE', 4) and
                         res5[6] == ('VXX', 2))
 
-    def test_07_reconcile_ed_data(self):
+    def test_06_reconcile_ed_data(self):
         self.ed_eod.reconcile_spots(self.s_date_ed, self.e_date_ed,
-                                    self.ed_stx)
+                                    self.test_stx)
         res1 = stxdb.db_read_cmd("select * from {0:s} where "
                                  "recon_name='{1:s}' order by stk".
                                  format(self.recon_tbl, self.ed_eod.rec_name))
@@ -266,8 +269,8 @@ class Test1StxEod(unittest.TestCase):
                                     '2013-11-15', 0, 100.0, 0.0017, 0) and
                         len(res2) == 0)
 
-    def test_08_split_recon(self):
-        stk_list = self.ed_stx.split(',')
+    def test_07_split_recon(self):
+        stk_list = self.test_stx.split(',')
         for stk in stk_list:
             self.ed_eod.reconcile_big_changes(
                 stk, self.s_date_ed, self.e_date_ed,
@@ -279,15 +282,15 @@ class Test1StxEod(unittest.TestCase):
         self.assertTrue(res[0] == ('VXX', datetime.date(2013, 11, 7),
                                    Decimal('4.0000'), 0))
 
-    def test_09_merge_eod_tbls(self):
+    def test_08_merge_eod_tbls(self):
         self.my_eod.upload_eod(self.eod_test, self.split_test, self.stx,
-                               None, None)
+                               self.s_date_ed, self.e_date_ed)
         self.dn_eod.upload_eod(self.eod_test, self.split_test, self.stx,
-                               None, None)
+                               self.s_date_ed, self.e_date_ed)
         self.md_eod.upload_eod(self.eod_test, self.split_test, 'VXX',
-                               None, None)
+                               self.s_date_ed, self.e_date_ed)
         self.ed_eod.upload_eod(self.eod_test, self.split_test, self.ed_stx,
-                               None, None)
+                               self.s_date_ed, self.e_date_ed)
         res1 = stxdb.db_read_cmd("select * from {0:s} where stk='EXPE' and "
                                  "date between '2003-03-10' and '2003-03-11'".
                                  format(self.eod_test))
@@ -302,7 +305,7 @@ class Test1StxEod(unittest.TestCase):
                                  format(self.eod_test))
         res5 = stxdb.db_read_cmd('select stk, count(*) from {0:s} group by '
                                  'stk order by stk'.format(self.split_test))
-        print('test_11_merge_eod_tbls')
+        print('test_08_merge_eod_tbls')
         print('res1')
         print(res1)
         print('res2')
