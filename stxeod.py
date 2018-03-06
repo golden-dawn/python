@@ -154,7 +154,8 @@ class StxEOD:
     def load_my_stk(self, root_dir, short_fname, split_fname, db_stx, stx_dct):
         fname = '{0:s}/{1:s}'.format(root_dir, short_fname)
         stk = short_fname[:-4].upper()
-        if root_dir != self.in_dir:
+        is_9899 = (root_dir != self.in_dir)
+        if is_9899:
             s_date = stx_dct.get(stk)
             if s_date is not None and s_date != '2000-05-04':
                 return
@@ -165,7 +166,7 @@ class StxEOD:
             print('Inserting new 9899 stock {0:s}'.format(stk))
             stxdb.db_write_cmd(insert_stx)
             stx_dct[stk] = stk
-        print('Uploading 9899 stock {0:s}'.format(stk))
+        print('Uploading new 9899 stock {0:s}'.format(stk))
         try:
             with open(fname, 'r') as ifile:
                 lines = ifile.readlines()
@@ -180,6 +181,8 @@ class StxEOD:
                 for line in lines:
                     start = 1 if line.startswith('*') else 0
                     toks = line[start:].strip().split(' ')
+                    dt = datetime.strptime(toks[0], '%d-%b-%y').strftime(
+                        '%Y-%m-%d') if is_9899 else toks[0]
                     o, h, l, c, v = float(toks[1]), float(toks[2]), \
                         float(toks[3]), float(toks[4]), int(toks[5])
                     if v > 2147483647:
@@ -190,7 +193,7 @@ class StxEOD:
                        v != 0:
                         eod.write('{0:s}\t{1:s}\t{2:.2f}\t{3:.2f}\t{4:.2f}\t'
                                   '{5:.2f}\t{6:d}\t0\n'.
-                                  format(stk, toks[0], o, h, l, c, v))
+                                  format(stk, dt, o, h, l, c, v))
                     eods += 1
                     if start == 1:
                         splits += 1
