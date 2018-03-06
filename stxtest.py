@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 from decimal import Decimal
 # from opteod import OptEOD
 import os
@@ -336,6 +337,7 @@ class Test5StxEod(unittest.TestCase):
         self.ed_1 = '2013-11-15'
         self.eod_test = 'eods'
         self.split_test = 'dividends'
+        self.my_stx = 'AA,AEOS,EXPE,INKT,MCT,NFLX,VXX'
         stk_list = self.stx.split(',')
         if not os.path.exists(self.my_in_dir):
             os.makedirs(self.my_in_dir)
@@ -364,59 +366,72 @@ class Test5StxEod(unittest.TestCase):
         self.assertEqual(eod.name, 'final')
 
     def test_01_load_my_data(self):
-        my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
-        my_eod.load_my_files(self.stx)
+        my_eod = StxEOD(self.my_dir, 'my', self.recon_tbl)
+        my_eod.load_my_files(self.my_stx)
         res1 = stxdb.db_read_cmd(
             StxEOD.sql_show_tables.format(self.my_eod_tbl))
         res2 = stxdb.db_read_cmd(
             StxEOD.sql_show_tables.format(self.my_split_tbl))
-        res3 = stxdb.db_read_cmd('select distinct stk from {0:s}'.
-                                 format(self.my_eod_tbl))
-        res4 = stxdb.db_read_cmd("select stk, count(*) from {0:s} where stk "
-                                 "in {1:s} and date<='{2:s}' group by stk "
-                                 "order by stk".format(self.my_eod_tbl,
-                                                       self.stk_list_db,
-                                                       self.ed))
-        res5 = stxdb.db_read_cmd("select stk, sum(ratio) from {0:s} where stk "
-                                 "in {1:s} and date<='{2:s}' group by stk "
-                                 "order by stk".format(self.my_split_tbl,
-                                                       self.stk_list_db,
-                                                       self.ed))
+        in_stx = ','.join(["'{0:s}'".format(x)
+                           for x in self.my_stx.split(',')])
+        res3 = stxdb.db_read_cmd(
+            'select stk, min(date), max(date), count(*) from {0:s} where '
+            'stk in ({1:s}) group by stk order by stk'.
+            format(my_eod.eod_tbl, in_stx))
+        res4 = stxdb.db_read_cmd(
+            "select stk, sum(ratio), count(*) from {0:s} where stk in ({1:s}) "
+            "group by stk order by stk".format(my_eod.divi_tbl, in_stx))
         print('res1 = {0:s}'.format(res1))
         print('res2 = {0:s}'.format(res2))
         print('res3 = {0:s}'.format(res3))
         print('res4 = {0:s}'.format(res4))
-        print('res5 = {0:s}'.format(res5))
-        self.assertTrue(len(res1) == 1 and len(res2) == 1 and len(res3) == 4
-                        and res4[0][0] == 'AEOS' and res4[0][1] == 3214 and
-                        res4[1][0] == 'EXPE' and res4[1][1] == 2694 and
-                        res4[2][0] == 'NFLX' and res4[2][1] == 2668 and
-                        res4[3][0] == 'TIE' and res4[3][1] == 4164 and
-                        res5[0][0] == 'AEOS' and float(res5[0][1]) == 3.68 and
-                        res5[1][0] == 'NFLX' and float(res5[1][1]) == 0.5)
+        self.assertEqual(len(res1), 1)
+        self.assertEqual(len(res2), 1)
+        self.assertEqual(
+            res3[0], ('AA', date(1962, 1, 2), date(2012, 12, 31), 12836))
+        self.assertEqual(
+            res3[1], ('AEOS', date(1994, 4, 14), date(2007, 1, 26), 3214))
+        self.assertEqual(
+            res3[2], ('EXPE', date(2000, 5, 4), date(2012, 12, 31), 2694))
+        self.assertEqual(
+            res3[3], ('INKT', date(2000, 5, 4), date(2003, 3, 19), 720))
+        self.assertEqual(
+            res3[4], ('MCT', date(2000, 5, 4), date(2001, 11, 29), 394))
+        self.assertEqual(
+            res3[5], ('NFLX', date(2002, 5, 29), date(2012, 12, 31), 2668))
+        self.assertEqual(
+            res3[6], ('VXX', date(2009, 1, 30), date(2012, 12, 31), 987))
+        self.assertEqual(res4[0], ('AA', Decimal('4.4800'), 7))
+        self.assertEqual(res4[1], ('AEOS', Decimal('3.6800'), 6))
+        self.assertEqual(res4[2], ('NFLX', Decimal('0.5000'), 1))
+        self.assertEqual(res4[3], ('VXX', Decimal('8.0100'), 2))
 
     def test_02_load_9899_data(self):
-        my_eod = StxEOD(self.my_in_dir, 'my', self.recon_tbl)
-        my_eod.load_my_9899_files('EXPE,IBM,INKT,NFLX')
-        res1 = stxdb.db_read_cmd("'select min(date) from {0:s} where "
-                                 "stk='EXPE'".format(my_eod.eod_tbl))
-        res2 = stxdb.db_read_cmd("'select min(date) from {0:s} where "
-                                 "stk='IBM'".format(my_eod.eod_tbl))
-        res3 = stxdb.db_read_cmd("'select min(date) from {0:s} where "
-                                 "stk='INKT'".format(my_eod.eod_tbl))
-        res4 = stxdb.db_read_cmd("'select min(date) from {0:s} where "
-                                 "stk='NFLX'".format(my_eod.eod_tbl))
+        my_eod = StxEOD(self.my_dir, 'my', self.recon_tbl)
+        my_eod.load_my_9899_files(self.my_stx)
+        in_stx = ','.join(["'{0:s}'".format(x)
+                           for x in self.my_stx.split(',')])
+        res1 = stxdb.db_read_cmd(
+            'select stk, min(date), max(date), count(*) from {0:s} where '
+            'stk in ({1:s}) group by stk order by stk'.
+            format(my_eod.eod_tbl, in_stx))
         print('test_02_load_9899_data')
         print('res1 = {0:s}'.format(res1))
-        print('res2 = {0:s}'.format(res2))
-        print('res3 = {0:s}'.format(res3))
-        print('res4 = {0:s}'.format(res4))
-        self.assertEqual(str(res1[0]), '1999-11-19')
-        self.assertEqual(str(res2[0]), '1962-01-02')
-        self.assertEqual(str(res3[0]), '1998-06-10')
-        self.assertEqual(str(res4[0]), '2002-05-29')
+        self.assertEqual(
+            res1[0], ('AA', date(1962, 1, 2), date(2012, 12, 31), 12836))
+        self.assertEqual(
+            res1[1], ('AEOS', date(1994, 4, 14), date(2007, 1, 26), 3214))
+        self.assertEqual(
+            res1[2], ('EXPE', date(1999, 11, 19), date(2012, 12, 31), 2806))
+        self.assertEqual(
+            res1[3], ('INKT', date(1998, 6, 10), date(2003, 3, 19), 1200))
+        self.assertEqual(
+            res1[4], ('MCT', date(1998, 11, 24), date(2001, 11, 29), 757))
+        self.assertEqual(
+            res1[5], ('NFLX', date(2002, 5, 29), date(2012, 12, 31), 2668))
+        self.assertEqual(
+            res1[6], ('VXX', date(2009, 1, 30), date(2012, 12, 31), 987))
 
-        
     def test_03_load_dn_data(self):
         dn_eod = StxEOD(self.dn_in_dir, 'dn', self.recon_tbl)
         dn_eod.load_deltaneutral_files(self.dn_stx)
