@@ -26,6 +26,7 @@ class StxNorgate:
         self.atem_info_cmd = [
             'atem', '-o', '{0:s}/names.txt'.format(self.upload_dir),
             '--format=symbol,long_name']
+        pd.options.mode.chained_assignment = None
 
     def parse_all_data(self):
         for input_dir in self.input_dirs:
@@ -42,6 +43,7 @@ class StxNorgate:
     def process_data(self, in_dir):
         stx = self.upload_names(in_dir)
         self.upload_prices(in_dir, sorted(stx))
+        print('{0:s}: processed {1:d} stocks'.format(in_dir, len(stx)))
 
     def upload_names(self, in_dir):
         with open('{0:s}/names.txt'.format(self.upload_dir), 'r') as f:
@@ -49,20 +51,32 @@ class StxNorgate:
         dct = {}
         for l in lines[1:]:
             tokens = l.strip().split('\t')
-            dct[tokens[0]] = tokens[1]
+            if len(tokens[0]) <= 8:
+                dct[tokens[0]] = tokens[1]
+        print('{0:s}: processing {1:d} stocks'.format(in_dir, len(dct)))
+        print('{0:s}'.format(','.join(sorted(dct.keys()))))
         for ticker, name in dct.items():
             stxdb.db_write_cmd(
                 "INSERT INTO equities VALUES ('{0:s}', '{1:s}', 'US Stocks', "
-                "'US') on conflict (stk) do nothing".format(ticker, name))
+                "'US') ON CONFLICT (ticker) DO NOTHING".
+                format(ticker, name.replace("'", '')))
         return dct.keys()
 
     def upload_prices(self, in_dir, stx):
-        df = pd.read_csv('{0:s}/prices.txt', sep='\t', header=0)
+        df = pd.read_csv('{0:s}/prices.txt'.format(self.upload_dir), sep='\t',
+                         header=0)
         for stk in stx:
             stk_df = df.query("symbol=='{0:s}'".format(stk))
-            stk_df, splits = self.get_splits(stk_df)
+            stk_df, splits = self.get_and_adjust_for_splits(stk_df)
+            for dt, ratio in splits.items():
+                stxdb.db_write_cmd(
+                    "INSERT INTO dividends VALUES ('{0:s}','{1:s}',{2:f},0) ON"
+                    " CONFLICT (stk, date) DO NOTHING".format(stk, dt, ratio))
+            fname = '{0:s}/eod_upload.txt'.format(self.upload_dir)
+            stk_df.to_csv(fname, sep='\t', header=False, index=False)
+            stxdb.db_upload_file(fname, 'eods')
 
-    def get_splits(self, df):
+    def get_and_adjust_for_splits(self, df):
         df['r'] = df['close'] / df['openint']
         df['r_1'] = df['r'].shift()
         df.r_1.fillna(df.r, inplace=True)
@@ -80,11 +94,14 @@ class StxNorgate:
             df.loc[0:ixx, 'close'] = np.round(df['close'] / ratio, 2)
             df.loc[0:ixx, 'volume'] = np.round(df['volume'] * ratio, 0)
         df.drop(['r', 'r_1', 'rr', 'rr_1'], axis=1, inplace=True)
+        df['volume'] = (df['volume'] / 1000).astype(int)
+        df['openint'] = 0
         return df, split_dct
 
 
 if __name__ == '__main__':
-    pass
+    sng = StxNorgate()
+    sng.parse_all_data()
 '''
 from stx_norgate import StxNorgate
 sn = StxNorgate()
