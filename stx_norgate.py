@@ -55,11 +55,12 @@ class StxNorgate:
                 dct[tokens[0]] = tokens[1]
         print('{0:s}: processing {1:d} stocks'.format(in_dir, len(dct)))
         print('{0:s}'.format(','.join(sorted(dct.keys()))))
+        equity_type = 'US Indices' if 'Indices' in in_dir else 'US_Stocks'
         for ticker, name in dct.items():
             stxdb.db_write_cmd(
-                "INSERT INTO equities VALUES ('{0:s}', '{1:s}', 'US Stocks', "
+                "INSERT INTO equities VALUES ('{0:s}', '{1:s}', '{2:s}', "
                 "'US') ON CONFLICT (ticker) DO NOTHING".
-                format(ticker, name.replace("'", '')))
+                format(ticker, name.replace("'", ''), equity_type))
         return dct.keys()
 
     def upload_prices(self, in_dir, stx):
