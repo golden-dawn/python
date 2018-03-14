@@ -18,7 +18,8 @@ class StxNorgate:
         xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
         if not xchgs:
             stxdb.db_write_cmd("insert into exchanges values('US')")
-        self.input_dirs = ['AMEX', 'Indices', 'NASDAQ', 'NYSE', 'NYSE Arca']
+        self.input_dirs = ['AMEX', 'Indices', 'NASDAQ', 'NYSE', 'NYSE Arca',
+                           'Delisted Securities']
         self.atem_prices_cmd = [
             'atem', '-o', '{0:s}/prices.txt'.format(self.upload_dir),
             '--format=symbol,date,open,high,low,close,volume,openint',
@@ -51,8 +52,10 @@ class StxNorgate:
         dct = {}
         for l in lines[1:]:
             tokens = l.strip().split('\t')
-            if len(tokens[0]) <= 8:
+            if len(tokens[0]) <= 16:
                 dct[tokens[0]] = tokens[1]
+            else:
+                print('This ticker: {0:s} is too long'.format(tokens[0]))
         print('{0:s}: processing {1:d} stocks'.format(in_dir, len(dct)))
         print('{0:s}'.format(','.join(sorted(dct.keys()))))
         equity_type = 'US Indices' if 'Indices' in in_dir else 'US_Stocks'
