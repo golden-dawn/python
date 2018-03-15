@@ -47,15 +47,18 @@ class StxNorgate:
         print('{0:s}: processed {1:d} stocks'.format(in_dir, len(stx)))
 
     def upload_names(self, in_dir):
+        is_delisted = ('Delisted Securities' in in_dir)
         with open('{0:s}/names.txt'.format(self.upload_dir), 'r') as f:
             lines = f.readlines()
         dct = {}
         for l in lines[1:]:
             tokens = l.strip().split('\t')
-            if len(tokens[0]) <= 16:
-                dct[tokens[0]] = tokens[1]
+            ticker = tokens[0][:-7] if is_delisted else tokens[0]
+            if len(ticker) <= 8:
+                dct[ticker] = tokens[1]
             else:
-                print('This ticker: {0:s} is too long'.format(tokens[0]))
+                print('This ticker is too long: {0:s} (from {1:s}'.
+                      format(ticker, tokens[0]))
         print('{0:s}: processing {1:d} stocks'.format(in_dir, len(dct)))
         print('{0:s}'.format(','.join(sorted(dct.keys()))))
         equity_type = 'US Indices' if 'Indices' in in_dir else 'US_Stocks'
