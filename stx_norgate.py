@@ -3,18 +3,20 @@ import numpy as np
 import pandas as pd
 import subprocess
 import stxdb
+import sys
 
 
 class StxNorgate:
-    root_dir = os.getenv('NORGATE_DIR')
-    upload_dir = '/tmp'
 
-    def __init__(self):
+    def __init__(self, test=False):
         '''
         - Create US exchange, if not already there
         - Define the directories from which we will be reading the data
         - Specify the atem commands used to get stock info and prices
         '''
+        self.root_dir = os.getenv('NORGATE_TEST_DIR') if test \
+            else os.getenv('NORGATE_DIR')
+        self.upload_dir = '/tmp'
         xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
         if not xchgs:
             stxdb.db_write_cmd("insert into exchanges values('US')")
@@ -47,18 +49,17 @@ class StxNorgate:
         print('{0:s}: processed {1:d} stocks'.format(in_dir, len(stx)))
 
     def upload_names(self, in_dir):
-        is_delisted = ('Delisted Securities' in in_dir)
         with open('{0:s}/names.txt'.format(self.upload_dir), 'r') as f:
             lines = f.readlines()
         dct = {}
         for l in lines[1:]:
             tokens = l.strip().split('\t')
-            ticker = tokens[0][:-7] if is_delisted else tokens[0]
-            if len(ticker) <= 8:
+            ticker = tokens[0].replace("-.", ".P.").replace("_", ".").replace(
+                '-', '.')
+            if len(ticker) <= 16:
                 dct[ticker] = tokens[1]
             else:
-                print('This ticker is too long: {0:s} (from {1:s}'.
-                      format(ticker, tokens[0]))
+                print('This ticker is too long: {0:s}'.format(ticker))
         print('{0:s}: processing {1:d} stocks'.format(in_dir, len(dct)))
         print('{0:s}'.format(','.join(sorted(dct.keys()))))
         equity_type = 'US Indices' if 'Indices' in in_dir else 'US_Stocks'
@@ -72,6 +73,8 @@ class StxNorgate:
     def upload_prices(self, in_dir, stx):
         df = pd.read_csv('{0:s}/prices.txt'.format(self.upload_dir), sep='\t',
                          header=0)
+        df['symbol'] = df['symbol'].str.replace("-.", ".P.").replace(
+            "_", ".").replace('-', '.')
         for stk in stx:
             stk_df = df.query("symbol=='{0:s}'".format(stk))
             stk_df, splits = self.get_and_adjust_for_splits(stk_df)
@@ -107,7 +110,11 @@ class StxNorgate:
 
 
 if __name__ == '__main__':
-    sng = StxNorgate()
+    if sys.argv[1] == 'test':
+        test = True
+    else:
+        test = False
+    sng = StxNorgate(test)
     sng.parse_all_data()
 '''
 from stx_norgate import StxNorgate
