@@ -54,8 +54,8 @@ class StxNorgate:
         dct = {}
         for l in lines[1:]:
             tokens = l.strip().split('\t')
-            ticker = tokens[0].replace("-.", ".P.").replace("_", ".").replace(
-                '-', '.')
+            ticker = tokens[0].replace("_", ".").replace('-', '.').replace(
+                '$', '^')
             if len(ticker) <= 16:
                 dct[ticker] = tokens[1]
             else:
@@ -73,8 +73,9 @@ class StxNorgate:
     def upload_prices(self, in_dir, stx):
         df = pd.read_csv('{0:s}/prices.txt'.format(self.upload_dir), sep='\t',
                          header=0)
-        df['symbol'] = df['symbol'].str.replace("-.", ".P.").replace(
-            "_", ".").replace('-', '.')
+        df['symbol'] = df['symbol'].str.replace('_', '.')
+        df['symbol'] = df['symbol'].str.replace('-', '.')
+        df['symbol'] = df['symbol'].str.replace('$', '^')
         for stk in stx:
             stk_df = df.query("symbol=='{0:s}'".format(stk))
             stk_df, splits = self.get_and_adjust_for_splits(stk_df)
