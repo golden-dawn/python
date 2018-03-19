@@ -1,12 +1,14 @@
 #!/bin/bash
 
+DB_NAME=stx_ng
 if [ -z "$1" ]
 then
-    echo "No test database name supplied, using default (stx_ng)"
-    DB_NAME=stx_ng
+    TEST=''
 else
-    DB_NAME=$1
+    TEST=test
 fi
+echo 'Removing the eod database, if existent'
+dropdb $DB_NAME
 echo 'Creating the eod database'
 createdb $DB_NAME
 echo 'Dumping the main database schema,and copying into the test database'
@@ -20,7 +22,7 @@ export DB_URL0=$DB_URL
 export DB_URL="${DB_URL/stx/$DB_NAME}"
 
 echo 'Populating the EOD database'
-python stx_norgate.py
+python stx_norgate.py $TEST
 
 echo 'resetting DB_URL to the main database'
 export DB_URL=$DB_URL0
