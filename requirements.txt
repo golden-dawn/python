@@ -8,3 +8,6 @@ pandas
 scipy
 requests
 psycopg2
+jupyter
+matplotlib
+scikit-learn
