@@ -114,3 +114,6 @@ ENV/
 
 # Ignore db.py file
 db.py
+
+# Ignore data used by AI
+ai/data/
