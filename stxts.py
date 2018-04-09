@@ -8,7 +8,7 @@ class StxTS:
     # static variables
     busday_us = pd.tseries.offsets.CDay(holidays=stxcal.get_cal().holidays)
 
-    def __init__(self, stk, sd, ed, eod_tbl='eod', split_tbl='split'):
+    def __init__(self, stk, sd, ed, eod_tbl='eods', split_tbl='dividends'):
         self.stk = stk
         self.sd = pd.to_datetime(sd)
         self.ed = pd.to_datetime(ed)
