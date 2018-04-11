@@ -44,7 +44,7 @@ class StxJL:
 
     def jl(self, dt):
         self.ts.set_day(dt, -1)
-        end = ts.pos
+        end = self.ts.pos
         start_w = self.initjl()
         print('jl(): start_w={0:d}'.format(start_w))
         for ixx in range(start_w, end + 1):
