@@ -39,6 +39,17 @@ class JLML:
     def up_down_volume(self, ts, piv):
         total_volume = 0
         signed_volume = 0
+        all_days = 0
+        signed_days = 0
         sotart_ix = ts.find(piv.dt)
         for ixx in range(start_ix, ts.pos + 1):
-            total_volume += ts.ix(ixx).volume * math.abs(ts.ix(ixx).c - ts.ix(ixx - 1).c)
+            total_volume += ts.ix(ixx).volume * math.abs(ts.ix(ixx).c -
+                                                         ts.ix(ixx - 1).c)
+            signed_volume += ts.ix(ixx).volume * (ts.ix(ixx).c -
+                                                  ts.ix(ixx - 1).c)
+            all_days += 1
+            if ts.ix(ixx).c > ts.ix(ixx - 1).c:
+                signed_days += 1
+            elif ts.ix(ixx).c < ts.ix(ixx - 1).c:
+                signed_days -= 1
+        return signed_volume / total_volume, signed_days / all_days
