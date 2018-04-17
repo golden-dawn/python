@@ -10,6 +10,7 @@ class JLML:
         self.sd = sd
         self.ed = ed
         self.factors = [0.6, 1.1, 1.6]
+        self.time_adj = {0.6: 30.0, 1.1: 120.0, 1.6: 240.0}
 
     def gen_stk_data(self, stk):
         ts = StxTS(stk, self.sd, self.ed)
@@ -39,8 +40,9 @@ class JLML:
                 num_days = 0.5
             dist = (cc - piv.price) / (jl.avg_rg * math.sqrt(num_days))
             udv, udd = self.up_down_volume(ts, piv)
-            piv_data.append('P{0:d}: {1:s} {2:d} {3:.2f} {4:.2f} {5:.2f}'.
-                            format(ixx, piv.dt, num_days, dist, udv, udd))
+            piv_data.append('P{0:d}: {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f}'.
+                            format(ixx, piv.dt, num_days / self.time_adj[jl.f],
+                                   dist, udv, udd))
             ixx += 1
         return '; '.join(piv_data)
 
