@@ -35,6 +35,8 @@ class JLML:
         ixx = 1
         for piv in reversed(pivs):
             num_days = stxcal.num_busdays(piv.dt, ts.current_date())
+            if num_days == 0:
+                num_days = 0.5
             dist = (cc - piv.price) / (jl.avg_rg * math.sqrt(num_days))
             udv, udd = self.up_down_volume(ts, piv)
             piv_data.append('P{0:d}: {1:s} {2:d} {3:.2f} {4:.2f} {5:.2f}'.
