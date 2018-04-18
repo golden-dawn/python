@@ -51,7 +51,9 @@ class JLML:
         signed_volume = 0
         all_days = 0.0
         signed_days = 0.0
-        start_ix = ts.find(piv.dt)
+        start_ix = ts.find(piv.dt) + 1
+        if start_ix > ts.pos:
+            start_ix = ts.pos
         for ixx in range(start_ix, ts.pos + 1):
             total_volume += ts.ix(ixx).volume * math.fabs(ts.ix(ixx).c -
                                                           ts.ix(ixx - 1).c)
