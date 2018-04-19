@@ -14,6 +14,14 @@ class JLML:
 
     def gen_stk_data(self, stk):
         ts = StxTS(stk, self.sd, self.ed)
+        ts.df['c_3'] = ts.df['c'].shift(-3)
+        ts.df['c_5'] = ts.df['c'].shift(-5)
+        for sdt in ts.splits:
+            ratio = ts.splits[sdt][0]
+            ixx = ts.find(str(sdt.date()))
+            ts.df.loc[ixx-3:ixx, 'c_3'] = ts.df['c_3'] / ratio
+            ts.df.loc[ixx-5:ixx, 'c_5'] = ts.df['c_5'] / ratio
+
         for factor in self.factors:
             jl = StxJL(ts, factor)
             jl_start = jl.w + ts.start
@@ -23,12 +31,11 @@ class JLML:
                 ts.next_day()
                 jl.nextjl()
                 pivs = jl.get_num_pivots(4)
-                print('{0:s} {1:.2f} {2:.2f} {3:.2f} {4:.2f} {5:.0f} '
-                      'rg: {6:.2f} {7:s}'.format(
-                          ts.current_date(), ts.current('o'), ts.current('hi'),
-                          ts.current('lo'), ts.current('c'),
-                          ts.current('volume'), jl.avg_rg,
-                          self.print_stats(jl, ts, pivs)))
+                print('{0:s} {1:.2f} {2:.2f} {3:.2f} rg: {4:.2f} {5:s}'.format(
+                    ts.current_date(), ts.current('c'),
+                    (ts.current('c_3') - ts.current('c')) / jl.avg_rg,
+                    (ts.current('c_5') - ts.current('c')) / jl.avg_rg,
+                    jl.avg_rg, self.print_stats(jl, ts, pivs)))
 
     def print_stats(self, jl, ts, pivs):
         piv_data = []
