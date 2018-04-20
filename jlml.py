@@ -24,13 +24,14 @@ class JLML:
         jl_lst = []
         for factor in self.factors:
             jl = StxJL(ts, factor)
+            jl_start = jl.w + ts.start
+            ts.set_day(str(ts.ix(jl_start).name.date()))
             start_w = jl.initjl()
             jl_lst.append(jl)
-        jl_start = jl_lst[0].w + ts.start
-        ts.set_day(str(ts.ix(jl_start).name.date()))
         for ixx in range(start_w, ts.end + 1):
             ts.next_day()
             for jl in jl_lst:
+                # jl = jl_lst[0]
                 jl.nextjl()
                 pivs = jl.get_num_pivots(4)
                 print('{0:.1f} {1:s} {2:.2f} {3:.2f} {4:.2f} rg: {5:.2f} '
