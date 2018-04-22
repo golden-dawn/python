@@ -1,12 +1,12 @@
 import math
 import stxcal
-# import stxdb
+import stxdb
 from stxjl import StxJL
 from stxts import StxTS
 
 
 class JLML:
-    sql_create_tbl = 'CREATE TABLE jlml ('\
+    sql_create_tbl = 'CREATE TABLE {0:s} ('\
                      'stk varchar(16) NOT NULL,'\
                      'dt date NOT NULL,'\
                      'pl_3 decimal(2,1) DEFAULT NULL,'\
@@ -67,7 +67,7 @@ class JLML:
         self.ed = ed
         self.factors = [0.6, 1.1, 1.6]
         self.time_adj = {0.6: 30.0, 1.1: 120.0, 1.6: 240.0}
-        # TODO: create table if missing
+        stxdb.db_create_missing_table('ml', self.sql_create_tbl)
 
     def gen_stk_data(self, stk):
         res = []
@@ -89,8 +89,8 @@ class JLML:
         for ixx in range(start_w, ts.end + 1):
             ts.next_day()
             lst = [stk, ts.current_date(),
-                   (ts.current('c_3') - ts.current('c')) / jl.avg_rg,
-                   (ts.current('c_5') - ts.current('c')) / jl.avg_rg]
+                   self.f((ts.current('c_3') - ts.current('c')) / jl.avg_rg),
+                   self.f((ts.current('c_5') - ts.current('c')) / jl.avg_rg)]
             for jl in jl_lst:
                 # jl = jl_lst[0]
                 jl.nextjl()
@@ -103,11 +103,25 @@ class JLML:
                 #           (ts.current('c_5') - ts.current('c')) / jl.avg_rg,
                 #           jl.avg_rg, self.print_stats(jl, ts, pivs)))
             res.append(lst)
-        with open('/tmp/jlml.txt', 'w') as f:
+        fname = '/tmp/jlml.txt'
+        with open(fname, 'w') as f:
             for r in res:
-                f.write('{0:s}\n'.format('\t'.join(r)))
-        # TODO upload file in database
+                f.write('{0:s}\n'.format('\t'.join([str(x) for x in r])))
+        stxdb.db_upload_file(fname, 'ml')
 
+    def f(x, bound=3):
+        if x <= -bound:
+            return -bound
+        elif x > -bound and x <= -0.5:
+            return round((x + 0.25) * 2) / 2
+        elif x > -0.5 and x < 0.5:
+            return 0
+        elif x >= 0.5 and x < bound:
+            return round((x - 0.25) * 2) / 2
+        else:  # x >= bound
+            return bound
+
+        
     def pivot_stats(self, jl, ts, pivs):
         piv_data = []
         cc = ts.current('c')
@@ -149,5 +163,5 @@ class JLML:
 
 if __name__ == '__main__':
     stk = 'NFLX'
-    jlml = JLML('2002-05-20', '2005-09-30')
+    jlml = JLML('2002-05-20', '2003-05-30')
     jlml.gen_stk_data(stk)
