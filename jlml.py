@@ -1,4 +1,7 @@
+import csv
+import datetime
 import math
+import numpy as np
 import stxcal
 import stxdb
 from stxjl import StxJL
@@ -72,13 +75,18 @@ class JLML:
     def gen_stk_data(self, stk):
         res = []
         ts = StxTS(stk, self.sd, self.ed)
-        ts.df['c_3'] = ts.df['c'].shift(-3)
-        ts.df['c_5'] = ts.df['c'].shift(-5)
+        ts.df['c3'] = ts.df['c'].shift(-3)
+        ts.df['c5'] = ts.df['c'].shift(-5)
+        ts.df['c_1'] = ts.df['c'].shift(1)
+        print(ts.df.tail(10))
+        ts.df['udv'] = (ts.df['c'] - ts.df['c_1']) * ts.df['volume']
+        ts.df['tot_v'] = np.abs(ts.df['udv'])
+        ts.df['sgn'] = np.sign(ts.df['udv'])
         for sdt in ts.splits:
             ratio = ts.splits[sdt][0]
             ixx = ts.find(str(sdt.date()))
-            ts.df.loc[ixx-3:ixx, 'c_3'] = ts.df['c_3'] / ratio
-            ts.df.loc[ixx-5:ixx, 'c_5'] = ts.df['c_5'] / ratio
+            ts.df.loc[ixx-3:ixx, 'c3'] = ts.df['c3'] / ratio
+            ts.df.loc[ixx-5:ixx, 'c5'] = ts.df['c5'] / ratio
         jl_lst = []
         for factor in self.factors:
             jl = StxJL(ts, factor)
@@ -89,27 +97,36 @@ class JLML:
         for ixx in range(start_w, ts.end + 1):
             ts.next_day()
             lst = [stk, ts.current_date(),
-                   self.f((ts.current('c_3') - ts.current('c')) / jl.avg_rg),
-                   self.f((ts.current('c_5') - ts.current('c')) / jl.avg_rg)]
+                   self.f((ts.current('c3') - ts.current('c')) / jl.avg_rg),
+                   self.f((ts.current('c5') - ts.current('c')) / jl.avg_rg)]
             for jl in jl_lst:
                 # jl = jl_lst[0]
                 jl.nextjl()
                 pivs = jl.get_num_pivots(4)
+                # pivs = []
                 lst += self.pivot_stats(jl, ts, pivs)
+                print('{0:.1f} {1:s} {2:.2f} {3:.2f} {4:.2f} rg: {5:.2f} '
+                      'c3 = {6:.2f}, c5 = {7:.2f}'.format(
+                          jl.f, ts.current_date(), ts.current('c'),
+                          (ts.current('c3') - ts.current('c')) / jl.avg_rg,
+                          (ts.current('c5') - ts.current('c')) / jl.avg_rg,
+                          jl.avg_rg, ts.current('c3'), ts.current('c5')))
                 # print('{0:.1f} {1:s} {2:.2f} {3:.2f} {4:.2f} rg: {5:.2f} '
                 #       '{6:s}'.format(
                 #           jl.f, ts.current_date(), ts.current('c'),
-                #           (ts.current('c_3') - ts.current('c')) / jl.avg_rg,
-                #           (ts.current('c_5') - ts.current('c')) / jl.avg_rg,
+                #           (ts.current('c3') - ts.current('c')) / jl.avg_rg,
+                #           (ts.current('c5') - ts.current('c')) / jl.avg_rg,
                 #           jl.avg_rg, self.print_stats(jl, ts, pivs)))
             res.append(lst)
-        fname = '/tmp/jlml.txt'
+        fname = '/tmp/jlml.csv'
         with open(fname, 'w') as f:
-            for r in res:
-                f.write('{0:s}\n'.format('\t'.join([str(x) for x in r])))
-        stxdb.db_upload_file(fname, 'ml')
+            wrtr = csv.writer(f, delimiter='\t')
+            for r in res[:-6]:
+                wrtr.writerow(r)
+                # f.write('{0:s}\n'.format('\t'.join([str(x) for x in r])))
+        # stxdb.db_upload_file(fname, 'ml')
 
-    def f(x, bound=3):
+    def f(self, x, bound=3):
         if x <= -bound:
             return -bound
         elif x > -bound and x <= -0.5:
@@ -121,7 +138,6 @@ class JLML:
         else:  # x >= bound
             return bound
 
-        
     def pivot_stats(self, jl, ts, pivs):
         piv_data = []
         cc = ts.current('c')
@@ -133,35 +149,31 @@ class JLML:
             dist = (cc - piv.price) / (jl.avg_rg * math.sqrt(num_days))
             udv, udd = self.up_down_volume(ts, piv)
             piv_data += [num_days / self.time_adj[jl.f], dist, udv, udd]
+            # piv_data += [num_days / self.time_adj[jl.f], dist, udv, udd]
             # piv_data.append('P{0:d}: {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f}'.
             #             format(ixx, piv.dt, num_days / self.time_adj[jl.f],
             #                        dist, udv, udd))
             # ixx += 1
-        return piv_data + [''] * (16 - len(piv_data))
+        return piv_data + [None] * (16 - len(piv_data))
         # return '; '.join(piv_data)
 
     def up_down_volume(self, ts, piv):
-        total_volume = 0
-        signed_volume = 0
-        all_days = 0.0
-        signed_days = 0.0
         start_ix = ts.find(piv.dt) + 1
+        end_ix = ts.pos + 1
         if start_ix > ts.pos:
             start_ix = ts.pos
-        for ixx in range(start_ix, ts.pos + 1):
-            total_volume += ts.ix(ixx).volume * math.fabs(ts.ix(ixx).c -
-                                                          ts.ix(ixx - 1).c)
-            signed_volume += ts.ix(ixx).volume * (ts.ix(ixx).c -
-                                                  ts.ix(ixx - 1).c)
-            all_days += 1
-            if ts.ix(ixx).c > ts.ix(ixx - 1).c:
-                signed_days += 1
-            elif ts.ix(ixx).c < ts.ix(ixx - 1).c:
-                signed_days -= 1
-        return signed_volume / total_volume, signed_days / all_days
+        total_volume = ts.df['tot_v'][start_ix: end_ix].sum()
+        signed_volume = ts.df['udv'][start_ix: end_ix].sum()
+        signed_days = ts.df['sgn'][start_ix: end_ix].sum()
+        return signed_volume / total_volume, signed_days / (end_ix - start_ix)
 
 
 if __name__ == '__main__':
     stk = 'NFLX'
-    jlml = JLML('2002-05-20', '2003-05-30')
+    jlml = JLML('2002-05-20', '2002-08-30')
+    t1 = datetime.datetime.now()
     jlml.gen_stk_data(stk)
+    t2 = datetime.datetime.now()
+    delta = t2 - t1
+    print('Execution time: {0:f} seconds'.format(
+        (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
