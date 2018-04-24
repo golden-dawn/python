@@ -57,8 +57,8 @@ class StxJL:
         w1 = self.ts.pos - ss + 1
         win = self.w if w1 >= self.w else w1
         self.ts.set_day(str(self.ts.df.index[ss+win-1].date()))
-        print('initjl: ss={0:d} w1={1:d} win={2:d} set_day:{3:s}'.
-              format(ss, w1, win, str(self.ts.df.index[ss+win-1].date())))
+        # print('initjl: ss={0:d} w1={1:d} win={2:d} set_day:{3:s}'.
+        #       format(ss, w1, win, str(self.ts.df.index[ss+win-1].date())))
         df_0 = self.ts.df[ss: ss + win]
         max_dt = df_0['hi'].idxmax()
         min_dt = df_0['lo'].idxmin()
