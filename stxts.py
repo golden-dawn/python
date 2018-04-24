@@ -13,7 +13,7 @@ class StxTS:
         self.sd = pd.to_datetime(sd)
         self.ed = pd.to_datetime(ed)
         q = "select * from {0:s} where stk='{1:s}' and date between '{2:s}' "\
-            "and '{3:s}'".format(eod_tbl, stk, sd, ed)
+            "and '{3:s}' order by date".format(eod_tbl, stk, sd, ed)
         df = pd.read_sql(q, stxdb.db_get_cnx(), index_col='date',
                          parse_dates=['date'])
         if self.sd < df.index[0]:
@@ -124,7 +124,7 @@ class StxTS:
                 if split_divi in [0, 1, 3, 6]:
                     self.adjust(sdd, stxcal.prev_busday(adj_dt), split_ratio,
                                 ['volume'])
-            self.adj_splits.clear()
+            del self.adj_splits[:]
             self.start = new_s
             self.end = new_e
             self.adjust_splits_date_range(self.start, new_pos)
