@@ -192,6 +192,7 @@ if __name__ == '__main__':
         print('Already done')
     r_stx = stxdb.db_read_cmd(
         "select ticker from equities where ticker like 'R%'")
+    ixx = 0
     for r_stk in r_stx:
         stk = r_stk[0]
         print(stk)
@@ -211,3 +212,6 @@ if __name__ == '__main__':
                 (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
         else:
             print('Already done')
+        ixx += 1
+        if ixx % 10 == 0:
+            print('{0:4d} / {1:4d}'.format(ixx, len(r_stx)))
