@@ -6,6 +6,7 @@ import stxcal
 import stxdb
 from stxjl import StxJL
 from stxts import StxTS
+import traceback
 
 
 class JLML:
@@ -174,20 +175,39 @@ if __name__ == '__main__':
     stk = 'NFLX'
     jlml = JLML()
     # jlml = JLML('2002-05-20', '2018-08-30')
-    t1 = datetime.datetime.now()
-    num = jlml.gen_stk_data(stk)
-    t2 = datetime.datetime.now()
-    delta = t2 - t1
-    print('{0:s}: {1:d} records. Execution time: {2:f} seconds'.format(
-        stk, num, (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
+    res = stxdb.db_read_cmd("select count(*) from ml where stk='{0:s}'".
+                            format(stk))
+    if res[0][0] == 0:
+        t1 = datetime.datetime.now()
+        try:
+            num = jlml.gen_stk_data(stk)
+        except Exception as ex:
+            traceback.print_exc()
+            num = 0
+        t2 = datetime.datetime.now()
+        delta = t2 - t1
+        print('{0:s}: {1:d} records. Execution time: {2:f} seconds'.format(
+            stk, num, (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
+    else:
+        print('Already done')
     r_stx = stxdb.db_read_cmd(
         "select ticker from equities where ticker like 'R%'")
     for r_stk in r_stx:
         stk = r_stk[0]
         print(stk)
-        t1 = datetime.datetime.now()
-        num = jlml.gen_stk_data(stk)
-        t2 = datetime.datetime.now()
-        delta = t2 - t1
-        print('{0:s}: {1:d} records. Execution time: {2:f} seconds'.format(
-            stk, num, (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
+        res = stxdb.db_read_cmd("select count(*) from ml where stk='{0:s}'".
+                                format(stk))
+        if res[0][0] == 0:
+            t1 = datetime.datetime.now()
+            try:
+                num = jlml.gen_stk_data(stk)
+            except Exception as ex:
+                traceback.print_exc()
+                num = 0
+            t2 = datetime.datetime.now()
+            delta = t2 - t1
+            print('{0:s}: {1:d} records. Execution time: {2:f} seconds'.format(
+                stk, num,
+                (t2 - t1).seconds + (t2 - t1).microseconds / 1000000.0))
+        else:
+            print('Already done')
