@@ -15,24 +15,24 @@ class StxMlLoader:
         self.num_days = num_days
 
     def get_data(self):
-        train_data = self.get_dataset(self.train_q)
-        valid_data = self.get_dataset(self.valid_q)
-        test_data = self.get_dataset(self.test_q)
+        train_data = self.get_dataset(self.train_q, True)
+        valid_data = self.get_dataset(self.valid_q, False)
+        test_data = self.get_dataset(self.test_q, False)
         return train_data, valid_data, test_data
 
-    def get_dataset(self, query):
+    def get_dataset(self, query, is_training):
         db_data = stxdb.db_read_cmd(query)
         ml_data = []
         for x in db_data:
-            data = np.array(x[4:])
-            result = self.get_result(x)
-            ml_data.append(tuple(data, result))
+            data = np.array([np.array([y], dtype=np.float32) for y in x[4:]])
+            result = self.get_result(x, is_training)
+            ml_data.append(tuple([data, result]))
         return ml_data
 
-    def get_result(self, x):
-        res = [0] * 13
+    def get_result(self, x, is_training):
+        res = [0.0] * 13
         x_ix = 2 if self.num_days == 3 else 3
         cat = x[x_ix]
         ixx = int(2 * float(cat) + 6)
-        res[ixx] = 1
-        return np.array(res)
+        res[ixx] = 1.0
+        return np.array([np.array([y]) for y in res]) if is_training else ixx
