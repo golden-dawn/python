@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import stxdb
 
@@ -23,10 +24,18 @@ class StxMlLoader:
     def get_dataset(self, query, is_training):
         db_data = stxdb.db_read_cmd(query)
         ml_data = []
+        total = 0
+        dropped = 0
         for x in db_data:
+            total += 1
+            arr = np.array(x[4:])
+            if not np.isfinite(arr).all():
+                dropped += 1
+                continue
             data = np.array([np.array([y], dtype=np.float32) for y in x[4:]])
             result = self.get_result(x, is_training)
             ml_data.append(tuple([data, result]))
+        print('Found {0:d} records, dropped {1:d}'.format(total, dropped))
         return ml_data
 
     def get_result(self, x, is_training):
