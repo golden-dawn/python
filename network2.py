@@ -23,6 +23,23 @@ import numpy as np
 
 #### Define the quadratic and cross-entropy cost functions
 
+class StxCost(object):
+    c = np.transpose(np.array([-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]))
+    @staticmethod
+    def fn(a, y):
+        """Return the cost associated with an output ``a`` and desired output
+        ``y``.
+
+        """
+        return ((np.dot(StxCost.c, a) - np.dot(StxCost.c, y))**2)
+        # return 0.5*np.linalg.norm(a-y)**2
+
+    @staticmethod
+    def delta(z, a, y):
+        """Return the error delta from the output layer."""
+        return (a-y) * sigmoid_prime(z)
+
+
 class QuadraticCost(object):
 
     @staticmethod
@@ -183,7 +200,8 @@ class Network(object):
                 evaluation_accuracy.append(accuracy)
                 print "Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data)
-            print
+            # print 'WEIGHTS: ', self.weights
+            # print 'BIASES: ', self.biases
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
 
