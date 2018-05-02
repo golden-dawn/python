@@ -200,6 +200,7 @@ class Network(object):
                 evaluation_accuracy.append(accuracy)
                 print "Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data)
+            self.category_accuracy(evaluation_data)
             # print 'WEIGHTS: ', self.weights
             # print 'BIASES: ', self.biases
         return evaluation_cost, evaluation_accuracy, \
@@ -289,6 +290,20 @@ class Network(object):
                         for (x, y) in data]
         return sum(int(x == y) for (x, y) in results)
 
+    def category_accuracy(self, data):
+        results = [(np.argmax(self.feedforward(x)), y) for (x, y) in data]
+        res = {}
+        for (x, y) in results:
+            arr = res.get(y, [0] * 13)
+            arr[x] += 1
+            res[y] = arr
+        for x in sorted(res.keys()):
+            print('{0:{1:d}}'.format(x, 6 * (x + 1)))
+            out_str = ''
+            for y in res[x]:
+                out_str += '{0:6d}'.format(y)
+            print out_str
+    
     def total_cost(self, data, lmbda, convert=False):
         """Return the total cost for the data set ``data``.  The flag
         ``convert`` should be set to False if the data set is the
