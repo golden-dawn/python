@@ -288,13 +288,15 @@ class Network(object):
         else:
             results = [(np.argmax(self.feedforward(x)), y)
                         for (x, y) in data]
+        # for (x, y) in results:
+        #     print x, y
         return sum(int(x == y) for (x, y) in results)
 
     def category_accuracy(self, data):
         results = [(np.argmax(self.feedforward(x)), y) for (x, y) in data]
         res = {}
         for (x, y) in results:
-            arr = res.get(y, [0] * 13)
+            arr = res.get(y, [0] * len(self.biases[-1]))
             arr[x] += 1
             res[y] = arr
         for x in sorted(res.keys()):
