@@ -33,11 +33,25 @@ class StxMlLoader:
                 dropped += 1
                 continue
             data = np.array([np.array([y], dtype=np.float32) for y in x[4:]])
-            result = self.get_result(x, is_training)
+            result = self.get_result_new(x, is_training)
             ml_data.append(tuple([data, result]))
         print('Found {0:d} records, dropped {1:d}'.format(total, dropped))
         return ml_data
 
+    def get_result_new(self, x, is_training):
+        res = [0.0] * 3
+        x_ix = 2 if self.num_days == 3 else 3
+        cat = x[x_ix]
+        if cat == -1:
+            ixx = 0
+        elif cat == 0:
+            ixx = 1
+        else:
+            ixx = 2
+        ixx = int(ixx)
+        res[ixx] = 1.0
+        return np.array([np.array([y]) for y in res]) if is_training else ixx
+    
     def get_result(self, x, is_training):
         res = [0.0] * 13
         x_ix = 2 if self.num_days == 3 else 3
