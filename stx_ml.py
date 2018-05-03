@@ -1,12 +1,21 @@
 import network2
 from stx_ml_loader import StxMlLoader
 sml = StxMlLoader()
-sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2000-01-01' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-12-31'")
+sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2001-01-01' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-12-31'")
 train, validation, test = sml.get_data()
 # net = network2.Network([48, 50, 13], cost=network2.CrossEntropyCost)
 net = network2.Network([48, 50, 13], cost=network2.StxCost)
 net.SGD(train, 30, 10, 0.1, lmbda=5.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
 # net.SGD(train, 30, 10, 0.1, lmbda=5.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_cost=True, monitor_evaluation_accuracy=True)
+
+
+import network2
+from stx_ml_loader import StxMlLoader
+sml = StxMlLoader()
+sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2001-11-01' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-03-31'")
+train, validation, test = sml.get_data()
+net = network2.Network([48, 50, 3], cost=network2.CrossEntropyCost)
+net.SGD(train, 30, 10, 0.01, lmbda=1.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
 
 
 '''
