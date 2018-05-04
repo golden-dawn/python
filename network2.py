@@ -201,8 +201,12 @@ class Network(object):
                 print "Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data)
             self.category_accuracy(evaluation_data)
-            # print 'WEIGHTS: ', self.weights
-            # print 'BIASES: ', self.biases
+            # print 'WEIGHTS: '
+            # for w in self.weights:
+            #     print(np.transpose(w))
+            # print 'BIASES: '
+            # for b in self.biases:
+            #     print(np.transpose(b))
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
 
