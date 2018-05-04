@@ -15,24 +15,26 @@ class StxMlLoader:
         self.test_q = tst_q
         self.num_days = num_days
 
-    def get_data(self):
-        train_data = self.get_dataset(self.train_q, True)
-        valid_data = self.get_dataset(self.valid_q, False)
-        test_data = self.get_dataset(self.test_q, False)
+    def get_data(self, n=None):
+        train_data = self.get_dataset(self.train_q, n, True)
+        valid_data = self.get_dataset(self.valid_q, n, False)
+        test_data = self.get_dataset(self.test_q, n, False)
         return train_data, valid_data, test_data
 
-    def get_dataset(self, query, is_training):
+    def get_dataset(self, query, n, is_training):
         db_data = stxdb.db_read_cmd(query)
         ml_data = []
         total = 0
         dropped = 0
+        ub = n if n is None else (n + 4)
         for x in db_data:
             total += 1
-            arr = np.array(x[4:])
+            arr = np.array(x[4: ub])
             if not np.isfinite(arr).all():
                 dropped += 1
                 continue
-            data = np.array([np.array([y], dtype=np.float32) for y in x[4:]])
+            data = np.array([np.array([y], dtype=np.float32)
+                             for y in x[4: ub]])
             result = self.get_result_new(x, is_training)
             ml_data.append(tuple([data, result]))
         print('Found {0:d} records, dropped {1:d}'.format(total, dropped))
@@ -42,7 +44,7 @@ class StxMlLoader:
         res = [0.0] * 3
         x_ix = 2 if self.num_days == 3 else 3
         cat = x[x_ix]
-        if cat == -1:
+        if cat < 0:
             ixx = 0
         elif cat == 0:
             ixx = 1
