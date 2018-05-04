@@ -18,6 +18,19 @@ net = network2.Network([48, 50, 3], cost=network2.CrossEntropyCost)
 net.SGD(train, 30, 10, 0.01, lmbda=1.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
 
 
+
+import network2
+from stx_ml_loader import StxMlLoader
+sml = StxMlLoader()
+sml = StxMlLoader(train_q="select * from ml where stk = 'RIG' and dt between '2002-01-01' and '2002-02-08'", tst_q="select * from ml where stk = 'RIG' and dt between '2002-02-08' and '2002-03-01'")
+n = 4
+train, validation, test = sml.get_data(n)
+net = network2.Network([n, 50, 3], cost=network2.CrossEntropyCost)
+net.SGD(train, 30, 1, 0.01, lmbda=1.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
+
+
+# select stk, dt, pl_3, pl_5, jl06p1_time, jl06p1_dist, jl06p1_udv, jl06p1_udd from ml where stk='RIG' and dt between '2002-01-01' and '2002-02-08';
+
 '''
 nabla_b = [np.zeros(b.shape) for b in net2.biases]
 nabla_w = [np.zeros(w.shape) for w in net2.weights]
