@@ -21,6 +21,12 @@ class StxMlLoader:
         test_data = self.get_dataset(self.test_q, n, False)
         return train_data, valid_data, test_data
 
+    def get_raw_data(self, n=None):
+        train_data = self.get_raw_dataset(self.train_q, n)
+        valid_data = self.get_raw_dataset(self.valid_q, n)
+        test_data = self.get_raw_dataset(self.test_q, n)
+        return train_data, valid_data, test_data
+    
     def get_dataset(self, query, n, is_training):
         db_data = stxdb.db_read_cmd(query)
         ml_data = []
@@ -37,6 +43,31 @@ class StxMlLoader:
                              for y in x[4: ub]])
             result = self.get_result_new(x, is_training)
             ml_data.append(tuple([data, result]))
+        print('Found {0:d} records, dropped {1:d}'.format(total, dropped))
+        return ml_data
+
+    def get_raw_dataset(self, query, n):
+        db_data = stxdb.db_read_cmd(query)
+        ml_data = []
+        total = 0
+        dropped = 0
+        ub = n if n is None else (n + 4)
+        for x in db_data:
+            total += 1
+            arr = np.array(x[4: ub])
+            if not np.isfinite(arr).all():
+                dropped += 1
+                continue
+            x2, x3 = 0, 0
+            if x[2] > 0:
+                x2 = 1
+            elif x[2] < 0:
+                x2 = -1
+            if x[3] > 0:
+                x3 = 1
+            elif x[3] < 0:
+                x3 = -1
+            ml_data.append(x[0:2] + tuple([x2, x3]) + x[4:])
         print('Found {0:d} records, dropped {1:d}'.format(total, dropped))
         return ml_data
 
