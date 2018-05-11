@@ -2,6 +2,7 @@ import math
 import numpy as np
 import operator
 from stx_ml_loader import StxMlLoader
+import sys
 
 
 def euclideanDistance(instance1, instance2, length):
@@ -47,14 +48,23 @@ def getAccuracy(test, predictions, ixx):
 
 
 def main():
+    train_sd = sys.argv[1]
+    train_ed = sys.argv[2]
+    tst_sd = sys.argv[3]
+    tst_ed = sys.argv[4]
+    ixx = int(sys.argv[5])
+    k = int(sys.argv[6])
     sml = StxMlLoader()
-    sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2001-12-15' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-02-28'")
+    train_q = "select * from ml where stk like 'R%' and dt between "\
+        "'{0:s}' and '{1:s}'".format(train_sd, train_ed)
+    tst_q = "select * from ml where stk like 'R%' and dt between "\
+        "'{0:s}' and '{1:s}'".format(tst_sd, tst_ed)
+    sml = StxMlLoader(train_q=train_q, tst_q=tst_q)
+    # sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2001-12-15' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-02-28'")
     train, validation, test = sml.get_raw_data()
     # generate predictions
     predictions=[]
-    k = 15
-    ixx = 3
-    print('Predicted, Actual')
+    print('ixx = {0:d}, k = {1:d}'.format(ixx, k))
     n = 0
     m = len(test)
     res = {}
@@ -63,7 +73,7 @@ def main():
 	result = getResponse(neighbors, ixx)
 	predictions.append(result)
         n += 1
-        if n % 100 == 0 or n == m:
+        if n % 1000 == 0 or n == m:
             print('Processed {0:5d} out of {1:5d}'.format(n, m))
         actual = test[x][ixx]
         row = res.get(actual, [0, 0, 0])
