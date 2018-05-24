@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import operator
 from stx_ml_loader import StxMlLoader
@@ -17,23 +16,23 @@ def getNeighbors(train, testInstance, k):
     distances = []
     length = len(testInstance)-1
     for x in range(len(train)):
-	dist = euclideanDistance(testInstance, train[x], length)
-	distances.append((train[x], dist))
+        dist = euclideanDistance(testInstance, train[x], length)
+        distances.append((train[x], dist))
     distances.sort(key=operator.itemgetter(1))
     neighbors = []
     for x in range(k):
-	neighbors.append(distances[x][0])
+        neighbors.append(distances[x][0])
     return neighbors
 
 
 def getResponse(neighbors, ixx):
     classVotes = {}
     for x in range(len(neighbors)):
-	response = neighbors[x][ixx]
-	if response in classVotes:
-	    classVotes[response] += 1
-	else:
-	    classVotes[response] = 1
+        response = neighbors[x][ixx]
+        if response in classVotes:
+            classVotes[response] += 1
+        else:
+            classVotes[response] = 1
     sortedVotes = sorted(classVotes.iteritems(), key=operator.itemgetter(1),
                          reverse=True)
     return sortedVotes[0][0]
@@ -42,8 +41,8 @@ def getResponse(neighbors, ixx):
 def getAccuracy(test, predictions, ixx):
     correct = 0
     for x in range(len(test)):
-	if test[x][ixx] == predictions[x]:
-	    correct += 1
+        if test[x][ixx] == predictions[x]:
+            correct += 1
     return (correct / float(len(test))) * 100.0
 
 
@@ -55,23 +54,39 @@ def main():
     ixx = int(sys.argv[5])
     k = int(sys.argv[6])
     sml = StxMlLoader()
-    train_q = "select * from ml where stk like 'R%' and dt between "\
-        "'{0:s}' and '{1:s}'".format(train_sd, train_ed)
-    tst_q = "select * from ml where stk like 'R%' and dt between "\
-        "'{0:s}' and '{1:s}'".format(tst_sd, tst_ed)
+
+    train_q = "select stk, dt, pl_3, pl_5, jl11p1_time, jl11p1_dist, "\
+        "jl11p2_time, jl11p2_dist, jl11p3_time, jl11p3_dist, jl11p4_time, "\
+        "jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, "\
+        "jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, "\
+        "jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist "\
+        "from ml where stk like 'R%' and dt between '{0:s}' and '{1:s}'".\
+        format(train_sd, train_ed)
+    tst_q = "select stk, dt, pl_3, pl_5, jl11p1_time, jl11p1_dist, "\
+        "jl11p2_time, jl11p2_dist, jl11p3_time, jl11p3_dist, jl11p4_time, "\
+        "jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, "\
+        "jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, "\
+        "jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist "\
+        "from ml where stk like 'R%' and dt between '{0:s}' and '{1:s}'".\
+        format(tst_sd, tst_ed)
+
+    # train_q = "select * from ml where stk like 'R%' and dt between "\
+    #     "'{0:s}' and '{1:s}'".format(train_sd, train_ed)
+    # tst_q = "select * from ml where stk like 'R%' and dt between "\
+    #     "'{0:s}' and '{1:s}'".format(tst_sd, tst_ed)
     sml = StxMlLoader(train_q=train_q, tst_q=tst_q)
-    # sml = StxMlLoader(train_q="select * from ml where stk like 'R%' and dt between '2001-12-15' and '2002-02-08'", tst_q="select * from ml where stk like 'R%' and dt between '2002-02-08' and '2002-02-28'")
+
     train, validation, test = sml.get_raw_data()
     # generate predictions
-    predictions=[]
+    predictions = []
     print('ixx = {0:d}, k = {1:d}'.format(ixx, k))
     n = 0
     m = len(test)
     res = {}
     for x in range(len(test)):
-	neighbors = getNeighbors(train, test[x], k)
-	result = getResponse(neighbors, ixx)
-	predictions.append(result)
+        neighbors = getNeighbors(train, test[x], k)
+        result = getResponse(neighbors, ixx)
+        predictions.append(result)
         n += 1
         if n % 1000 == 0 or n == m:
             print('Processed {0:5d} out of {1:5d}'.format(n, m))
@@ -85,5 +100,6 @@ def main():
               format(k, v[0] / v_sum, v[1] / v_sum, v[2] / v_sum))
     accuracy = getAccuracy(test, predictions, ixx)
     print('Accuracy: ' + repr(accuracy) + '%')
-	
+
+
 main()
