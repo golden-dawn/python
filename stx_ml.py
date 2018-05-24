@@ -17,6 +17,16 @@ train, validation, test = sml.get_data()
 net = network2.Network([48, 50, 3], cost=network2.CrossEntropyCost)
 net.SGD(train, 30, 10, 0.01, lmbda=1.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
 
+import network2
+from stx_ml_loader import StxMlLoader
+sml = StxMlLoader()
+sml = StxMlLoader(train_q="select stk, dt, pl_3, pl_5, jl11p1_time, jl11p1_dist, jl11p2_time, jl11p2_dist, jl11p3_time, jl11p3_dist, jl11p4_time, jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist from ml where stk like 'R%' and dt between '2001-11-01' and '2002-02-08'", tst_q="select stk, dt, pl_3, pl_5, jl11p1_time, jl11p1_dist, jl11p2_time, jl11p2_dist, jl11p3_time, jl11p3_dist, jl11p4_time, jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist from ml where stk like 'R%' and dt between '2002-02-08' and '2002-03-31'")
+ll = len(train[0][0])
+train, validation, test = sml.get_data()
+net = network2.Network([ll, 50, 3], cost=network2.CrossEntropyCost)
+net.SGD(train, 30, 10, 0.01, lmbda=1.0, evaluation_data=test, monitor_training_cost=True, monitor_training_accuracy=True, monitor_evaluation_accuracy=True)
+
+#stk, dt, pl_3, pl_5, jl11p1_time, jl11p1_dist, jl11p2_time, jl11p2_dist, jl11p3_time, jl11p3_dist, jl11p4_time, jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist
 
 
 import network2
