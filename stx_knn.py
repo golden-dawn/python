@@ -2,7 +2,7 @@ import numpy as np
 import operator
 from stx_ml_loader import StxMlLoader
 import sys
-
+import stxcal
 
 def euclideanDistance(instance1, instance2, length):
     return np.linalg.norm(np.array(instance1[4:]) - np.array(instance2[4:]))
@@ -16,18 +16,39 @@ def getNeighbors(train, testInstance, k):
     distances = []
     length = len(testInstance)-1
     stk = testInstance[0]
+    dt = str(testInstance[1])
     for x in range(len(train)):
-        if stk == train[x][0]:
+        if stk == train[x][0] and stxcal.num_busdays(
+            str(train[x][1]), dt) < 180:
             continue
         dist = euclideanDistance(testInstance, train[x], length)
         distances.append((train[x], dist))
     distances.sort(key=operator.itemgetter(1))
     neighbors = []
-    for x in range(k):
-        print('{0:s} {1:s} [{2:d}] Neighbor{3:d}: {4:s} - {5:s}, [{6:d}] distance = {7:.2f}'.
-              format(testInstance[0], str(testInstance[1]), testInstance[3], x, distances[x][0][0],
-                     str(distances[x][0][1]), distances[x][0][3], distances[x][1]))
-        neighbors.append(distances[x][0])
+    n_dict = {}
+    m = 0
+    d = 0
+    x = 0
+    while m < k and d < 0.75:
+        n_stk = distances[x][0][0]
+        n_date = str(distances[x][0][1])
+        d = distances[x][1]
+        n_add = True
+        if n_stk in n_dict:
+            n_add = False
+        else:
+            if d < 1.25:
+                n_dict[n_stk] = n_date
+            else:
+                n_add = False
+        print('{0:s} {1:s} [{2:d}] Neighbor{3:d}: {4:s} - {5:s}, [{6:d}] '
+              'distance = {7:.2f}, add = {8:s}'.format(
+                  stk, dt, testInstance[3], x, n_stk, n_date,
+                  distances[x][0][3], d, str(n_add)))
+        if n_add:
+            neighbors.append(distances[x][0])
+            m += 1
+        x += 1
     return neighbors
 
 
@@ -41,7 +62,9 @@ def getResponse(neighbors, ixx):
             classVotes[response] = 1
     sortedVotes = sorted(classVotes.iteritems(), key=operator.itemgetter(1),
                          reverse=True)
-    return sortedVotes[0][0]
+    if len(sortedVotes) > 0:
+        return sortedVotes[0][0]
+    return None
 
 
 def getAccuracy(test, predictions, ixx):
@@ -92,14 +115,16 @@ def main():
     for x in range(len(test)):
         neighbors = getNeighbors(train, test[x], k)
         result = getResponse(neighbors, ixx)
-        predictions.append(result)
+        if result is not None:
+            predictions.append(result)
+            actual = test[x][ixx]
+            row = res.get(actual, [0, 0, 0])
+            row[result + 1] += 1
+            res[actual] = row
         n += 1
         if n % 1000 == 0 or n == m:
             print('Processed {0:5d} out of {1:5d}'.format(n, m))
-        actual = test[x][ixx]
-        row = res.get(actual, [0, 0, 0])
-        row[result + 1] += 1
-        res[actual] = row
+
     for k, v in res.items():
         v_sum = float(np.sum(v))
         print('{0:d}:  {1:4.2f}  {2:4.2f}  {3:4.2f}'.
