@@ -15,12 +15,18 @@ def euclideanDistance(instance1, instance2, length):
 def getNeighbors(train, testInstance, k):
     distances = []
     length = len(testInstance)-1
+    stk = testInstance[0]
     for x in range(len(train)):
+        if stk == train[x][0]:
+            continue
         dist = euclideanDistance(testInstance, train[x], length)
         distances.append((train[x], dist))
     distances.sort(key=operator.itemgetter(1))
     neighbors = []
     for x in range(k):
+        print('{0:s} {1:s} [{2:d}] Neighbor{3:d}: {4:s} - {5:s}, [{6:d}] distance = {7:.2f}'.
+              format(testInstance[0], str(testInstance[1]), testInstance[3], x, distances[x][0][0],
+                     str(distances[x][0][1]), distances[x][0][3], distances[x][1]))
         neighbors.append(distances[x][0])
     return neighbors
 
