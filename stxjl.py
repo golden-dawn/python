@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from recordclass import recordclass
 from stxts import StxTS
+import sys
 
 JLPivot = recordclass('JLPivot', 'dt, state, price, rg')
 
@@ -502,12 +503,13 @@ class StxJL:
 
 
 if __name__ == '__main__':
-    stk = 'NFLX'
-    sd = '2002-04-01'
-    ed = '2016-06-11'
+    stk = sys.argv[1]
+    sd = sys.argv[2]
+    ed = sys.argv[3]
+    dt = sys.argv[4]
+    factor = float(sys.argv[5])
     ts = StxTS(stk, sd, ed)
-    jl = StxJL(ts, 1.5)
-    dt = '2016-06-11'
+    jl = StxJL(ts, factor)
     jlres = jl.jl(dt)
     jl.jl_print()
     pivs = jl.get_pivots_in_days(100)
