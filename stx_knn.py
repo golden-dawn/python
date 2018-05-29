@@ -99,7 +99,7 @@ def main():
         "jl11p4_dist, jl11p4_udv, jl11p4_udd, jl16p1_time, jl16p1_dist, "\
         "jl16p2_time, jl16p2_dist, jl16p2_udv, jl16p2_udd, jl16p3_time, "\
         "jl16p3_dist, jl16p4_udv, jl16p4_udd, jl16p4_time, jl16p4_dist "\
-        "from ml where stk='RIG' and dt between '{0:s}' and '{1:s}'".\
+        "from ml where stk='R' and dt between '{0:s}' and '{1:s}'".\
         format(tst_sd, tst_ed)
 
     # train_q = "select * from ml where stk like 'R%' and dt between "\
@@ -130,8 +130,8 @@ def main():
 
     for k, v in res.items():
         v_sum = float(np.sum(v))
-        print('{0:d}:  {1:4.2f}  {2:4.2f}  {3:4.2f}'.
-              format(k, v[0] / v_sum, v[1] / v_sum, v[2] / v_sum))
+        print('{0:d}:  {1:4.2f}  {2:4.2f}  {3:4.2f}  {4:4.0f}'.
+              format(k, v[0] / v_sum, v[1] / v_sum, v[2] / v_sum, v_sum))
     accuracy = getAccuracy(test, predictions, ixx)
     print('Accuracy: ' + repr(accuracy) + '%')
 
