@@ -16,7 +16,7 @@ class StxLiquidity:
         for stk in self.all_stx:
             stx_ix += 1
             if self.liquid_stk(stk) is not None:
-                with open('liquid_stx.txt', 'a') as f:
+                with open('super_liquid_stx.txt', 'a') as f:
                     f.write('{0:s}\n'.format(stk))
             if stx_ix % 1000 == 0 or stx_ix == stx_len:
                 print('Processed {0:5d} / {1:5d} stocks'.format(
@@ -37,7 +37,7 @@ class StxLiquidity:
         ts = StxTS(stk, s_date, e_date)
         ts.df['activity'] = ts.df['c'] * ts.df['volume']
         ts.df['act_20'] = ts.df['activity'].shift().rolling(20).mean()
-        df_liq = ts.df.query('act_20>250')
+        df_liq = ts.df.query('act_20>10000')
         ts.df.act_20.fillna(ts.df.activity, inplace=True)
         if (len(df_liq) > 750 and len(df_liq) > 0.75 * len(ts.df)):
             return ts

@@ -158,7 +158,7 @@ class JLML1:
 
 if __name__ == '__main__':
     stk = 'NFLX'
-    jlml = JLML()
+    jlml = JLML1()
     # jlml = JLML('2002-05-20', '2018-08-30')
     res = stxdb.db_read_cmd("select count(*) from ml where stk='{0:s}'".
                             format(stk))
