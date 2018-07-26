@@ -31,8 +31,8 @@ class StxCandles:
             ts.df['lo_{0:d}'.format(x)] = ts.df['lo'].shift(x)
             ts.df['c_{0:d}'.format(x)] = ts.df['c'].shift(x)
             ts.df['body_{0:d}'.format(x)] = ts.df['body'].shift(x)
-        ts.df['avg_body'] = ts.df['body'].rolling(self.avg_range_days)
-        ts.df['avg_v'] = ts.df['volume'].rolling(self.avg_volume_days)
+        ts.df['avg_body'] = ts.df['body'].rolling(self.avg_range_days).mean()
+        ts.df['avg_v'] = ts.df['volume'].rolling(self.avg_volume_days).mean()
         ts.df['upper_shadow'] = ts.df.apply(
             lambda r: r['hi'] - max(r['o'], r['c']), axis=1)
         ts.df['lower_shadow'] = ts.df.apply(
@@ -57,9 +57,9 @@ class StxCandles:
                 return 0
             if r['c'] > r['o']:
                 return 2 if(r['body'] >=
-                            self.long_day_avg_ratio * float(r['avg_body'])) else 1
+                            self.long_day_avg_ratio * r['avg_body']) else 1
             return -2 if(r['body'] >=
-                         self.long_day_avg_ratio * float(r['avg_body'])) else -1
+                         self.long_day_avg_ratio * r['avg_body']) else -1
         ts.df['marubozu'] = ts.df.apply(marubozufun, axis=1)
         marubozu_df = ts.df.query('abs(marubozu)==2')
         for x in range(1, 5):
@@ -123,8 +123,62 @@ class StxCandles:
         for index, row in piercing_df.iterrows():
             print('Piercing', str(index.date()), row['piercing'])
 
-        for index, row in marubozu_df.iterrows():
-            print('Marubozu', str(index.date()), row['marubozu'])
+        def haramifun(r):
+            if(r['body_1'] >= r['avg_body'] * self.long_day_avg_ratio and
+               r['body'] <= r['body_1'] * self.harami_ratio and
+               max(r['o'], r['c']) < max(r['o_1'], r['c_1']) and
+               min(r['o'], r['c']) > min(r['o_1'], r['c_1'])):
+                return 1
+            return 0
+        ts.df['harami'] = ts.df.apply(haramifun, axis=1)
+        for x in range(1, 5):
+            ts.df['harami_{0:d}'.format(x)] = ts.df['harami'].shift(x)
+
+        def starfun(r):
+            if(r['body_2'] < r['avg_body'] * self.long_day_avg_ratio or
+               r['body'] < r['avg_body'] or
+               r['body_1'] > r['body'] * self.harami_ratio or
+               (r['o_2'] - r['c_2']) * (r['o'] - r['c']) >= 0):
+                return 0
+            if r['o_2'] > r['c_2']:
+                if r['hi_1'] < min(r['lo_2'], r['lo']):
+                    return 2
+                if(max(r['o_1'], r['c_1']) < min(r['c_2'], r['o']) and
+                   r['hi_1'] - r['lo_1'] <= r['avg_body']):
+                    return 1
+            else:
+                if r['lo_1'] > max(r['hi_2'], r['hi']):
+                    return -2
+                if min(r['o_1'], r['c_1']) > max(r['c_2'], r['o']):
+                    return -1
+            return 0
+        ts.df['star'] = ts.df.apply(starfun, axis=1)
+        star_df = ts.df.query('star!=0')
+        for index, row in star_df.iterrows():
+            print('Star', str(index.date()), row['star'])
+
+        def engulfingharamifun(r):
+            if(r['marubozu'] == 0 or
+               (r['marubozu_3'] == 0 and r['marubozu_4'] == 0)):
+                return 0
+            if r['marubozu_3'] != 0:
+                if r['marubozu'] * r['marubozu_3'] < 0:
+                    return 0
+                if r['harami_2'] == 1:
+                    return r['engulfing']
+            else:
+                if r['marubozu'] * r['marubozu_4'] < 0:
+                    return 0
+                if(r['harami_3'] == 1 and
+                   r['hi_2'] < max(r['hi_1'], r['hi_3']) and
+                   r['lo_2'] > min(r['lo_1'], r['lo_3'])):
+                    return r['engulfing']
+            return 0
+        ts.df['engulfharami'] = ts.df.apply(engulfingharamifun, axis=1)
+        engulfharami_df = ts.df.query('engulfharami!=0')
+        for index, row in engulfharami_df.iterrows():
+            print('Engulfharami', str(index.date()), row['engulfharami'])
+
         # def starfun(r):
         #     if r['marubozu_2'] == 0:
         #         return 0
