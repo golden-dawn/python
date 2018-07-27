@@ -128,7 +128,10 @@ class StxCandles:
                r['body'] <= r['body_1'] * self.harami_ratio and
                max(r['o'], r['c']) < max(r['o_1'], r['c_1']) and
                min(r['o'], r['c']) > min(r['o_1'], r['c_1'])):
-                return 1
+                if r['o_1'] > r['c_1']:
+                    return 2 if r['doji'] == 1 else 1
+                else:
+                    return -2 if r['doji'] == 1 else -1
             return 0
         ts.df['harami'] = ts.df.apply(haramifun, axis=1)
         for x in range(1, 5):
@@ -179,19 +182,42 @@ class StxCandles:
         for index, row in engulfharami_df.iterrows():
             print('Engulfharami', str(index.date()), row['engulfharami'])
 
-        # def starfun(r):
-        #     if r['marubozu_2'] == 0:
-        #         return 0
-        #     if(r['marubozu_2'] == -1 and r['gap_1'] < 0 and
-        #        abs(r['o_1'] - r['c_1']) <
-        #        self.harami_ratio * (r['hi_1'] - r['lo_1']) and
-        #        2 * r['c'] > r['o_1'] + r['c_1']):
-        #         return 1
-        #     if(r['marubozu'] == -1 and r['o'] > r['c_1'] and
-        #        2 * r['c'] < r['o_1'] + r['c_1']):
-        #         return -1
-        #     return 0
-        # ts.df['piercing'] = ts.df.apply(piercingfun, axis=1)
-        # piercing_df = ts.df.query('piercing!=0')
-        # for index, row in piercing_df.iterrows():
-        #     print('Piercing', str(index.date()), row['piercing'])
+        def threemfun(r):
+            if(r['marubozu'] > 0 and r['marubozu_1'] > 0 and
+               r['marubozu_2'] > 0):
+                return 1
+            if(r['marubozu'] < 0 and r['marubozu_1'] < 0 and
+               r['marubozu_2'] < 0):
+                return -1
+            return 0
+        ts.df['three_m'] = ts.df.apply(threemfun, axis=1)
+
+        def threeinfun(r):
+            if(r['harami_1'] > 0 and r['c'] > r['o'] and
+               (r['body'] >= r['avg_body'] or
+                r['c'] - r['c_1'] >= r['avg_body'])):
+                return 1
+            if(r['harami_1'] < 0 and r['c'] < r['o'] and
+               (r['body'] >= r['avg_body'] or
+                r['c_1'] - r['c'] >= r['avg_body'])):
+                return -1
+            return 0
+        ts.df['three_in'] = ts.df.apply(threeinfun, axis=1)
+        threein_df = ts.df.query('three_in!=0')
+        for index, row in threein_df.iterrows():
+            print('3IN', str(index.date()), row['three_in'])
+
+        def threeoutfun(r):
+            if(r['engulfing_1'] > 0 and r['c'] > r['o'] and
+               (r['body'] >= r['avg_body'] or
+                r['c'] - r['c_1'] >= r['avg_body'])):
+                return 1
+            if(r['engulfing_1'] < 0 and r['c'] < r['o'] and
+               (r['body'] >= r['avg_body'] or
+                r['c_1'] - r['c'] >= r['avg_body'])):
+                return -1
+            return 0
+
+if __name__ == '__main__':
+    sc = StxCandles('IBM')
+    sc.calculate_setups()
