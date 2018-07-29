@@ -40,15 +40,32 @@ class StxCandles:
             lambda r: min(r['o'], r['c']) - r['lo'], axis=1)
 
         def gapfun(r):
+            if r['hi'] < r['lo_1']:
+                return -8 if r['c'] < r['o'] else -7
             if r['o'] < r['lo_1']:
-                return -2
+                if r['c'] < r['lo_1']:
+                    return -6 if r['c'] < r['o'] else -5
+                else:
+                    return -4
             if r['o'] < r['c_1']:
-                return -1
+                if r['c'] < r['c_1']:
+                    return -3 if r['c'] < r['o'] else -2
+                else:
+                    return -1
+            if r['lo'] > r['hi_1']:
+                return 8 if r['c'] > r['o'] else 7
             if r['o'] > r['hi_1']:
-                return 2
+                if r['c'] > r['hi_1']:
+                    return 6 if r['c'] > r['o'] else 5
+                else:
+                    return 4
             if r['o'] > r['c_1']:
-                return 1
+                if r['c'] > r['c_1']:
+                    return 3 if r['c'] > r['o'] else 2
+                else:
+                    return 1
             return 0
+
         ts.df['gap'] = ts.df.apply(gapfun, axis=1)
         for x in range(1, 5):
             ts.df['gap_{0:d}'.format(x)] = ts.df['gap'].shift(x)
