@@ -1,6 +1,7 @@
 import datetime
 # import stxcal
 from stxts import StxTS
+import sys
 
 
 class StxCandles:
@@ -56,16 +57,18 @@ class StxCandles:
             if r['body'] < self.marubozu_ratio * (r['hi'] - r['lo']):
                 return 0
             if r['c'] > r['o']:
-                return 2 if(r['body'] >=
-                            self.long_day_avg_ratio * r['avg_body']) else 1
-            return -2 if(r['body'] >=
-                         self.long_day_avg_ratio * r['avg_body']) else -1
+                if r['body'] >= self.long_day_avg_ratio * r['avg_body']:
+                    return 2
+                return 1
+            if r['body'] >= self.long_day_avg_ratio * r['avg_body']:
+                return -2
+            return -1
         ts.df['marubozu'] = ts.df.apply(marubozufun, axis=1)
-        marubozu_df = ts.df.query('abs(marubozu)==2')
+        # marubozu_df = ts.df.query('abs(marubozu)!=0')
+        # for index, row in marubozu_df.iterrows():
+        #     print('Marubozu', str(index.date()), row['marubozu'])
         for x in range(1, 5):
             ts.df['marubozu_{0:d}'.format(x)] = ts.df['marubozu'].shift(x)
-        for index, row in marubozu_df.iterrows():
-            print('Marubozu', str(index.date()), row['marubozu'])
 
         def hammerfun(r):
             if ((r['body'] <= self.hammer_body_long_shadow_ratio *
@@ -80,18 +83,18 @@ class StxCandles:
                 return -1
             return 0
         ts.df['hammer'] = ts.df.apply(hammerfun, axis=1)
-        hammer_df = ts.df.query('hammer!=0')
-        for index, row in hammer_df.iterrows():
-            print('Hammer', str(index.date()), row['hammer'])
+        # hammer_df = ts.df.query('hammer!=0')
+        # for index, row in hammer_df.iterrows():
+        #     print('Hammer', str(index.date()), row['hammer'])
 
         def dojifun(r):
             if r['body'] <= self.doji_body_range_ratio * (r['hi'] - r['lo']):
                 return 1
             return 0
         ts.df['doji'] = ts.df.apply(dojifun, axis=1)
-        doji_df = ts.df.query('doji!=0')
-        for index, row in doji_df.iterrows():
-            print('Doji', str(index.date()), row['doji'])
+        # doji_df = ts.df.query('doji!=0')
+        # for index, row in doji_df.iterrows():
+        #     print('Doji', str(index.date()), row['doji'])
 
         def engulfingfun(r):
             if r['body'] < self.engulfing_ratio * r['body_1']:
@@ -104,9 +107,11 @@ class StxCandles:
                 return 1
             return 0
         ts.df['engulfing'] = ts.df.apply(engulfingfun, axis=1)
-        engulfing_df = ts.df.query('engulfing!=0')
-        for index, row in engulfing_df.iterrows():
-            print('Engulfing', str(index.date()), row['engulfing'])
+        # engulfing_df = ts.df.query('engulfing!=0')
+        # for index, row in engulfing_df.iterrows():
+        #     print('Engulfing', str(index.date()), row['engulfing'])
+        for x in range(1, 5):
+            ts.df['engulfing_{0:d}'.format(x)] = ts.df['engulfing'].shift(x)
 
         def piercingfun(r):
             if r['marubozu'] * r['marubozu_1'] != -1:
@@ -119,9 +124,9 @@ class StxCandles:
                 return -1
             return 0
         ts.df['piercing'] = ts.df.apply(piercingfun, axis=1)
-        piercing_df = ts.df.query('piercing!=0')
-        for index, row in piercing_df.iterrows():
-            print('Piercing', str(index.date()), row['piercing'])
+        # piercing_df = ts.df.query('piercing!=0')
+        # for index, row in piercing_df.iterrows():
+        #     print('Piercing', str(index.date()), row['piercing'])
 
         def haramifun(r):
             if(r['body_1'] >= r['avg_body'] * self.long_day_avg_ratio and
@@ -156,9 +161,9 @@ class StxCandles:
                     return -1
             return 0
         ts.df['star'] = ts.df.apply(starfun, axis=1)
-        star_df = ts.df.query('star!=0')
-        for index, row in star_df.iterrows():
-            print('Star', str(index.date()), row['star'])
+        # star_df = ts.df.query('star!=0')
+        # for index, row in star_df.iterrows():
+        #     print('Star', str(index.date()), row['star'])
 
         def engulfingharamifun(r):
             if(r['marubozu'] == 0 or
@@ -178,9 +183,9 @@ class StxCandles:
                     return r['engulfing']
             return 0
         ts.df['engulfharami'] = ts.df.apply(engulfingharamifun, axis=1)
-        engulfharami_df = ts.df.query('engulfharami!=0')
-        for index, row in engulfharami_df.iterrows():
-            print('Engulfharami', str(index.date()), row['engulfharami'])
+        # engulfharami_df = ts.df.query('engulfharami!=0')
+        # for index, row in engulfharami_df.iterrows():
+        #     print('Engulfharami', str(index.date()), row['engulfharami'])
 
         def threemfun(r):
             if(r['marubozu'] > 0 and r['marubozu_1'] > 0 and
@@ -203,9 +208,9 @@ class StxCandles:
                 return -1
             return 0
         ts.df['three_in'] = ts.df.apply(threeinfun, axis=1)
-        threein_df = ts.df.query('three_in!=0')
-        for index, row in threein_df.iterrows():
-            print('3IN', str(index.date()), row['three_in'])
+        # threein_df = ts.df.query('three_in!=0')
+        # for index, row in threein_df.iterrows():
+        #     print('3IN', str(index.date()), row['three_in'])
 
         def threeoutfun(r):
             if(r['engulfing_1'] > 0 and r['c'] > r['o'] and
@@ -217,7 +222,25 @@ class StxCandles:
                 r['c_1'] - r['c'] >= r['avg_body'])):
                 return -1
             return 0
+        ts.df['three_out'] = ts.df.apply(threeoutfun, axis=1)
+        # threeout_df = ts.df.query('three_out!=0')
+        # for index, row in threeout_df.iterrows():
+        #     print('3OUT', str(index.date()), row['three_out'])
+        return ts
+
 
 if __name__ == '__main__':
-    sc = StxCandles('IBM')
-    sc.calculate_setups()
+    stk = sys.argv[1]
+    sc = StxCandles(stk)
+    ts = sc.calculate_setups()
+
+    setups = ['gap', 'marubozu', 'hammer', 'doji', 'engulfing', 'piercing',
+              'harami', 'star', 'engulfharami', 'three_m', 'three_in',
+              'three_out']
+    with open('{0:s}.csv'.format(stk), 'w') as f:
+        for index, row in ts.df.iterrows():
+            f.write('{0:s}:'.format(str(index.date())))
+            for setup in setups:
+                if row[setup] != 0:
+                    f.write(' [{0:s}={1:.0f}]'.format(setup, row[setup]))
+            f.write('\n')
