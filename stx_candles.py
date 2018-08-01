@@ -256,8 +256,9 @@ if __name__ == '__main__':
               'three_out']
     with open('/home/cma/setups/{0:s}.csv'.format(stk), 'w') as f:
         for index, row in ts.df.iterrows():
-            f.write('{0:s}:'.format(str(index.date())))
+            f.write('{0:s};'.format(str(index.date())))
             for setup in setups:
                 if row[setup] != 0:
-                    f.write(' [{0:s}={1:.0f}]'.format(setup, row[setup]))
+                    f.write('  {0:s}: {1:.0f} '.format(setup.upper(),
+                                                       row[setup]))
             f.write('\n')
