@@ -254,7 +254,7 @@ if __name__ == '__main__':
     setups = ['gap', 'marubozu', 'hammer', 'doji', 'engulfing', 'piercing',
               'harami', 'star', 'engulfharami', 'three_m', 'three_in',
               'three_out']
-    with open('{0:s}.csv'.format(stk), 'w') as f:
+    with open('/home/cma/setups/{0:s}.csv'.format(stk), 'w') as f:
         for index, row in ts.df.iterrows():
             f.write('{0:s}:'.format(str(index.date())))
             for setup in setups:
