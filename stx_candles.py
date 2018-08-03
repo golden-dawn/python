@@ -116,11 +116,11 @@ class StxCandles:
         def engulfingfun(r):
             if r['body'] < self.engulfing_ratio * r['body_1']:
                 return 0
-            if(r['o'] > r['c'] and r['o_1'] < r['c_1'] and
-               r['o'] > r['c_1'] and r['c'] < r['o_1']):
+            if(r['o'] >= r['c'] and r['o_1'] <= r['c_1'] and
+               r['o'] >= r['c_1'] and r['c'] <= r['o_1']):
                 return -1
-            if(r['o'] < r['c'] and r['o_1'] > r['c_1'] and
-               r['o'] < r['c_1'] and r['c'] > r['o_1']):
+            if(r['o'] <= r['c'] and r['o_1'] >= r['c_1'] and
+               r['o'] <= r['c_1'] and r['c'] >= r['o_1']):
                 return 1
             return 0
         ts.df['engulfing'] = ts.df.apply(engulfingfun, axis=1)
@@ -131,7 +131,7 @@ class StxCandles:
             ts.df['engulfing_{0:d}'.format(x)] = ts.df['engulfing'].shift(x)
 
         def piercingfun(r):
-            if r['marubozu'] * r['marubozu_1'] > 0:
+            if r['marubozu'] * r['marubozu_1'] >= 0:
                 return 0
             if(r['marubozu'] > 0 and r['o'] < r['c_1'] and
                2 * r['c'] > r['o_1'] + r['c_1']):
@@ -148,8 +148,8 @@ class StxCandles:
         def haramifun(r):
             if(r['body_1'] >= r['avg_body'] * self.long_day_avg_ratio and
                r['body'] <= r['body_1'] * self.harami_ratio and
-               max(r['o'], r['c']) < max(r['o_1'], r['c_1']) and
-               min(r['o'], r['c']) > min(r['o_1'], r['c_1'])):
+               max(r['o'], r['c']) <= max(r['o_1'], r['c_1']) and
+               min(r['o'], r['c']) >= min(r['o_1'], r['c_1'])):
                 if r['o_1'] > r['c_1']:
                     return 2 if r['doji'] == 1 else 1
                 else:
