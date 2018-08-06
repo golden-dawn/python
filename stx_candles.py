@@ -160,16 +160,17 @@ class StxCandles:
             ts.df['harami_{0:d}'.format(x)] = ts.df['harami'].shift(x)
 
         def starfun(r):
-            if(r['body_2'] < r['avg_body'] * self.long_day_avg_ratio or
+            if((r['marubozu_2'] == 0 and
+                r['body_2'] < r['avg_body'] * self.long_day_avg_ratio) or
+               (r['marubozu_2'] != 0 and r['body_2'] < r['avg_body']) or
                r['body'] < r['avg_body'] or
-               r['body_1'] > r['body'] * self.harami_ratio or
+               r['body_1'] > r['body_2'] * self.harami_ratio or
                (r['o_2'] - r['c_2']) * (r['o'] - r['c']) >= 0):
                 return 0
             if r['o_2'] > r['c_2']:
                 if r['hi_1'] < min(r['lo_2'], r['lo']):
                     return 2
-                if(max(r['o_1'], r['c_1']) < min(r['c_2'], r['o']) and
-                   r['hi_1'] - r['lo_1'] <= r['avg_body']):
+                if max(r['o_1'], r['c_1']) < min(r['c_2'], r['o']):
                     return 1
             else:
                 if r['lo_1'] > max(r['hi_2'], r['hi']):
