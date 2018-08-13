@@ -39,7 +39,7 @@ class StxCandles:
         ts.df['lower_shadow'] = ts.df.apply(
             lambda r: min(r['o'], r['c']) - r['lo'], axis=1)
 
-        def gapfun(r):
+        def gapfun_old(r):
             if r['hi'] < r['lo_1']:
                 return -8 if r['c'] < r['o'] else -7
             if r['o'] < r['lo_1']:
@@ -64,6 +64,17 @@ class StxCandles:
                     return 3 if r['c'] > r['o'] else 2
                 else:
                     return 1
+            return 0
+
+        def gapfun(r):
+            if r['hi'] < r['lo_1']:
+                return -3 if r['c'] < r['o'] else -2
+            if r['o'] < r['lo_1'] and r['c'] < r['o']:
+                return -1
+            if r['lo'] > r['hi_1']:
+                return 3 if r['c'] > r['o'] else 2
+            if r['o'] > r['hi_1'] and r['c'] > r['o']:
+                return 1
             return 0
 
         ts.df['gap'] = ts.df.apply(gapfun, axis=1)
