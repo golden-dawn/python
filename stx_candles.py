@@ -131,12 +131,13 @@ class StxCandles:
             ts.df['engulfing_{0:d}'.format(x)] = ts.df['engulfing'].shift(x)
 
         def piercingfun(r):
-            if r['marubozu'] * r['marubozu_1'] >= 0:
+            if((r['o_1'] - r['c_1']) * (r['o'] - r['c']) >= 0 or
+               r['body_1'] < self.long_day_avg_ratio * r['avg_body']):
                 return 0
-            if(r['marubozu'] > 0 and r['o'] < r['c_1'] and
+            if(r['o_1'] > r['c_1'] and r['o'] < r['lo_1'] and 
                2 * r['c'] > r['o_1'] + r['c_1']):
                 return 1
-            if(r['marubozu'] < 0 and r['o'] > r['c_1'] and
+            if(r['o_1'] < r['c_1'] and r['o'] > r['hi_1'] and 
                2 * r['c'] < r['o_1'] + r['c_1']):
                 return -1
             return 0
