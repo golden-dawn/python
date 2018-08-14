@@ -145,10 +145,10 @@ class StxCandles:
             if((r['o_1'] - r['c_1']) * (r['o'] - r['c']) >= 0 or
                r['body_1'] < self.long_day_avg_ratio * r['avg_body']):
                 return 0
-            if(r['o_1'] > r['c_1'] and r['o'] < r['lo_1'] and 
+            if(r['o_1'] > r['c_1'] and r['o'] < r['lo_1'] and
                2 * r['c'] > r['o_1'] + r['c_1']):
                 return 1
-            if(r['o_1'] < r['c_1'] and r['o'] > r['hi_1'] and 
+            if(r['o_1'] < r['c_1'] and r['o'] > r['hi_1'] and
                2 * r['c'] < r['o_1'] + r['c_1']):
                 return -1
             return 0
@@ -256,6 +256,17 @@ class StxCandles:
         # threeout_df = ts.df.query('three_out!=0')
         # for index, row in threeout_df.iterrows():
         #     print('3OUT', str(index.date()), row['three_out'])
+
+        def upgaptwocrowsfun(r):
+            if(r['o_2'] < r['c_2'] and
+               r['body_2'] >= self.long_day_avg_ratio * r['avg_body'] and
+               r['o_1'] > r['c_1'] and r['c_1'] > r['c_2'] and
+               r['o'] > r['c'] and r['c'] > r['c_2'] and
+               r['o_1'] <= r['o'] and r['c_1'] >= r['c']):
+                return -1
+            return 0
+        ts.df['up_gap_two_crows'] = ts.df.apply(upgaptwocrowsfun, axis=1)
+
         return ts
 
 
@@ -266,7 +277,7 @@ if __name__ == '__main__':
 
     setups = ['gap', 'marubozu', 'hammer', 'doji', 'engulfing', 'piercing',
               'harami', 'star', 'engulfharami', 'three_m', 'three_in',
-              'three_out']
+              'three_out', 'up_gap_two_crows']
     with open('/home/cma/setups/{0:s}.csv'.format(stk), 'w') as f:
         for index, row in ts.df.iterrows():
             f.write('{0:s};'.format(str(index.date())))
