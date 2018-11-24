@@ -45,6 +45,7 @@ class StxEOD:
                   os.path.join(self.in_dir, 'NASDAQ_{0:s}.txt'),
                   os.path.join(self.in_dir, 'NYSE_{0:s}.txt')]
         while dt <= ed:
+            print('eoddata: {0:s}'.format(dt))
             dtc = dt.replace('-', '')
             with open(self.eod_name, 'w') as ofile:
                 for fname in fnames:
@@ -85,10 +86,12 @@ class StxEOD:
                 if v == 0 or o < lo or o > hi or c < lo or c > hi or \
                    len(tokens[0]) > 6:
                     continue
+                v = v // 1000
+                if v == 0:
+                    v = 1
                 ofile.write('{0:s}\t0\n'.format('\t'.join(tokens)))
 
     def parseeodline(self, line, db_stx):
-        print('Loading stooq files...')
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
         # look only at the US stocks, for the time being
         if not stk.endswith('.US'):
@@ -108,6 +111,9 @@ class StxEOD:
                 raise Exception('Zero volume for stock')
             if len(stk) > 8:
                 raise Exception('Ticker {0:s} too long'.format(stk))
+            v = v // 1000
+            if v == 0:
+                v = 1
         elif stk.endswith('.B'):  # multiply bond prices by 10000
             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
         elif stk.endswith('6.F'):  # multiply currency future prices by 10000
@@ -130,7 +136,6 @@ class StxEOD:
             "set volume={9:d}, open_interest={10:d}".format(
                 self.eod_tbl, stk, dt, o, h, l, c, v, oi, v, oi)
         stxdb.db_write_cmd(db_cmd)
-        print('Loaded stooq files')
 
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
@@ -138,6 +143,7 @@ class StxEOD:
         print('Uploading EOD data for {0:d} days'.format(num_days))
         day_num = 0
         while dt <= e_date:
+            print('stooq: {0:s}'.format(dt))
             db_stx, _ = self.create_exchange()
             try:
                 with open('{0:s}/{1:s}_d.prn'.format
@@ -162,15 +168,10 @@ class StxEOD:
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    s_date = '2001-01-01'
-    e_date = '2012-12-31'
     s_date_ed = '2018-04-02'
-    e_date_ed = '2018-11-15'
+    e_date_ed = '2018-11-23'
     s_date_sq = '2018-03-12'
     e_date_sq = '2018-03-29'
-    data_dir = os.getenv('DATA_DIR')
-    ed_dir = data_dir
-    sq_dir = data_dir
-    seod = StxEOD('/users/cma/Downloads')
+    seod = StxEOD('/home/cma/Downloads')
     seod.parseeodfiles(s_date_sq, e_date_sq)
     seod.load_eoddata_files(s_date_ed, e_date_ed)
