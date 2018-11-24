@@ -1,38 +1,23 @@
-import csv
-from datetime import datetime
-from io import BytesIO
-# import json
 import logging
-from math import trunc
-from mypivots_splits import MypivotsSplits
-import numpy as np
 import os
-import pandas as pd
-# import requests
-from shutil import rmtree
 import stxcal
 import stxdb
-from stxts import StxTS
 
 
 class StxEOD:
     data_dir = os.getenv('DATA_DIR')
-    sh_dir = '{0:s}/stockhistory_2017'.format(data_dir)
     upload_dir = '/tmp'
-    ed_dir = '{0:s}/EODData'.format(data_dir)
     dload_dir = '{0:s}/Downloads'.format(data_dir)
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
     status_none = 0
     status_ok = 1
     status_ko = 2
 
-    def __init__(self, in_dir, prefix, recon_tbl, extension='.txt'):
+    def __init__(self, in_dir, extension='.txt'):
         self.in_dir = in_dir
-        self.name = self.get_name(prefix)
-        self.eod_tbl = 'eods' if prefix == '' else '{0:s}_eods'.format(prefix)
+        self.eod_tbl = 'eods'
         self.rec_name = self.eod_tbl
-        self.divi_tbl = 'dividends' if prefix == '' else \
-                        '{0:s}_dividends'.format(prefix)
+        self.divi_tbl = 'dividends'
 
     def get_name(self, x):
         return {
@@ -101,80 +86,6 @@ class StxEOD:
                    len(tokens[0]) > 6:
                     continue
                 ofile.write('{0:s}\t0\n'.format('\t'.join(tokens)))
-
-
-    def load_stooq_files(self, sd, ed):
-        db_stx, _ = self.create_exchange()
-        ifname = 
-        with open(ifname, 'r') as ifile:
-            lines = ifile.readlines()
-            for line in lines[1:]:
-        
-        dirs = ['{0:s}/bonds'.format(self.in_dir),
-                '{0:s}/commodities'.format(self.in_dir),
-                '{0:s}/currencies/major'.format(self.in_dir),
-                '{0:s}/indices'.format(self.in_dir),
-                '{0:s}/lme'.format(self.in_dir),
-                '{0:s}/money_market'.format(self.in_dir)]
-        for instr_dir in dirs:
-            files = os.listdir(instr_dir)
-            instr_name = instr_dir[instr_dir.rfind('/') + 1:]
-            print('{0:s} uploading {1:s}'.format(stxcal.print_current_time(),
-                                                 instr_dir))
-            for fname in files:
-                symbol = fname[:-4].upper()
-                with open('{0:s}/{1:s}'.format(instr_dir, fname),
-                          'r') as ifile:
-                    lines = ifile.readlines()
-                ofname = '{0:s}/eod.txt'.format(self.upload_dir)
-                self.load_stooq_history(symbol, lines[1:], instr_name, sd, ed,
-                                        ofname)
-
-    def load_stooq_history(self, symbol, lines, instr_name, sd, ed, ofname):
-        with open(ofname, 'w') as ofile:
-            for line in lines:
-                try:
-                    dt, o, hi, lo, c, v, oi = line.split(',')
-                    dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
-                    if dt < sd or dt > ed or not stxcal.is_busday(dt):
-                        continue
-                    o = float(o)
-                    hi = float(hi)
-                    lo = float(lo)
-                    c = float(c)
-                    v = int(v)
-                    oi = int(oi)
-                    if symbol.startswith('^'):
-                        v //= 1000
-                    if v == 0:
-                        v = 1
-                    if((instr_name in ['bonds', 'money_market', 'major'] or
-                        symbol.endswith('.B') or symbol.endswith('6.F')) and
-                       'XAG' not in symbol and 'XAU' not in symbol):
-                        o *= 10000
-                        hi *= 10000
-                        lo *= 10000
-                        c *= 10000
-                    if symbol in ['HO.F', 'NG.F', 'RB.F']:
-                        o *= 100
-                        hi *= 100
-                        lo *= 100
-                        c *= 100
-                    oline = '{0:s}\t{1:s}\t{2:f}\t{3:f}\t{4:f}\t{5:f}\t{6:d}'.\
-                            format(symbol, dt, o, hi, lo, c, v)
-                    oline = '{0:s}\t{1:d}\n'.format(oline, oi) \
-                            if instr_name == 'commodities' else \
-                            '{0:s}\n'.format(oline)
-                    ofile.write(oline)
-                except Exception as ex:
-                    print('{0:s}: Failed to parse line {1:s}, error {2:s}'.
-                          format(symbol, line, str(ex)))
-        tbl_name = self.ftr_tbl if instr_name == 'commodities' \
-            else self.eod_tbl
-        stxdb.db_upload_file(ofname, tbl_name, '\t')
-
-    def multiply_prices(self, o, h, l, c, factor):
-        return o * factor, h * factor, l * factor, c * factor
 
     def parseeodline(self, line, db_stx):
         print('Loading stooq files...')
@@ -260,3 +171,6 @@ if __name__ == '__main__':
     data_dir = os.getenv('DATA_DIR')
     ed_dir = data_dir
     sq_dir = data_dir
+    seod = StxEOD('/users/cma/Downloads')
+    seod.parseeodfiles(s_date_sq, e_date_sq)
+    seod.load_eoddata_files(s_date_ed, e_date_ed)
