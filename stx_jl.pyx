@@ -7,7 +7,7 @@ import sys
 JLPivot = recordclass('JLPivot', 'dt, state, price, rg')
 
 
-class StxJL:
+class Stx_JL:
     # static variables
     Nil = -1
     SRa = 0
@@ -37,16 +37,17 @@ class StxJL:
         self.jl_recs.append(self.cols)
         self.jlix = {}  # map dates to indices in JL records list (jl_rec)
         self.jl_ix = 0  # current index in the jlix table
-        self.last = {'prim_px': 0, 'prim_state': StxJL.Nil, 'px': 0,
-                     'state': StxJL.Nil}
+        self.last = {'prim_px': 0, 'prim_state': Stx_JL.Nil, 'px': 0,
+                     'state': Stx_JL.Nil}
         self.ts.df['hb4l'] = self.ts.df.apply(lambda r: 1 if
                                               2*r['c'] < r['hi']+r['lo'] else 0,
                                               axis=1)
 
     def jl(self, dt):
         self.ts.set_day(dt, -1)
-        end = self.ts.pos
-        start_w = self.initjl()
+        cdef int end = self.ts.pos
+        cdef int start_w = self.initjl()
+        cdef int ixx
         print('jl(): start_w={0:d}'.format(start_w))
         for ixx in range(start_w, end + 1):
             self.ts.next_day()
@@ -78,27 +79,27 @@ class StxJL:
             dtcs = str(dtc.date())
             self.jlix[dtcs] = ixx + 1
             if dtc == max_dt and dtc == min_dt:
-                self.rec_day(StxJL.NRa, StxJL.NRe, self.ts.start + ixx)
+                self.rec_day(Stx_JL.NRa, Stx_JL.NRe, self.ts.start + ixx)
             elif dtc == max_dt:
-                self.rec_day(StxJL.NRa, StxJL.Nil, self.ts.start + ixx)
+                self.rec_day(Stx_JL.NRa, Stx_JL.Nil, self.ts.start + ixx)
             elif dtc == min_dt:
-                self.rec_day(StxJL.Nil, StxJL.NRe, self.ts.start + ixx)
+                self.rec_day(Stx_JL.Nil, Stx_JL.NRe, self.ts.start + ixx)
             else:
-                self.rec_day(StxJL.Nil, StxJL.Nil, self.ts.start + ixx)
+                self.rec_day(Stx_JL.Nil, Stx_JL.Nil, self.ts.start + ixx)
         return self.ts.start + win
 
     def init_first_rec(self, dt):
-        return {'dt': dt, 'rg': self.avg_rg, 'state': StxJL.Nil, 'price': 0,
-                'pivot': 0, 'state2': StxJL.Nil, 'price2': 0, 'pivot2': 0,
-                'p1_dt': '', 'p1_px': 0, 'p1_s': StxJL.Nil, 'lns_dt': '',
-                'lns_px': 0, 'lns_s': StxJL.Nil, 'lns': StxJL.Nil,
-                'ls_s': StxJL.Nil, 'ls': StxJL.Nil}
+        return {'dt': dt, 'rg': self.avg_rg, 'state': Stx_JL.Nil, 'price': 0,
+                'pivot': 0, 'state2': Stx_JL.Nil, 'price2': 0, 'pivot2': 0,
+                'p1_dt': '', 'p1_px': 0, 'p1_s': Stx_JL.Nil, 'lns_dt': '',
+                'lns_px': 0, 'lns_s': Stx_JL.Nil, 'lns': Stx_JL.Nil,
+                'ls_s': Stx_JL.Nil, 'ls': Stx_JL.Nil}
 
     def init_rec(self, dt, list_ix):
         # print("init_rec: list_ix = {0:d}, dt = {1:s}".format(list_ix, dt))
         prev = self.jl_recs[list_ix]
-        return {'dt': dt, 'rg': self.avg_rg, 'state': StxJL.Nil, 'price': 0,
-                'pivot': 0, 'state2': StxJL.Nil, 'price2': 0, 'pivot2': 0,
+        return {'dt': dt, 'rg': self.avg_rg, 'state': Stx_JL.Nil, 'price': 0,
+                'pivot': 0, 'state2': Stx_JL.Nil, 'price2': 0, 'pivot2': 0,
                 'p1_dt': prev[self.col_ix['p1_dt']],
                 'p1_px': prev[self.col_ix['p1_px']],
                 'p1_s': prev[self.col_ix['p1_s']],
@@ -117,20 +118,20 @@ class StxJL:
         lix = ixx - self.ts.start
         # print("lix = %d" % lix)
         dd = self.init_first_rec(dtc) if lix == 0 else self.init_rec(dtc, lix)
-        if sh != StxJL.Nil and sl != StxJL.Nil:
+        if sh != Stx_JL.Nil and sl != Stx_JL.Nil:
             if sr.hb4l == 1:
                 dd.update({'state': sh, 'price': sr['hi'], 'state2': sl,
                            'price2': sr['lo']})
             else:
                 dd.update({'state': sl, 'price': sr['lo'], 'state2': sh,
                            'price2': sr['hi']})
-        elif sh != StxJL.Nil:
+        elif sh != Stx_JL.Nil:
             dd.update({'state': sh, 'price': sr['hi']})
-        elif sl != StxJL.Nil:
+        elif sl != Stx_JL.Nil:
             dd.update({'state': sl, 'price': sr['lo']})
         else:
             pass  # nothing to do, the record is already initialized
-        if dd['state'] != StxJL.Nil:
+        if dd['state'] != Stx_JL.Nil:
             self.update_last(dd)
             self.update_lns_pivots(dd, lix)
         lst = [dd[col] for col in self.cols]
@@ -138,8 +139,8 @@ class StxJL:
         self.jlix[dtc] = lix + 1
 
     def update_last(self, dd):
-        if dd['state2'] == StxJL.Nil:
-            if dd['state'] != StxJL.Nil:
+        if dd['state2'] == Stx_JL.Nil:
+            if dd['state'] != Stx_JL.Nil:
                 self.last['px'] = dd['price']
                 self.last['state'] = dd['state']
                 if self.primary(dd['state']):
@@ -162,7 +163,7 @@ class StxJL:
         if (self.up(dd['state']) and self.dn(dd['lns'])) or \
            (self.dn(dd['state']) and self.up(dd['lns'])):
             self.update_pivot_diff_day(dd)
-        if dd['state'] != StxJL.Nil:
+        if dd['state'] != Stx_JL.Nil:
             dd['ls_s'] = dd['ls']
             dd['ls'] = dd['state']
         if self.primary(dd['state']):
@@ -179,7 +180,7 @@ class StxJL:
                 dd['p1_s'] = dd['state']
             else:
                 self.update_pivot_diff_day(dd)
-        if dd['state2'] != StxJL.Nil:
+        if dd['state2'] != Stx_JL.Nil:
             dd['ls_s'] = dd['ls']
             dd['ls'] = dd['state2']
         if self.primary(dd['state2']):
@@ -206,18 +207,18 @@ class StxJL:
         split_info = self.ts.splits.get(pd.Timestamp(dtc))
         if split_info is not None:
             self.adjust_for_splits(split_info[0])
-        fctr = self.f * self.avg_rg
-        if self.last['state'] == StxJL.SRa:
+        cdef float fctr = self.f * self.avg_rg
+        if self.last['state'] == Stx_JL.SRa:
             self.sRa(fctr)
-        elif self.last['state'] == StxJL.NRa:
+        elif self.last['state'] == Stx_JL.NRa:
             self.nRa(fctr)
-        elif self.last['state'] == StxJL.UT:
+        elif self.last['state'] == Stx_JL.UT:
             self.uT(fctr)
-        elif self.last['state'] == StxJL.DT:
+        elif self.last['state'] == Stx_JL.DT:
             self.dT(fctr)
-        elif self.last['state'] == StxJL.NRe:
+        elif self.last['state'] == Stx_JL.NRe:
             self.nRe(fctr)
-        elif self.last['state'] == StxJL.SRe:
+        elif self.last['state'] == Stx_JL.SRe:
             self.sRe(fctr)
         self.trs.pop(0)
         sr = self.ts.df.ix[self.ts.pos]
@@ -225,7 +226,8 @@ class StxJL:
         self.trs.append(max(sr.hi, sr_1.c) - min(sr.lo, sr_1.c))
         self.avg_rg = np.mean(self.trs)
 
-    def adjust_for_splits(self, ratio):
+    def adjust_for_splits(self, float ratio):
+        cdef int ixx
         for ixx in range(0, len(self.lp)):
             self.lp[ixx] = self.lp[ixx] * ratio
         for jlr in self.jl_recs[1:]:
@@ -238,137 +240,137 @@ class StxJL:
         self.last['px'] = self.last['px'] * ratio
         self.trs[:] = [x * ratio for x in self.trs]
 
-    def sRa(self, fctr):
+    def sRa(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.UT] < r.hi:
-            sh = StxJL.UT
-        elif self.lp[StxJL.m_NRa] + fctr < r.hi:
-            if self.last['prim_state'] in [StxJL.NRa, StxJL.UT]:
-                sh = StxJL.UT if r.hi > self.last['prim_px'] else StxJL.SRa
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.UT] < r.hi:
+            sh = Stx_JL.UT
+        elif self.lp[Stx_JL.m_NRa] + fctr < r.hi:
+            if self.last['prim_state'] in [Stx_JL.NRa, Stx_JL.UT]:
+                sh = Stx_JL.UT if r.hi > self.last['prim_px'] else Stx_JL.SRa
             else:
-                sh = StxJL.UT
-        elif self.lp[StxJL.NRa] < r.hi and self.last['prim_state'] != StxJL.UT:
-            sh = StxJL.NRa
-        elif self.lp[StxJL.SRa] < r.hi:
-            sh = StxJL.SRa
+                sh = Stx_JL.UT
+        elif self.lp[Stx_JL.NRa] < r.hi and self.last['prim_state'] != Stx_JL.UT:
+            sh = Stx_JL.NRa
+        elif self.lp[Stx_JL.SRa] < r.hi:
+            sh = Stx_JL.SRa
         if self.up(sh) and self.dn(self.last['prim_state']):
-            self.lp[StxJL.m_NRe] = self.last['prim_px']
-        if r.lo < self.lp[StxJL.SRa] - 2 * fctr:
-            if self.lp[StxJL.NRe] < r.lo:
-                sl = StxJL.SRe
+            self.lp[Stx_JL.m_NRe] = self.last['prim_px']
+        if r.lo < self.lp[Stx_JL.SRa] - 2 * fctr:
+            if self.lp[Stx_JL.NRe] < r.lo:
+                sl = Stx_JL.SRe
             else:
-                sl = StxJL.DT if(r.lo < self.lp[StxJL.DT] or
-                                 r.lo < self.lp[StxJL.m_NRe] - fctr) \
-                    else StxJL.NRe
+                sl = Stx_JL.DT if(r.lo < self.lp[Stx_JL.DT] or
+                                 r.lo < self.lp[Stx_JL.m_NRe] - fctr) \
+                    else Stx_JL.NRe
                 if self.up(self.last['prim_state']):
-                    self.lp[StxJL.m_NRa] = self.last['prim_px']
+                    self.lp[Stx_JL.m_NRa] = self.last['prim_px']
         self.rec_day(sh, sl)
 
-    def nRa(self, fctr):
+    def nRa(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.UT] < r.hi or self.lp[StxJL.m_NRa] + fctr < r.hi:
-            sh = StxJL.UT
-        elif self.lp[StxJL.NRa] < r.hi:
-            sh = StxJL.NRa
-        if r.lo < self.lp[StxJL.NRa] - 2 * fctr:
-            if self.lp[StxJL.NRe] < r.lo:
-                sl = StxJL.SRe
-            elif r.lo < self.lp[StxJL.DT] or r.lo < self.lp[StxJL.m_NRe] - fctr:
-                sl = StxJL.DT
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.UT] < r.hi or self.lp[Stx_JL.m_NRa] + fctr < r.hi:
+            sh = Stx_JL.UT
+        elif self.lp[Stx_JL.NRa] < r.hi:
+            sh = Stx_JL.NRa
+        if r.lo < self.lp[Stx_JL.NRa] - 2 * fctr:
+            if self.lp[Stx_JL.NRe] < r.lo:
+                sl = Stx_JL.SRe
+            elif r.lo < self.lp[Stx_JL.DT] or r.lo < self.lp[Stx_JL.m_NRe] - fctr:
+                sl = Stx_JL.DT
             else:
-                sl = StxJL.NRe
-            if sl != StxJL.SRe:
-                self.lp[StxJL.m_NRa] = self.lp[StxJL.NRa]
+                sl = Stx_JL.NRe
+            if sl != Stx_JL.SRe:
+                self.lp[Stx_JL.m_NRa] = self.lp[Stx_JL.NRa]
         self.rec_day(sh, sl)
 
-    def uT(self, fctr):
+    def uT(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.UT] < r.hi:
-            sh = StxJL.UT
-        if r.lo <= self.lp[StxJL.UT] - 2 * fctr:
-            sl = StxJL.DT if (r.lo < self.lp[StxJL.DT] or
-                              r.lo < self.lp[StxJL.m_NRe] - fctr) \
-                else StxJL.NRe
-            self.lp[StxJL.m_NRa] = self.lp[StxJL.UT]
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.UT] < r.hi:
+            sh = Stx_JL.UT
+        if r.lo <= self.lp[Stx_JL.UT] - 2 * fctr:
+            sl = Stx_JL.DT if (r.lo < self.lp[Stx_JL.DT] or
+                              r.lo < self.lp[Stx_JL.m_NRe] - fctr) \
+                else Stx_JL.NRe
+            self.lp[Stx_JL.m_NRa] = self.lp[Stx_JL.UT]
         self.rec_day(sh, sl)
 
-    def sRe(self, fctr):
+    def sRe(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.DT] > r.lo:
-            sl = StxJL.DT
-        elif self.lp[StxJL.m_NRe] - fctr > r.lo:
-            if self.last['prim_state'] in [StxJL.NRe, StxJL.DT]:
-                sl = StxJL.DT if r.lo < self.last['prim_px'] else StxJL.SRe
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.DT] > r.lo:
+            sl = Stx_JL.DT
+        elif self.lp[Stx_JL.m_NRe] - fctr > r.lo:
+            if self.last['prim_state'] in [Stx_JL.NRe, Stx_JL.DT]:
+                sl = Stx_JL.DT if r.lo < self.last['prim_px'] else Stx_JL.SRe
             else:
-                sl = StxJL.DT
-        elif self.lp[StxJL.NRe] > r.lo and self.last['prim_state'] != StxJL.DT:
-            sl = StxJL.NRe
-        elif self.lp[StxJL.SRe] > r.lo:
-            sl = StxJL.SRe
+                sl = Stx_JL.DT
+        elif self.lp[Stx_JL.NRe] > r.lo and self.last['prim_state'] != Stx_JL.DT:
+            sl = Stx_JL.NRe
+        elif self.lp[Stx_JL.SRe] > r.lo:
+            sl = Stx_JL.SRe
         if self.dn(sl) and self.up(self.last['prim_state']):
-            self.lp[StxJL.m_NRa] = self.last['prim_px']
-        if r.hi > self.lp[StxJL.SRe] + 2 * fctr:
-            if self.lp[StxJL.NRa] > r.hi:
-                sh = StxJL.SRa
+            self.lp[Stx_JL.m_NRa] = self.last['prim_px']
+        if r.hi > self.lp[Stx_JL.SRe] + 2 * fctr:
+            if self.lp[Stx_JL.NRa] > r.hi:
+                sh = Stx_JL.SRa
             else:
-                sh = StxJL.UT if(r.hi > self.lp[StxJL.UT] or
-                                 r.hi > self.lp[StxJL.m_NRa] + fctr) \
-                                 else StxJL.NRa
+                sh = Stx_JL.UT if(r.hi > self.lp[Stx_JL.UT] or
+                                 r.hi > self.lp[Stx_JL.m_NRa] + fctr) \
+                                 else Stx_JL.NRa
                 if self.dn(self.last['prim_state']):
-                    self.lp[StxJL.m_NRe] = self.last['prim_px']
+                    self.lp[Stx_JL.m_NRe] = self.last['prim_px']
         self.rec_day(sh, sl)
 
-    def dT(self, fctr):
+    def dT(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.DT] > r.lo:
-            sl = StxJL.DT
-        if r.hi >= self.lp[StxJL.DT] + 2 * fctr:
-            sh = StxJL.UT if (r.hi > self.lp[StxJL.UT] or
-                              r.hi > self.lp[StxJL.m_NRa] + fctr) \
-                else StxJL.NRa
-            self.lp[StxJL.m_NRe] = self.lp[StxJL.DT]
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.DT] > r.lo:
+            sl = Stx_JL.DT
+        if r.hi >= self.lp[Stx_JL.DT] + 2 * fctr:
+            sh = Stx_JL.UT if (r.hi > self.lp[Stx_JL.UT] or
+                              r.hi > self.lp[Stx_JL.m_NRa] + fctr) \
+                else Stx_JL.NRa
+            self.lp[Stx_JL.m_NRe] = self.lp[Stx_JL.DT]
         self.rec_day(sh, sl)
 
-    def nRe(self, fctr):
+    def nRe(self, float fctr):
         r = self.ts.df.ix[self.ts.pos]
-        sh, sl = StxJL.Nil, StxJL.Nil
-        if self.lp[StxJL.DT] > r.lo or self.lp[StxJL.m_NRe] - fctr > r.lo:
-            sl = StxJL.DT
-        elif self.lp[StxJL.NRe] > r.lo:
-            sl = StxJL.NRe
-        if r.hi > self.lp[StxJL.NRe] + 2 * fctr:
-            if self.lp[StxJL.NRa] > r.hi:
-                sh = StxJL.SRa
-            elif r.hi > self.lp[StxJL.UT] or r.hi > self.lp[StxJL.m_NRa] + fctr:
-                sh = StxJL.UT
+        sh, sl = Stx_JL.Nil, Stx_JL.Nil
+        if self.lp[Stx_JL.DT] > r.lo or self.lp[Stx_JL.m_NRe] - fctr > r.lo:
+            sl = Stx_JL.DT
+        elif self.lp[Stx_JL.NRe] > r.lo:
+            sl = Stx_JL.NRe
+        if r.hi > self.lp[Stx_JL.NRe] + 2 * fctr:
+            if self.lp[Stx_JL.NRa] > r.hi:
+                sh = Stx_JL.SRa
+            elif r.hi > self.lp[Stx_JL.UT] or r.hi > self.lp[Stx_JL.m_NRa] + fctr:
+                sh = Stx_JL.UT
             else:
-                sh = StxJL.NRa
-            if sh != StxJL.SRa:
-                self.lp[StxJL.m_NRe] = self.lp[StxJL.NRe]
+                sh = Stx_JL.NRa
+            if sh != Stx_JL.SRa:
+                self.lp[Stx_JL.m_NRe] = self.lp[Stx_JL.NRe]
         self.rec_day(sh, sl)
 
     def up(self, state):
-        return state in [StxJL.NRa, StxJL.UT]
+        return state in [Stx_JL.NRa, Stx_JL.UT]
 
     def dn(self, state):
-        return state in [StxJL.NRe, StxJL.DT]
+        return state in [Stx_JL.NRe, Stx_JL.DT]
 
     def up_all(self, state):
-        return state in [StxJL.SRa, StxJL.NRa, StxJL.UT]
+        return state in [Stx_JL.SRa, Stx_JL.NRa, Stx_JL.UT]
 
     def dn_all(self, state):
-        return state in [StxJL.SRe, StxJL.NRe, StxJL.DT]
+        return state in [Stx_JL.SRe, Stx_JL.NRe, Stx_JL.DT]
 
     def primary(self, state):
-        return state in [StxJL.NRa, StxJL.UT, StxJL.NRe, StxJL.DT]
+        return state in [Stx_JL.NRa, Stx_JL.UT, Stx_JL.NRe, Stx_JL.DT]
 
     def secondary(self, state):
-        return state in [StxJL.SRa, StxJL.SRe]
+        return state in [Stx_JL.SRa, Stx_JL.SRe]
 
     def jlr_print(self, jlr):
         return 'dt:{0:s} rg:{1:.2f} s:{2:d} px:{3:.2f} p:{4:d} s2:{5:d} ' \
@@ -400,17 +402,17 @@ class StxJL:
     def get_formatted_price(self, state, pivot, price):
         s_fmt = ''
         e_fmt = '\x1b[0m'
-        if state == StxJL.UT:
-            s_fmt = StxJL.UT_fmt if pivot == 0 else StxJL.UP_piv_fmt
-        elif state == StxJL.DT:
-            s_fmt = StxJL.DT_fmt if pivot == 0 else StxJL.DN_piv_fmt
+        if state == Stx_JL.UT:
+            s_fmt = Stx_JL.UT_fmt if pivot == 0 else Stx_JL.UP_piv_fmt
+        elif state == Stx_JL.DT:
+            s_fmt = Stx_JL.DT_fmt if pivot == 0 else Stx_JL.DN_piv_fmt
         elif pivot == 1:
-            s_fmt = StxJL.UP_piv_fmt if state == StxJL.NRe else \
-                    StxJL.DN_piv_fmt
+            s_fmt = Stx_JL.UP_piv_fmt if state == Stx_JL.NRe else \
+                    Stx_JL.DN_piv_fmt
         else:
             e_fmt = ''
         s_price = '{0:s}{1:9.2f}{2:s}'.format(s_fmt, price, e_fmt)
-        return '{0:s}'.format(54 * ' ') if state == StxJL.Nil else \
+        return '{0:s}'.format(54 * ' ') if state == Stx_JL.Nil else \
             '{0:s}{1:s}{2:s}'.format((9 * state) * ' ', s_price,
                                      (9 * (5 - state)) * ' ')
 
@@ -423,14 +425,14 @@ class StxJL:
             price = jlr[self.col_ix['price']]
             if print_pivots_only and pivot == 0:
                 continue
-            if not print_nils and state == StxJL.Nil:
+            if not print_nils and state == Stx_JL.Nil:
                 continue
             px_str = self.get_formatted_price(state, pivot, price)
             output += '{0:s}{1:s}{2:6.2f} {3:s}\n'. \
                 format(jlr[self.col_ix['dt']], px_str, jlr[self.col_ix['rg']],
                        '' if not print_dbg else self.jlr_print2(jlr))
             state2 = jlr[self.col_ix['state2']]
-            if state2 == StxJL.Nil:
+            if state2 == Stx_JL.Nil:
                 continue
             pivot2 = jlr[self.col_ix['pivot2']]
             if print_pivots_only and pivot2 == 0:
@@ -497,7 +499,7 @@ class StxJL:
         jlr = self.jl_recs[-ixx]
         if col_name in ['state', 'price', 'pivot']:
             col_name2 = '{0:s}2'.format(col_name)
-            if jlr[self.col_ix['state2']] != StxJL.Nil:
+            if jlr[self.col_ix['state2']] != Stx_JL.Nil:
                 return jlr[self.col_ix[col_name2]]
         return jlr[self.col_ix[col_name]]
 
@@ -509,7 +511,7 @@ if __name__ == '__main__':
     dt = sys.argv[4]
     factor = float(sys.argv[5])
     ts = StxTS(stk, sd, ed)
-    jl = StxJL(ts, factor)
+    jl = Stx_JL(ts, factor)
     jlres = jl.jl(dt)
     jl.jl_print()
     pivs = jl.get_pivots_in_days(100)
