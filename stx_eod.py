@@ -89,7 +89,8 @@ class StxEOD:
                 v = v // 1000
                 if v == 0:
                     v = 1
-                ofile.write('{0:s}\t0\n'.format('\t'.join(tokens)))
+                ofile.write('{0:s}\t{1:d}\t0\n'.format(
+                    '\t'.join(tokens[:6]), v))
 
     def parseeodline(self, line, db_stx):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
@@ -173,5 +174,5 @@ if __name__ == '__main__':
     s_date_sq = '2018-03-12'
     e_date_sq = '2018-03-29'
     seod = StxEOD('/home/cma/Downloads')
-    seod.parseeodfiles(s_date_sq, e_date_sq)
+    # seod.parseeodfiles(s_date_sq, e_date_sq)
     seod.load_eoddata_files(s_date_ed, e_date_ed)
