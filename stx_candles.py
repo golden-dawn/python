@@ -19,8 +19,7 @@ class StxCandles:
         self.doji_body_range_ratio = 0.025
         self.equal_values_range_ratio = 0.025
 
-    def calculate_setups(self, setup_list=None):
-        sd = '1985-01-01'
+    def calculate_setups(self, sd='1985-01-01', setup_list=None):
         ed = datetime.datetime.now().strftime('%Y-%m-%d')
         ts = StxTS(self.stk_name, sd, ed)
         # adjust the whole thing for splits, etc.
