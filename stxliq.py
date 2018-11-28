@@ -72,8 +72,8 @@ class StxLiquidity:
             ts.df['avg_rg'] = ts.df['rg'].rolling(50).mean()
             ts.df['avg_act'] = ts.df['act'].rolling(50).mean()
             rec = ts.df.ix[-1]
-            if rec.avg_v > 2000000 and rec.avg_c > 40 and \
-               rec.avg_act > 100000000 and rec.avg_rg > 0.015 * rec.avg_c:
+            if rec.avg_v > 2000 and rec.avg_c > 40 and \
+               rec.avg_act > 100000 and rec.avg_rg > 0.015 * rec.avg_c:
                 res.append(stk)
                 sc = StxCandles(stk)
                 setup_ts = sc.calculate_setups(sd=start_date)
