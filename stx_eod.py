@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import stxcal
@@ -46,11 +47,19 @@ class StxEOD:
                   os.path.join(self.in_dir, 'NYSE_{0:s}.txt')]
         while dt <= ed:
             print('eoddata: {0:s}'.format(dt))
+            data_available = True
             dtc = dt.replace('-', '')
+            for fname in fnames:
+                fname_dt = fname.format(dtc)
+                if not os.path.isfile(fname_dt):
+                    print('Could not find file {0:s}'.format(fname_dt))
+                    data_available = False
+            if not data_available:
+                print('Data is missing for date {0:s}. Exiting.'.format(dt))
+                return
             with open(self.eod_name, 'w') as ofile:
                 for fname in fnames:
-                    self.load_eoddata_file(ofile, fname.format(dtc), dt, dtc,
-                                           stks)
+                    self.load_eoddata_file(ofile, fname_dt, dt, dtc, stks)
             try:
                 stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
                 print('{0:s}: uploaded eods'.format(dt))
@@ -169,10 +178,19 @@ class StxEOD:
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    s_date_ed = '2018-04-02'
-    e_date_ed = '2018-11-23'
-    s_date_sq = '2018-03-12'
-    e_date_sq = '2018-03-29'
+    # s_date_ed = '2018-04-02'
+    # e_date_ed = '2018-11-23'
+    # s_date_sq = '2018-03-12'
+    # e_date_sq = '2018-03-29'
     seod = StxEOD('/home/cma/Downloads')
     # seod.parseeodfiles(s_date_sq, e_date_sq)
-    seod.load_eoddata_files(s_date_ed, e_date_ed)
+    # seod.load_eoddata_files(s_date_ed, e_date_ed)
+
+    # 1. Get the last date for which eod data is available in the database
+    res = stxdb.db_read_cmd("select max(date) from eods")
+    start_date = stxcal.next_busday(str(res[0][0]))
+    # 2. get the last trading date
+    end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
+    # 3. Find out if files are available for the dates
+    # 4. if the files are available, perform analysis for the current date
+    seod.load_eoddata_files(start_date, end_date)
