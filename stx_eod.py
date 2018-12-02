@@ -6,9 +6,7 @@ import stxdb
 
 
 class StxEOD:
-    data_dir = os.getenv('DATA_DIR')
     upload_dir = '/tmp'
-    dload_dir = '{0:s}/Downloads'.format(data_dir)
     eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
     status_none = 0
     status_ok = 1
@@ -175,14 +173,47 @@ class StxEOD:
             if day_num % 20 == 0 or day_num == num_days:
                 print(' Uploaded EOD data for {0:d} days'.format(day_num))
 
+    def handle_splits(self, start_date):
+        split_files = [x for x in os.listdir(self.in_dir)
+                       if x.startswith('splits_')]
+        split_files.sort()
+        valid_prefixes = ['NYSE', 'NASDAQ', 'AMEX']
+        split_dct = {}
+        for split_file in split_files:
+            with open(os.path.join(self.in_dir, split_file), 'r') as f:
+                lines = reversed(f.readlines())
+            for line in lines:
+                tokens = line.strip().split()
+                if len(tokens) < 4:
+                    continue
+                if tokens[0] not in valid_prefixes:
+                    continue
+                stk = tokens[1].strip()
+                stk_splits = split_dct.get(stk, {})
+                dt = str(datetime.datetime.strptine(tokens[2].strip(),
+                                                    '%m/%d/%Y'))
+                if dt < start_date:
+                    continue
+                denominator, nominator = tokens[3].strip().split('-')
+                split_ratio = float(nominator) / float(denominator)
+                for split_date in stk_splits.keys():
+                    if abs(stxcal.num_busdays(split_date, dt)) < 5:
+                        del stk_splits[split_date]
+                stk_splits[dt] = split_ratio
+                split_dct[stk] = stk_splits
+        for stk, stk_splits in split_dct.items():
+            for dt, ratio in stk_splits:
+                print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
+
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    # s_date_ed = '2018-04-02'
+    # s_date_ed = '2018-04-02'd/%
     # e_date_ed = '2018-11-23'
     # s_date_sq = '2018-03-12'
     # e_date_sq = '2018-03-29'
-    seod = StxEOD('/home/cma/Downloads')
+    data_dir = os.getenv('DOWNLOAD_DIR')
+    seod = StxEOD(data_dir)
     # seod.parseeodfiles(s_date_sq, e_date_sq)
     # seod.load_eoddata_files(s_date_ed, e_date_ed)
 
@@ -194,3 +225,6 @@ if __name__ == '__main__':
     # 3. Find out if files are available for the dates
     # 4. if the files are available, perform analysis for the current date
     seod.load_eoddata_files(start_date, end_date)
+    res = stxdb.db_read_cmd("select max(date) from dividends")
+    start_date = stxcal.next_busday(str(res[0][0]))
+    seod.handle_splits(start_date)
