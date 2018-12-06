@@ -190,8 +190,8 @@ class StxEOD:
                     continue
                 stk = tokens[1].strip()
                 stk_splits = split_dct.get(stk, {})
-                dt = str(datetime.datetime.strptine(tokens[2].strip(),
-                                                    '%m/%d/%Y'))
+                dt = str(datetime.datetime.strptime(tokens[2].strip(),
+                                                    '%m/%d/%Y').date())
                 if dt < start_date:
                     continue
                 denominator, nominator = tokens[3].strip().split('-')
@@ -202,13 +202,13 @@ class StxEOD:
                 stk_splits[dt] = split_ratio
                 split_dct[stk] = stk_splits
         for stk, stk_splits in split_dct.items():
-            for dt, ratio in stk_splits:
+            for dt, ratio in stk_splits.items():
                 print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
 
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    # s_date_ed = '2018-04-02'd/%
+    # s_date_ed = '2018-04-02'
     # e_date_ed = '2018-11-23'
     # s_date_sq = '2018-03-12'
     # e_date_sq = '2018-03-29'
