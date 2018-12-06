@@ -469,6 +469,7 @@ def get_cal():
         hols.append('2007-01-02')  # Ford's funeral
         hols.append('2012-10-29')  # Frankenstorm
         hols.append('2012-10-30')  # Frankenstorm
+        hols.append('2018-12-05')  # George H.W. Bush funeral
         hols.sort()
         this.cal = np.busdaycalendar(holidays=hols)
     return this.cal
