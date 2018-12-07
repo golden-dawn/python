@@ -205,6 +205,39 @@ class StxEOD:
             for dt, ratio in stk_splits.items():
                 print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
 
+    # To upload splits, do something like this:
+    '''
+import os
+from stx_eod import StxEOD
+data_dir = os.getenv('DOWNLOAD_DIR')
+splits_file = os.path.join(data_dir, 'splits_20181130_ana.txt')
+seod = StxEOD(data_dir)
+seod.upload_splits(splits_file)
+    '''
+    def upload_splits(self, splits_file):
+        print('Uploading stocks from file {0:s}'.format(splits_file))
+        with open(splits_file, 'r') as f:
+            lines = f.readlines()
+        num = 0
+        for line in lines:
+            tokens = line.split()
+            if len(tokens) < 3:
+                continue
+            stk = tokens[0].strip()
+            dt = stxcal.prev_busday(tokens[1].strip())
+            ratio = float(tokens[2].strip())
+            db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:f}) "\
+                "on conflict (stk, date) do update set ratio={4:f}".format(
+                self.divi_tbl, stk, dt, ratio, ratio)
+            try:
+                stxdb.db_write_cmd(db_cmd)
+                num += 1
+            except Exception as ex:
+                print('Failed to upload split {0:s}, {1:s}, '
+                      'error {2:s}'.format(stk, dt, str(ex)))
+        print('Successfully uploaded {0:d} out of {1:d} stock splits'.
+              format(num, len(lines)))
+
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
