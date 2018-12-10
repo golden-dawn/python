@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import requests
 import stxcal
 import stxdb
 
@@ -238,6 +239,26 @@ seod.upload_splits(splits_file)
         print('Successfully uploaded {0:d} out of {1:d} stock splits'.
               format(num, len(lines)))
 
+    def get_indices(self):
+        indices = {'^DJI': '^DJI', '^SPX': '^SPX', '^NDQ': '^COMP'}
+        end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
+        for stooq_name, db_name in indices.items():
+            db_cmd = "select max(date) from eods where stk='{0:s}' and " \
+                     "volume > 1".format(db_name)
+            res_db = stxdb.db_read_cmd(db_cmd)
+            start_date = stxcal.next_busday(str(res_db[0][0]))
+            res = requests.get(
+                'https://stooq.com/q/d/l?s={0:s}&d1={1:s}&d2={2:s}'.
+                format(stooq_name,
+                       start_date.replace('-', ''),
+                       end_date.replace('-', '')))
+            lines = res.text.split('\n')
+            for line in lines[1:]:
+                tokens = line.split(',')
+                
+            with open('{0:s}.csv'.format(db_name), 'w') as f:
+                f.write(res.text)
+            print('{0:s}: {1:d}'.format(stooq_name, res.status_code))
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
