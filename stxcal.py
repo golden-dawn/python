@@ -8,7 +8,7 @@ from dateutil import rrule
 
 this = sys.modules[__name__]
 this.cal = None
-
+epoch = datetime.utcfromtimestamp(0)
 
 def get_cal():
     if this.cal is None:
@@ -547,3 +547,7 @@ def long_expiries(starting_from=None):
 
 def print_current_time():
     return str(datetime.now())
+
+
+def get_seconds(dt):
+    return int((datetime.strptime(dt, '%Y-%m-%d') - epoch).total_seconds())
