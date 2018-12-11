@@ -12,6 +12,9 @@ class StxEOD:
     status_none = 0
     status_ok = 1
     status_ko = 2
+    yhoo_url = 'https://query1.finance.yahoo.com/v7/finance/options/{0:s}?' \
+               'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
+               'date={1:d}&corsDomain=finance.yahoo.com'
 
     def __init__(self, in_dir, extension='.txt'):
         self.in_dir = in_dir
@@ -255,10 +258,38 @@ seod.upload_splits(splits_file)
             lines = res.text.split('\n')
             for line in lines[1:]:
                 tokens = line.split(',')
-                
             with open('{0:s}.csv'.format(db_name), 'w') as f:
                 f.write(res.text)
             print('{0:s}: {1:d}'.format(stooq_name, res.status_code))
+
+    def get_data(self, stk):
+        expiries = stxcal.long_expiries()
+        res = requests.get(yhoo_url.format(stk, expiries[0]))
+        print('Got data for {0:s}, status code: {1:d}'.
+              format(stk, res.status_code))
+        res_json = json.loads(res.text)
+        res_0 = res_json['optionChain']['result'][0]
+        quote = res_0['quote']
+        v = quote['regularMarketVolume']
+        o = quote['regularMarketOpen']
+        c = quote['regularMarketPrice']
+        hi = quote['regularMarketDayHigh']
+        lo = quote['regularMarketDayLow']
+        calls = res_0['options'][0]['calls']
+        puts = res_0['options'][0]['puts']
+        for call in calls:
+            ask = call['ask']['raw']
+            bid = call['bid']['raw']
+            strike = call['strike']
+            cp = 'C'
+            exp = call['expiration']['fmt']
+        for put in puts:
+            ask = put['ask']['raw']
+            bid = put['bid']['raw']
+            strike = put['strike']
+            cp = 'C=P'
+            exp = put['expiration']['fmt']
+
 
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
