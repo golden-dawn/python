@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import requests
@@ -264,7 +265,7 @@ seod.upload_splits(splits_file)
 
     def get_data(self, stk):
         expiries = stxcal.long_expiries()
-        res = requests.get(yhoo_url.format(stk, expiries[0]))
+        res = requests.get(self.yhoo_url.format(stk, expiries[0]))
         print('Got data for {0:s}, status code: {1:d}'.
               format(stk, res.status_code))
         res_json = json.loads(res.text)
@@ -275,20 +276,27 @@ seod.upload_splits(splits_file)
         c = quote['regularMarketPrice']
         hi = quote['regularMarketDayHigh']
         lo = quote['regularMarketDayLow']
+        dt = datetime.datetime.fromtimestamp(quote['regularMarketTime'])
+        print('{0:s} {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:d}'.
+              format(stk, str(dt.date()), o, hi, lo, c, v))
         calls = res_0['options'][0]['calls']
         puts = res_0['options'][0]['puts']
         for call in calls:
             ask = call['ask']['raw']
             bid = call['bid']['raw']
-            strike = call['strike']
+            strike = call['strike']['raw']
             cp = 'C'
             exp = call['expiration']['fmt']
+            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
+                  .format(cp, exp, strike, bid, ask)) 
         for put in puts:
             ask = put['ask']['raw']
             bid = put['bid']['raw']
-            strike = put['strike']
-            cp = 'C=P'
+            strike = put['strike']['raw']
+            cp = 'P'
             exp = put['expiration']['fmt']
+            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
+                  .format(cp, exp, strike, bid, ask)) 
 
 
 if __name__ == '__main__':
