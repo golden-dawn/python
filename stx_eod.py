@@ -60,49 +60,51 @@ class StxEOD:
             if not data_available:
                 print('Data is missing for date {0:s}. Exiting.'.format(dt))
                 return
-            with open(self.eod_name, 'w') as ofile:
-                for fname in fnames:
-                    self.load_eoddata_file(ofile, fname_dt, dt, dtc, stks)
-            try:
-                stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
-                print('{0:s}: uploaded eods'.format(dt))
-            except Exception as ex:
-                print('Failed to upload {0:s}, error {1:s}'.format(dt,
-                                                                   str(ex)))
+            for fname in fnames:
+                fname_dt = fname.format(dtc)
+                self.load_eoddata_file(fname_dt, dt, dtc, stks)
             dt = stxcal.next_busday(dt)
         print('Loaded eoddata files')
 
     # Load data from a single EODData file in the database Perform
     # some quality checks on the data: do not upload days where volume
     # is 0, or where the open/close are outside the [low, high] range.
-    def load_eoddata_file(self, ofile, ifname, dt, dtc, stks=''):
+    def load_eoddata_file(self, ifname, dt, dtc, stks=''):
+        upload_lines = []
         stk_list = [] if stks == '' else stks.split(',')
         db_stx, _ = self.create_exchange()
         with open(ifname, 'r') as ifile:
             lines = ifile.readlines()
-            for line in lines[1:]:
-                tokens = line.replace(dtc, dt).strip().split(',')
-                stk = tokens[0].strip()
-                if (stk_list and stk not in stk_list) or ('/' in stk) or \
-                   ('*' in stk) or (stk in ['AUX', 'PRN']):
-                    continue
-                if stk not in db_stx:
-                    insert_stx = "INSERT INTO equities VALUES "\
-                                 "('{0:s}', '', 'US Stocks', 'US')".format(stk)
-                    stxdb.db_write_cmd(insert_stx)
-                o = float(tokens[2])
-                hi = float(tokens[3])
-                lo = float(tokens[4])
-                c = float(tokens[5])
-                v = int(tokens[6])
-                if v == 0 or o < lo or o > hi or c < lo or c > hi or \
-                   len(tokens[0]) > 6:
-                    continue
-                v = v // 1000
-                if v == 0:
-                    v = 1
-                ofile.write('{0:s}\t{1:d}\t0\n'.format(
-                    '\t'.join(tokens[:6]), v))
+        for line in lines[1:]:
+            tokens = line.replace(dtc, dt).strip().split(',')
+            stk = tokens[0].strip()
+            if (stk_list and stk not in stk_list) or ('/' in stk) or \
+               ('*' in stk) or (stk in ['AUX', 'PRN']):
+                continue
+            if stk not in db_stx:
+                insert_stx = "INSERT INTO equities VALUES "\
+                             "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+                stxdb.db_write_cmd(insert_stx)
+            o = float(tokens[2])
+            hi = float(tokens[3])
+            lo = float(tokens[4])
+            c = float(tokens[5])
+            v = int(tokens[6])
+            if v == 0 or o < lo or o > hi or c < lo or c > hi or \
+               len(tokens[0]) > 6:
+                continue
+            v = v // 1000
+            if v == 0:
+                v = 1
+            upload_lines.append('{0:s}\t{1:d}\t0'.format(
+                '\t'.join(tokens[:6]), v))
+        with open(self.eod_name, 'w') as ofile:
+            ofile.write('\n'.join(upload_lines))
+        try:
+            stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
+            print('{0:s}: uploaded eods'.format(ifname))
+        except Exception as ex:
+            print('Failed to upload {0:s}, error {1:s}'.format(ifname, str(ex)))
 
     def parseeodline(self, line, db_stx):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
