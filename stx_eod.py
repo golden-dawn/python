@@ -233,7 +233,7 @@ seod.upload_splits(splits_file)
             stk = tokens[0].strip()
             dt = stxcal.prev_busday(tokens[1].strip())
             ratio = float(tokens[2].strip())
-            db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:f}) "\
+            db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:f},0) "\
                 "on conflict (stk, date) do update set ratio={4:f}".format(
                 self.divi_tbl, stk, dt, ratio, ratio)
             try:
@@ -301,6 +301,16 @@ seod.upload_splits(splits_file)
                   .format(cp, exp, strike, bid, ask)) 
 
 
+# Wake up every day at 10:00PM
+# If this is an end-of-month option expiry date, generate a new cache
+#  - Check that the latest EOD files have been downloaded for the day.
+#  - If the EOD files are not there yet, print an error message,
+#    sleep for an hour, check for the files again
+# If the day is not an expiry day, then download EOD data and options from www
+# Create several database tables:
+# - leaders
+# - eod_cache
+# - options_cache
 if __name__ == '__main__':
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
     # s_date_ed = '2018-04-02'
