@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pandas as pd
 import stxcal
 import stxdb
@@ -53,10 +54,11 @@ class StxLiquidity:
         df = pd.read_sql(q, stxdb.db_get_cnx())
         print('Found {0:d} stocks'.format(len(df)))
         df['rg'] = df['hi'] - df['lo']
-        df_1 = df.query('volume>1000000 & c>30 & rg>0.015*c')
+        df_1 = df.query('volume>1000 & c>30 & rg>0.015*c')
         stx = df_1['stk'].tolist()
         print('Found {0:d} leaders'.format(len(stx)))
         start_date = stxcal.move_busdays(selected_date, -60)
+        print('start_date is: {0:s}'.format(str(start_date)))
         ixx = 0
         for stk in stx:
             ixx += 1
@@ -100,4 +102,7 @@ if __name__ == '__main__':
     selected_date = sys.argv[1]
     stx = liq.find_all_liquid_stocks_as_of(selected_date)
     print(stx)
+    with open('{0:s}/leaders/{1:s}.csv'.format(os.getenv('HOME'),
+                                               selected_date), 'w') as f:
+        f.write(', '.join(stx))
     # liq.find_all_liquid_stocks()
