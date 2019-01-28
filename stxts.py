@@ -26,6 +26,7 @@ class StxTS:
         df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
         s_lst = stxdb.db_read_cmd("select date, ratio, divi_type from {0:s} "
                                   "where stk='{1:s}'".format(split_tbl, stk))
+        # print('stk = {0:s}, s_lst = {1:s}'.format(stk, str(s_lst)))
         self.splits = {pd.to_datetime(stxcal.next_busday(s[0])):
                        [float(s[1]), int(s[2])] for s in s_lst}
         self.df = self.fill_gaps(df)
