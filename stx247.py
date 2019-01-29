@@ -29,5 +29,5 @@ class StxTFS:
 3. Email the analysis results: https://medium.freecodecamp.org/send-emails-using-code-4fcea9df63f
 4. If the current date is an option expiry, the 20:00 run should be generating new list of leaders.
 5. Have exclusion list, to remove stocks I don't need.
-6.   
+    6.   
     '''
