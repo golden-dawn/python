@@ -11,6 +11,7 @@ psycopg2
 jupyter
 matplotlib
 scikit-learn
-tensorflow
 recordclass
 cython
+schedule
+tensorflow
