@@ -1,0 +1,22 @@
+# This works on MacOS:
+
+# To install virtualenv and virtualenvwrapper:
+sudo pip install virtualenv virtualenvwrapper
+
+# To activate virtualenvwrapper:
+printf '\n%s\n%s\n%s\n' '# virtualenv' 'export WORKON_HOME=~/virtualenvs' \
+'source /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh' >> ~/.bash_profile
+
+# Install autoenv:
+brew install autoenv
+# Activate autoenv:
+echo "source $(brew --prefix autoenv)/activate.sh" >> ~/.bash_profile
+
+# To install postgres: first need to install brew
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# Then install postgres:
+brew install postgresql
+
+# To have launchd start postgresql now and restart at login:
+brew services start postgresql
