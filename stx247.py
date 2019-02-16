@@ -58,13 +58,32 @@ class Stx247:
         stxdb.db_create_missing_table(self.setup_tbl_name,
                                       self.sql_create_setup_tbl)
 
-    def job(self):
-        print('247 job')
+    def intraday_job(self):
+        print('247 intraday job')
+
+    def eod_job(self):
+        print('247 end of day job')
+
+    def eow_job(self):
+        print('247 end of week job')
 
 
 if __name__ == '__main__':
     s247= Stx247()
-    schedule.every(10).seconds.do(s247.job)
+    s247.eow_job()
+    schedule.every().monday.at("15:30").do(intraday_job)
+    schedule.every().tuesday.at("15:30").do(intraday_job)
+    schedule.every().wednesday.at("15:30").do(intraday_job)
+    schedule.every().thursday.at("15:30").do(intraday_job)
+    schedule.every().friday.at("15:30").do(intraday_job)
+    schedule.every().monday.at("21:00").do(eod_job)
+    schedule.every().tuesday.at("21:00").do(eod_job)
+    schedule.every().wednesday.at("21:00").do(eod_job)
+    schedule.every().thursday.at("21:00").do(eod_job)
+    schedule.every().friday.at("21:00").do(eod_job)
+    schedule.every().friday.at("23:00").do(eow_job)
+
+schedule.every(10).seconds.do(s247.job)
 
     while True:
         schedule.run_pending()
