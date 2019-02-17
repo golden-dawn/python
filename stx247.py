@@ -3,7 +3,31 @@ import pandas as pd
 import schedule
 import stxcal
 import stxdb
+from stxts import StxTS
+import sys
 import time
+
+
+old_out = sys.stdout
+
+
+class St_ampe_dOut:
+    """Stamped stdout."""
+
+    nl = True
+
+    def write(self, x):
+        """Write function overloaded."""
+        if x == '\n':
+            old_out.write(x)
+            self.nl = True
+        elif self.nl:
+            old_out.write('%s:: %s' % (str(datetime.datetime.now()), x))
+            self.nl = False
+        else:
+            old_out.write(x)
+
+sys.stdout = St_ampe_dOut()
 
 class Stx247:    
     '''
@@ -71,19 +95,22 @@ class Stx247:
 
     def eow_job(self):
         print('247 end of week job')
-        ana_date = '2002-03-15'
+        print('247 end of week job')
+        ana_date = '2002-04-19'
+        crt_date = '2002-04-19'
         max_dt_q = stxdb.db_read_cmd('select max(dt) from leaders')
         if max_dt_q[0][0] is not None:
             ana_date = str(max_dt_q[0][0])
         crt_date = str(datetime.datetime.now().date())
         self.ts_dct = {}
-        start_date = '1985-01-01'
-        end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 1)
+        self.start_date = '1985-01-01'
+        self.end_date = stxcal.move_busdays(str(
+            datetime.datetime.now().date()), 1)
         while ana_date <= crt_date:
-            self.analyze(ana_date,start_date, end_date)
+            self.analyze(ana_date)
             ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
-    def analyze(self, ana_date, start_date, end_date):
+    def analyze(self, ana_date):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
                                      "date='{0:s}'".format(ana_date))
         all_stocks = []
@@ -94,44 +121,66 @@ class Stx247:
         print('Found {0:d} stocks for {1:s}'.format(len(all_stocks), ana_date))
         next_exp = stxcal.next_expiry(ana_date)
         next_exp_busday = stxcal.move_busdays(next_exp, 0)
+        num_stx = 0
+        num = 0
+        leaders = []
         for s in all_stocks:
+            num+= 1
             ts = self.ts_dct.get(s)
             if ts is None:
-                ts = StxTS(s, start_date, end_date)
-                ts_dct[s] = ts
-                
-        start_date = stxcal.move_busdays(ana_date, -50)
-        q = "select stk from eods where date='{0:s}'".format(ana_date)
-        df = pd.read_sql(q, stxdb.db_get_cnx())
-        df['activity'] = df['volume'] * df['c']
-        stx = df['stk'].unique().tolist()
-        ix = 0
-        leaders = []
-        for stk in stx:
-            dfs = df.query('stk==@stk')
-            dfs['avg_act'] = dfs['activity'].rolling(50).mean()
-            dfs['rg'] = dfs['hi'] - dfs['lo']
-            dfs['avg_rg'] = dfs['rg'].rolling(50).mean()
-            last_rec = dfs.iloc[-1]
-            if last_rec.date == ana_date && last_rec.avg_activity >= 100000 &&\
-               last_rec.avg_rg >= 0.015 * last_rec.c:
-                opt_q = "select count(*) from options where expiry='{0:s}' " \
-                        "and und='{1:s}' and dt = '{2:s}'".format(
-                            next_exp, stk, ana_date)
-                num_opts = stxdb.db_read_cmd(opt_q)
-                if num_opts[0][0] > 0:
-                    leaders.append(stk)
-        upload_fname = '/tmp/leaders.txt'
-        with open(upload_fname, 'w') as f:
-            crt_date = ana_date
-            while crt_date < mext_exp_busday:
-                for stk in leaders:
-                    f.write('{0:s}\t{1:s}\t{2:s}\n'.format(
-                        str(crt_date), stk, str(next_expiry)))
-                ctr_date = stxcal.next_busday(crt_date)
-        stxdb.db_upload_file(upload_fname, 'leaders')
-        print('Uploaded {0:d} leaders from {1:s} until {2:s}'.
-              format(len(leaders), ana_date, next_exp_busday))
+                ts = StxTS(s, self.start_date, self.end_date)
+                self.ts_dct[s] = ts
+                num_stx += 1
+            if self.is_leader(ts, ana_date, next_exp):
+                leaders.append(s)
+            if num % 100 == 0 or num == len(all_stocks):
+                print('Processed {0:d} stocks, found {1:d} leaders'.
+                      format(num, len(leaders)))
+        print('Found {0:d} leaders for {1:s}'.format(len(leaders), ana_date))
+        print('Loaded {0:d} stocks for {1:s}'.format(num_stx, ana_date))
+        
+    def is_leader(self, ts, ana_date, next_exp):
+        ts.set_day(ana_date)
+        start_ix = ts.pos - 50 if ts.pos >= 50 else 0
+        dfs = ts.df[start_ix: ts.pos + 1]
+        dfs['activity'] = dfs['volume'] * dfs['c']
+        dfs['avg_act'] = dfs['activity'].rolling(50).mean()
+        dfs['rg'] = dfs['hi'] - dfs['lo']
+        dfs['avg_rg'] = dfs['rg'].rolling(50).mean()
+        last_index = str(dfs.index[-1].date())
+        last_rec = dfs.iloc[-1]
+        if last_index == ana_date and last_rec.avg_act >= 100000 and \
+           last_rec.avg_rg >= 0.015 * last_rec.c:
+            tokens = ts.stk.split('.')
+            if tokens[-1].isdigit():
+                und = '.'.join(tokens[:-1])
+            else:
+                und = ts.stk
+            opt_q = "select count(*) from options where expiry='{0:s}' " \
+                    "and und='{1:s}' and date = '{2:s}'".format(
+                        next_exp, und, ana_date)
+            num_opts = stxdb.db_read_cmd(opt_q)
+            if num_opts[0][0] > 0:
+                return True
+        return False
+
+        
+        # stx = df['stk'].unique().tolist()
+        # ix = 0
+        # leaders = []
+        # for stk in stx:
+        #     dfs = df.query('stk==@stk')
+        # upload_fname = '/tmp/leaders.txt'
+        # with open(upload_fname, 'w') as f:
+        #     crt_date = ana_date
+        #     while crt_date < mext_exp_busday:
+        #         for stk in leaders:
+        #             f.write('{0:s}\t{1:s}\t{2:s}\n'.format(
+        #                 str(crt_date), stk, str(next_expiry)))
+        #         ctr_date = stxcal.next_busday(crt_date)
+        # stxdb.db_upload_file(upload_fname, 'leaders')
+        # print('Uploaded {0:d} leaders from {1:s} until {2:s}'.
+        #       format(len(leaders), ana_date, next_exp_busday))
                 
         # print('Found {0:d} stocks'.format(len(df)))
         # df['rg'] = df['hi'] - df['lo']
