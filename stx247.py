@@ -97,7 +97,7 @@ class Stx247:
         print('247 end of week job')
         print('247 end of week job')
         ana_date = '2002-04-19'
-        crt_date = '2002-04-19'
+        crt_date = '2002-07-19'
         max_dt_q = stxdb.db_read_cmd('select max(dt) from leaders')
         if max_dt_q[0][0] is not None:
             ana_date = str(max_dt_q[0][0])
@@ -129,6 +129,12 @@ class Stx247:
             ts = self.ts_dct.get(s)
             if ts is None:
                 ts = StxTS(s, self.start_date, self.end_date)
+                ts.set_day(str(ts.df.index[-1].date()))
+                ts.df['activity'] = ts.df['volume'] * ts.df['c']
+                ts.df['avg_act'] = ts.df['activity'].rolling(50).mean()
+                ts.df['rg'] = ts.df['hi'] - ts.df['lo']
+                ts.df['avg_rg'] = ts.df['rg'].rolling(50).mean()
+                ts.df['rg_c_ratio'] = ts.df['avg_rg'] / ts.df['c']
                 self.ts_dct[s] = ts
                 num_stx += 1
             if self.is_leader(ts, ana_date, next_exp):
@@ -136,21 +142,18 @@ class Stx247:
             if num % 100 == 0 or num == len(all_stocks):
                 print('Processed {0:d} stocks, found {1:d} leaders'.
                       format(num, len(leaders)))
+        leaders.sort()
         print('Found {0:d} leaders for {1:s}'.format(len(leaders), ana_date))
+        print('{0:s} leaders: {1:s}'.format(ana_date, ','.join(leaders)))
         print('Loaded {0:d} stocks for {1:s}'.format(num_stx, ana_date))
+        
         
     def is_leader(self, ts, ana_date, next_exp):
         ts.set_day(ana_date)
-        start_ix = ts.pos - 50 if ts.pos >= 50 else 0
-        dfs = ts.df[start_ix: ts.pos + 1]
-        dfs['activity'] = dfs['volume'] * dfs['c']
-        dfs['avg_act'] = dfs['activity'].rolling(50).mean()
-        dfs['rg'] = dfs['hi'] - dfs['lo']
-        dfs['avg_rg'] = dfs['rg'].rolling(50).mean()
-        last_index = str(dfs.index[-1].date())
-        last_rec = dfs.iloc[-1]
-        if last_index == ana_date and last_rec.avg_act >= 100000 and \
-           last_rec.avg_rg >= 0.015 * last_rec.c:
+        if ts.pos < 50:
+            return False
+        if ts.current_date() == ana_date and ts.current('avg_act') >= 50000 \
+           and ts.current('rg_c_ratio') >= 0.015:
             tokens = ts.stk.split('.')
             if tokens[-1].isdigit():
                 und = '.'.join(tokens[:-1])
@@ -163,68 +166,6 @@ class Stx247:
             if num_opts[0][0] > 0:
                 return True
         return False
-
-        
-        # stx = df['stk'].unique().tolist()
-        # ix = 0
-        # leaders = []
-        # for stk in stx:
-        #     dfs = df.query('stk==@stk')
-        # upload_fname = '/tmp/leaders.txt'
-        # with open(upload_fname, 'w') as f:
-        #     crt_date = ana_date
-        #     while crt_date < mext_exp_busday:
-        #         for stk in leaders:
-        #             f.write('{0:s}\t{1:s}\t{2:s}\n'.format(
-        #                 str(crt_date), stk, str(next_expiry)))
-        #         ctr_date = stxcal.next_busday(crt_date)
-        # stxdb.db_upload_file(upload_fname, 'leaders')
-        # print('Uploaded {0:d} leaders from {1:s} until {2:s}'.
-        #       format(len(leaders), ana_date, next_exp_busday))
-                
-        # print('Found {0:d} stocks'.format(len(df)))
-        # df['rg'] = df['hi'] - df['lo']
-        # df_1 = df.query('volume>1000 & c>30 & c<500 & rg>0.015*c')
-        # stx = df_1['stk'].tolist()
-        # print('Found {0:d} leaders'.format(len(stx)))
-        # start_date = stxcal.move_busdays(selected_date, -60)
-        # print('start_date is: {0:s}'.format(str(start_date)))
-        # ixx = 0
-        # for stk in stx:
-        #     ixx += 1
-        #     ts = StxTS(stk, start_date, selected_date)
-        #     # adjust the whole thing for splits, etc.
-        #     ts.set_day(str(ts.df.index[-1].date()))
-        #     ts.df['hi_1'] = ts.df['hi'].shift(1)
-        #     ts.df['lo_1'] = ts.df['lo'].shift(1)
-        #     ts.df['rg'] = ts.df['hi'] - ts.df['lo']
-        #     ts.df['act'] = ts.df['volume'] * ts.df['c']
-        #     ts.df['avg_v'] = ts.df['volume'].rolling(50).mean()
-        #     ts.df['avg_c'] = ts.df['c'].rolling(50).mean()
-        #     ts.df['avg_rg'] = ts.df['rg'].rolling(50).mean()
-        #     ts.df['avg_act'] = ts.df['act'].rolling(50).mean()
-        #     rec = ts.df.ix[-1]
-        #     if rec.avg_v > 2000 and rec.avg_c > 40 and \
-        #        rec.avg_act > 100000 and rec.avg_rg > 0.015 * rec.avg_c:
-        #         res.append(stk)
-        #         sc = StxCandles(stk)
-        #         setup_ts = sc.calculate_setups(sd=start_date)
-        #         setups = ['gap', 'marubozu', 'hammer', 'doji', 'engulfing',
-        #                   'piercing', 'harami', 'star', 'engulfharami',
-        #                   'three_m', 'three_in', 'three_out',
-        #                   'up_gap_two_crows']
-        #         with open('/home/cma/setups/{0:s}.csv'.format(stk), 'w') as f:
-        #             for index, row in setup_ts.df.iterrows():
-        #                 f.write('{0:s};'.format(str(index.date())))
-        #                 for setup in setups:
-        #                     if row[setup] != 0:
-        #                         f.write('  {0:s}: {1:.0f} '.format(
-        #                             setup.upper(), row[setup]))
-        #                 f.write('\n')
-        #     if ixx == len(stx) or ixx % 50 == 0:
-        #         print('Processed {0:d} leaders'.format(ixx))
-        # print('Found {0:d} super leaders'.format(len(res)))
-        # return res
 
         
 if __name__ == '__main__':
