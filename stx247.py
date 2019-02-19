@@ -68,7 +68,7 @@ class Stx247:
                                   ')'.format(self.opt_tbl_name)
         self.sql_create_ldr_tbl = "CREATE TABLE {0:s} ("\
                                   "dt date NOT NULL,"\
-                                  "stk varchar(8) NOT NULL,"\
+                                  "stk varchar(16) NOT NULL,"\
                                   "exp date NOT NULL,"\
                                   "PRIMARY KEY (dt,stk)"\
                                   ")".format(self.ldr_tbl_name)
@@ -139,20 +139,28 @@ class Stx247:
                 num_stx += 1
             if self.is_leader(ts, ana_date, next_exp):
                 leaders.append(s)
-            if num % 100 == 0 or num == len(all_stocks):
+            if num % 1000 == 0 or num == len(all_stocks):
                 print('Processed {0:d} stocks, found {1:d} leaders'.
                       format(num, len(leaders)))
         leaders.sort()
         print('Found {0:d} leaders for {1:s}'.format(len(leaders), ana_date))
-        print('{0:s} leaders: {1:s}'.format(ana_date, ','.join(leaders)))
+        # print('{0:s} leaders: {1:s}'.format(ana_date, ','.join(leaders)))
         print('Loaded {0:d} stocks for {1:s}'.format(num_stx, ana_date))
-        
+        ldr_fname = '/tmp/leaders.txt'
+        with open(ldr_fname, 'w') as f:
+            crs_date = ana_date
+            while crs_date < next_exp_busday:
+                for ldr in leaders:
+                    f.write('{0:s}\t{1:s}\t{2:s}\n'.
+                            format(crs_date, ldr, next_exp))
+                crs_date = stxcal.next_busday(crs_date)
+        stxdb.db_upload_file(ldr_fname, self.ldr_tbl_name)
         
     def is_leader(self, ts, ana_date, next_exp):
         ts.set_day(ana_date)
         if ts.pos < 50:
             return False
-        if ts.current_date() == ana_date and ts.current('avg_act') >= 50000 \
+        if ts.current_date() == ana_date and ts.current('avg_act') >= 80000 \
            and ts.current('rg_c_ratio') >= 0.015:
             tokens = ts.stk.split('.')
             if tokens[-1].isdigit():
