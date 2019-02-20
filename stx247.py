@@ -13,9 +13,7 @@ old_out = sys.stdout
 
 class St_ampe_dOut:
     """Stamped stdout."""
-
     nl = True
-
     def write(self, x):
         """Write function overloaded."""
         if x == '\n':
@@ -26,7 +24,6 @@ class St_ampe_dOut:
             self.nl = False
         else:
             old_out.write(x)
-
 sys.stdout = St_ampe_dOut()
 
 class Stx247:    
@@ -92,6 +89,17 @@ class Stx247:
 
     def eod_job(self):
         print('247 end of day job')
+        max_dt_q = stxdb.db_read_cmd('select max(dt) from setups')
+        if max_dt_q[0][0] is not None:
+            ana_date = str(max_dt_q[0][0])
+        crt_date = str(datetime.datetime.now().date())
+        self.ts_dct = {}
+        self.start_date = '1985-01-01'
+        self.end_date = stxcal.move_busdays(str(
+            datetime.datetime.now().date()), 1)
+        while ana_date <= crt_date:
+            self.analyze(ana_date)
+            ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
     def eow_job(self):
         print('247 end of week job')
@@ -107,10 +115,10 @@ class Stx247:
         self.end_date = stxcal.move_busdays(str(
             datetime.datetime.now().date()), 1)
         while ana_date <= crt_date:
-            self.analyze(ana_date)
+            self.get_leaders(ana_date)
             ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
-    def analyze(self, ana_date):
+    def get_leaders(self, ana_date):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
                                      "date='{0:s}'".format(ana_date))
         all_stocks = []
