@@ -3,6 +3,7 @@ import pandas as pd
 import schedule
 import stxcal
 import stxdb
+from stxjl import StxJL
 from stxts import StxTS
 import sys
 import time
@@ -163,7 +164,35 @@ class Stx247:
                             format(crs_date, ldr, next_exp))
                 crs_date = stxcal.next_busday(crs_date)
         stxdb.db_upload_file(ldr_fname, self.ldr_tbl_name)
-        
+
+    def analyze(self, exp):
+        # 1. Select all the leaders for that expiry
+        # 2. Run StxJL for each leader, for each factor
+        factors = [1.0, 1.5, 2.0]
+        q1 = "select min(dt), max(dt) from leaders where exp='{0:s}'".format(
+            exp)
+        date_list = stxdb.db_read_cmd(q1)
+        s_date = str(date_list[0][0])
+        e_date = str(date_list[0][1])
+        jls_date = stxcal.next_busday('2000-01-01')
+        jle_date = stxcal.move_busdays(exp, 0)
+        q2 = "select distinct stk from leaders where exp='{0:s}'".format(exp)
+        ldr_list = stxdb.db_read_cmd(q2)
+        for ldr in ldr_list:
+            stk = ldr[0]
+            ts = StxTS(stk, jls_date, jle_date)
+            jl_list = []
+            for factor in factors:
+                jl = StxJL(ts, factor)
+                jl.jl(s_date)
+                jl_list.append(jl)
+            while s_date < e_date:
+                ts.next_day()
+                for jl in jl_list:
+                    jl.nextjl()
+                s_date = stxcal.next_busday(s_date)
+            print('Finished {0:s}'.format(stk))
+
     def is_leader(self, ts, ana_date, next_exp):
         ts.set_day(ana_date)
         if ts.pos < 50:
