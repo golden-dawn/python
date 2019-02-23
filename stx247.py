@@ -181,18 +181,37 @@ class Stx247:
         for ldr in ldr_list:
             stk = ldr[0]
             ts = StxTS(stk, jls_date, jle_date)
+            for ixx in range(1, 5):
+                ts.df['hi_{0:d}'.format(ixx)] = ts.df['hi'].shift(ixx)
+                ts.df['lo_{0:d}'.format(ixx)] = ts.df['lo'].shift(ixx)
             jl_list = []
             for factor in factors:
                 jl = StxJL(ts, factor)
                 jl.jl(s_date)
                 jl_list.append(jl)
             while s_date < e_date:
+                self.setups(ts, jl_list)
                 ts.next_day()
                 for jl in jl_list:
                     jl.nextjl()
                 s_date = stxcal.next_busday(s_date)
             print('Finished {0:s}'.format(stk))
 
+    def setups(self, ts, jl_list):
+        print('setups {0:s},{1:s}'.format(ts.stk, ts.current_date()))
+        jl10, jl15, jl20 = jl_list
+        l20 = jl20.last
+        if l20['prim_state'] == StxJL.UT and l20['prim_state'] == l20['state']:
+            if ts.current('hi') < ts.current('hi_1') and \
+               ts.current('hi_1') < ts.current('hi_2') and \
+               ts.current('hi_2') < ts.current('hi_3'):
+                print('++1234++: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
+        if l20['prim_state'] == StxJL.DT and l20['prim_state'] == l20['state']:
+            if ts.current('lo') > ts.current('lo_1') and \
+               ts.current('lo_1') > ts.current('lo_2') and \
+               ts.current('lo_2') > ts.current('lo_3'):
+                print('--1234--: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
+            
     def is_leader(self, ts, ana_date, next_exp):
         ts.set_day(ana_date)
         if ts.pos < 50:
@@ -230,3 +249,10 @@ if __name__ == '__main__':
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+'''
+exp = '2002-05-18'
+from stx247 import Stx247
+s247 = Stx247()
+s247.analyze(exp)
+'''
