@@ -172,13 +172,13 @@ class Stx247:
         q1 = "select min(dt), max(dt) from leaders where exp='{0:s}'".format(
             exp)
         date_list = stxdb.db_read_cmd(q1)
-        s_date = str(date_list[0][0])
-        e_date = str(date_list[0][1])
         jls_date = stxcal.next_busday('2000-01-01')
         jle_date = stxcal.move_busdays(exp, 0)
         q2 = "select distinct stk from leaders where exp='{0:s}'".format(exp)
         ldr_list = stxdb.db_read_cmd(q2)
         for ldr in ldr_list:
+            s_date = str(date_list[0][0])
+            e_date = str(date_list[0][1])
             stk = ldr[0]
             ts = StxTS(stk, jls_date, jle_date)
             for ixx in range(1, 5):
@@ -198,7 +198,7 @@ class Stx247:
             print('Finished {0:s}'.format(stk))
 
     def setups(self, ts, jl_list):
-        print('setups {0:s},{1:s}'.format(ts.stk, ts.current_date()))
+        # print('setups {0:s},{1:s}'.format(ts.stk, ts.current_date()))
         jl10, jl15, jl20 = jl_list
         l20 = jl20.last
         if l20['prim_state'] == StxJL.UT and l20['prim_state'] == l20['state']:
