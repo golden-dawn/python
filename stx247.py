@@ -168,6 +168,7 @@ class Stx247:
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
         # 2. Run StxJL for each leader, for each factor
+        setup_df = pd.DataFrame(columns=['date', 'stk', 'setup'])
         factors = [1.0, 1.5, 2.0]
         q1 = "select min(dt), max(dt) from leaders where exp='{0:s}'".format(
             exp)
@@ -190,14 +191,18 @@ class Stx247:
                 jl.jl(s_date)
                 jl_list.append(jl)
             while s_date < e_date:
-                self.setups(ts, jl_list)
+                setup_df = self.setups(ts, jl_list, setup_df)
                 ts.next_day()
                 for jl in jl_list:
                     jl.nextjl()
                 s_date = stxcal.next_busday(s_date)
             print('Finished {0:s}'.format(stk))
+        setup_df = setup_df.sort_values(by=['date', 'setup', 'stk'])
+        for _, row in setup_df.iterrows():
+            print('{0:s} {1:12s} {2:s}'.
+                  format(row['date'], row['stk'], row['setup']))
 
-    def setups(self, ts, jl_list):
+    def setups(self, ts, jl_list, setup_df):
         # print('setups {0:s},{1:s}'.format(ts.stk, ts.current_date()))
         jl10, jl15, jl20 = jl_list
         l20 = jl20.last
@@ -206,11 +211,18 @@ class Stx247:
                ts.current('hi_1') < ts.current('hi_2') and \
                ts.current('hi_2') < ts.current('hi_3'):
                 print('++1234++: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
+                setup_df = setup_df.append(
+                    dict(date=ts.current_date(), stk=ts.stk, setup='++1234++'),
+                    ignore_index=True)
         if l20['prim_state'] == StxJL.DT and l20['prim_state'] == l20['state']:
             if ts.current('lo') > ts.current('lo_1') and \
                ts.current('lo_1') > ts.current('lo_2') and \
                ts.current('lo_2') > ts.current('lo_3'):
                 print('--1234--: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
+                setup_df = setup_df.append(
+                    dict(date=ts.current_date(), stk=ts.stk, setup='--1234--'),
+                    ignore_index=True)
+        return setup_df
             
     def is_leader(self, ts, ana_date, next_exp):
         ts.set_day(ana_date)
