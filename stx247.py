@@ -128,7 +128,7 @@ class Stx247:
             self.get_leaders(ana_date)
             ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
-    def get_leaders(self, ana_date):
+    def get_leaders(self, ana_date, min_act=80000, min_rcr=0.015):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
                                      "date='{0:s}'".format(ana_date))
         all_stocks = []
@@ -233,12 +233,12 @@ class Stx247:
                     ignore_index=True)
         return setup_df
             
-    def is_leader(self, ts, ana_date, next_exp):
+    def is_leader(self, ts, ana_date, next_exp, min_act, min_rcr):
         ts.set_day(ana_date)
         if ts.pos < 50:
             return False
-        if ts.current_date() == ana_date and ts.current('avg_act') >= 80000 \
-           and ts.current('rg_c_ratio') >= 0.015:
+        if ts.current_date() == ana_date and ts.current('avg_act') >= min_act \
+           and ts.current('rg_c_ratio') >= min_rcr:
             tokens = ts.stk.split('.')
             if tokens[-1].isdigit():
                 und = '.'.join(tokens[:-1])
@@ -260,16 +260,21 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--setups', action='store_true',
                         help='Require setup calculation')
     parser.add_argument('-a', '--min_act', type=int,
-                        help='Minimum activity for a stock to be a leader')
+                        help='Minimum activity for leaders')
+    parser.add_argument('-r', '--range_close_ratio', type=float,
+                        help='Minimum range to close ratio for leaders')
     parser.add_argument('-d', '--ldr_date',  type=valid_date,
                         help="The date for leaders - format YYYY-MM-DD")
     args = parser.parse_args()
     if args.leaders:
-        print('Will calculate leaders')
-    if args.ldr_date:
-        print('The leader date is: {0:s}'.format(args.ldr_date))
-    if args.min_act:
-        print('The minimum activity is: {0:d}'.format(args.min_act))
+        ldr_date = args.ldr_date if args.ldr_date else stxcal.current_busdate()
+        min_act = args.min_act if args.min_act else 80000
+        min_rcr = args.range_close_ratio if args.range_close_ratio else 0.015
+        print('Will calculate leaders for {0:s} w/ min act of {1:d} and '
+              'min range to close ratio of {2:.3f}'.format(ldr_date, min_act,
+                                                           min_rcr))
+        s247= Stx247()
+        s247.get_leaders(ldr_date, min_act, min_rcr)
         exit(0)
     s247= Stx247()
     s247.eow_job()
