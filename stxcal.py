@@ -3,7 +3,7 @@ import pandas as pd
 import pytz
 import sys
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import rrule
 
 this = sys.modules[__name__]
@@ -555,3 +555,11 @@ def get_seconds(dt):
 
 def current_date():
     return move_busdays(datetime.strftime(datetime.now(), '%Y-%m-%d'), 0)
+
+
+def current_busdate(hr=20):
+    crt_time = datetime.now()
+    crt_date = crt_time.date()
+    if crt_time.hour < hr:
+        crt_date -= timedelta(days=1)
+    return move_busdays(str(crt_date), 0)
