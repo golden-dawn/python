@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import pandas as pd
 import schedule
@@ -26,6 +27,14 @@ class St_ampe_dOut:
         else:
             old_out.write(x)
 sys.stdout = St_ampe_dOut()
+
+
+def valid_date(s):
+    try:
+        return str(datetime.datetime.strptime(s, "%Y-%m-%d").date())
+    except ValueError:
+        msg = "Not a valid date: '{0}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
 
 class Stx247:    
     '''
@@ -245,6 +254,23 @@ class Stx247:
 
         
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--leaders', action='store_true',
+                        help='Require leader calculation')
+    parser.add_argument('-s', '--setups', action='store_true',
+                        help='Require setup calculation')
+    parser.add_argument('-a', '--min_act', type=int,
+                        help='Minimum activity for a stock to be a leader')
+    parser.add_argument('-d', '--ldr_date',  type=valid_date,
+                        help="The date for leaders - format YYYY-MM-DD")
+    args = parser.parse_args()
+    if args.leaders:
+        print('Will calculate leaders')
+    if args.ldr_date:
+        print('The leader date is: {0:s}'.format(args.ldr_date))
+    if args.min_act:
+        print('The minimum activity is: {0:d}'.format(args.min_act))
+        exit(0)
     s247= Stx247()
     s247.eow_job()
     schedule.every().monday.at("15:30").do(s247.intraday_job)
