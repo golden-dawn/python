@@ -182,7 +182,8 @@ class Stx247:
         q1 = "select min(dt), max(dt) from leaders where exp='{0:s}'".format(
             exp)
         date_list = stxdb.db_read_cmd(q1)
-        jls_date = stxcal.next_busday('2000-01-01')
+        exp_dt = datetime.datetime.strptime(exp, '%Y-%m-%d')
+        jls_date = stxcal.next_busday('{0:d}-01-01'.format(exp_dt.year))
         jle_date = stxcal.move_busdays(exp, 0)
         q2 = "select distinct stk from leaders where exp='{0:s}'".format(exp)
         ldr_list = stxdb.db_read_cmd(q2)
