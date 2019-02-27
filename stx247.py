@@ -96,6 +96,14 @@ class Stx247:
         stxdb.db_create_missing_table(self.setup_tbl_name,
                                       self.sql_create_setup_tbl)
         self.df_dct = {}
+        # calculate the last date for which we have historical options
+        crt_year = datetime.datetime.now().date().year
+        self.last_opt_date = stxcal.move_busdays(
+            '{0:d}-12-31'.format(crt_year), 0)
+        self.ts_dct = {}        
+        self.start_date = '1985-01-01'
+        self.end_date = stxcal.move_busdays(str(
+            datetime.datetime.now().date()), 1)
 
     def intraday_job(self):
         print('247 intraday job')
@@ -106,8 +114,6 @@ class Stx247:
         if max_dt_q[0][0] is not None:
             ana_date = str(max_dt_q[0][0])
         crt_date = str(datetime.datetime.now().date())
-        self.ts_dct = {}
-        self.start_date = '1985-01-01'
         self.end_date = stxcal.move_busdays(str(
             datetime.datetime.now().date()), 1)
         while ana_date <= crt_date:
@@ -123,25 +129,24 @@ class Stx247:
         if max_dt_q[0][0] is not None:
             ana_date = str(max_dt_q[0][0])
         crt_date = str(datetime.datetime.now().date())
-        self.ts_dct = {}
-        self.start_date = '1985-01-01'
         self.end_date = stxcal.move_busdays(str(
             datetime.datetime.now().date()), 1)
         while ana_date <= crt_date:
-            self.get_leaders(ana_date)
+            self.get_liq_leaders(ana_date)
+            self.get_opt_spread_leaders(ana_date)
             ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
-    def get_leaders(self, ana_date, min_act=80000, min_rcr=0.015):
+    def get_liq_leaders(self, ana_date, min_act=80000, min_rcr=0.015):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
                                      "date='{0:s}'".format(ana_date))
         all_stocks = [s[0] for s in stk_list
-                      if re.match(r'^[A-Za-z]', str(s[0]))
+                      if re.match(r'^[A-Za-z]', str(s[0]))]
         print('Found {0:d} stocks for {1:s}'.format(len(all_stocks), ana_date))
         next_exp = stxcal.next_expiry(ana_date)
         next_exp_busday = stxcal.move_busdays(next_exp, 0)
         num_stx = 0
         num = 0
-        leaders = []
+        liq_leaders = []
         for s in all_stocks:
             num+= 1
             ts = self.ts_dct.get(s)
@@ -155,24 +160,26 @@ class Stx247:
                 ts.df['rg_c_ratio'] = ts.df['avg_rg'] / ts.df['c']
                 self.ts_dct[s] = ts
                 num_stx += 1
-            if self.is_leader(ts, ana_date, next_exp):
-                leaders.append(s)
+            stk_act = [s]
+            # if self.is_act_leader(ts, ana_date, next_exp):
+            if self.is_liq_leader(ts, ana_date, min_act, min_rcr, stk_act):
+                liq_leaders.append(stk_act)
             if num % 1000 == 0 or num == len(all_stocks):
-                print('Processed {0:d} stocks, found {1:d} leaders'.
-                      format(num, len(leaders)))
-        leaders.sort()
-        print('Found {0:d} leaders for {1:s}'.format(len(leaders), ana_date))
-        # print('{0:s} leaders: {1:s}'.format(ana_date, ','.join(leaders)))
+                print('Processed {0:d} stocks, found {1:d} liquidity leaders'.
+                      format(num, len(liq_leaders)))
+        # leaders.sort()
+        print('Found {0:d} liquidity leaders for {1:s}'.format(
+            len(liq_leaders), ana_date))
         print('Loaded {0:d} stocks for {1:s}'.format(num_stx, ana_date))
-        ldr_fname = '/tmp/leaders.txt'
-        with open(ldr_fname, 'w') as f:
+        liq_ldr_fname = '/tmp/liq_leaders.txt'
+        with open(liq_ldr_fname, 'w') as f:
             crs_date = ana_date
             while crs_date < next_exp_busday:
-                for ldr in leaders:
-                    f.write('{0:s}\t{1:s}\t{2:s}\n'.
-                            format(crs_date, ldr, next_exp))
+                for ldr in liq_leaders:
+                    f.write('{0:s}\t{1:s}\t{2:s}\t{3:d}\t1000\n'.
+                            format(crs_date, ldr[0], next_exp, int(ldr[1])))
                 crs_date = stxcal.next_busday(crs_date)
-        stxdb.db_upload_file(ldr_fname, self.ldr_tbl_name)
+        stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
 
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
@@ -234,24 +241,45 @@ class Stx247:
                     ignore_index=True)
         return setup_df
             
-    def is_leader(self, ts, ana_date, next_exp, min_act, min_rcr):
+    def is_liq_leader(self, ts, ana_date, min_act, min_rcr, stk_act):
         ts.set_day(ana_date)
         if ts.pos < 50:
             return False
         if ts.current_date() == ana_date and ts.current('avg_act') >= min_act \
            and ts.current('rg_c_ratio') >= min_rcr:
-            tokens = ts.stk.split('.')
-            if tokens[-1].isdigit():
-                und = '.'.join(tokens[:-1])
-            else:
-                und = ts.stk
-            opt_q = "select count(*) from options where expiry='{0:s}' " \
-                    "and und='{1:s}' and date = '{2:s}'".format(
-                        next_exp, und, ana_date)
-            num_opts = stxdb.db_read_cmd(opt_q)
-            if num_opts[0][0] > 0:
-                return True
+            stk_act.append(ts.current('avg_act'))
+            return True
         return False
+
+    def get_opt_spread_leaders(self, ldr_date):
+        next_exp = stxcal.next_expiry(ldr_date)
+        q = "select distinct stk from leaders where date='{0:s}'".format(
+            ldr_date)
+        stk_list = stxdb.db_read_cmd(q)
+        for elt in stk_list:
+            stk = elt[0]
+            tokens = stk.split('.')
+            und = '.'.join(tokens[:-1]) if tokens[-1].isdigit() else stk
+            if ldr_date <= self.last_opt_date:
+                spot_q = "select * from opt_spots where stk='{0:s}' and "\
+                         "date = '{1:s}'".format(und, ldr_date)
+                spot_res = stxdb.db_read_cmd(spot_q)
+                spot = float(spot_res[0][2])
+                opt_q = "select * from options where expiry='{0:s}' " \
+                        "and und='{1:s}' and date = '{2:s}'".format(
+                        next_exp, und, ldr_date)
+                opt_df = pd.read_sql(opt_q, stxdb.db_get_cnx())
+            else:
+                # get the data from yahoo
+                pass
+            if len(opt_df) < 6:
+                continue
+            opt_df['strike_spot'] = abs(opt_df['strike'] - spot)
+            opt_df['spread'] = 100 * (1 - opt_df['bid'] / opt_df['ask'])
+            opt_df.sort_values(by=['strike_spot'], inplace=True)
+            opt_df['avg_spread'] = opt_df['spread'].rolling(6).mean()
+            avg_spread = opt_df.loc[5].avg_spread
+            # update here the spread values in the leaders table
 
         
 if __name__ == '__main__':
@@ -260,12 +288,15 @@ if __name__ == '__main__':
                         help='Require leader calculation')
     parser.add_argument('-s', '--setups', action='store_true',
                         help='Require setup calculation')
+    parser.add_argument('-o', '--get-options', action='store_true',
+                        help='Retrieve option prices')
     parser.add_argument('-a', '--min_act', type=int,
                         help='Minimum activity for leaders')
     parser.add_argument('-r', '--range_close_ratio', type=float,
                         help='Minimum range to close ratio for leaders')
     parser.add_argument('-d', '--ldr_date',  type=valid_date,
                         help="The date for leaders - format YYYY-MM-DD")
+    
     args = parser.parse_args()
     if args.leaders:
         ldr_date = args.ldr_date if args.ldr_date else stxcal.current_busdate()
@@ -275,7 +306,10 @@ if __name__ == '__main__':
               'min range to close ratio of {2:.3f}'.format(ldr_date, min_act,
                                                            min_rcr))
         s247= Stx247()
-        s247.get_leaders(ldr_date, min_act, min_rcr)
+        s247.get_liq_leaders(ldr_date, min_act, min_rcr)
+        if args.get_options:
+            print('Will retrieve options and calculate spread liquidity')
+            s247.get_opt_spread_leaders(ldr_date)
         exit(0)
     s247= Stx247()
     s247.eow_job()
