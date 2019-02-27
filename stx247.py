@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import pandas as pd
+import re
 import schedule
 import stxcal
 import stxdb
@@ -77,6 +78,8 @@ class Stx247:
                                   "dt date NOT NULL,"\
                                   "stk varchar(16) NOT NULL,"\
                                   "exp date NOT NULL,"\
+                                  "activity integer DEFAULT NULL,"\
+                                  "opt_spread integer DEFAULT NULL,"\
                                   "PRIMARY KEY (dt,stk)"\
                                   ")".format(self.ldr_tbl_name)
         self.sql_create_setup_tbl = "CREATE TABLE {0:s} ("\
@@ -131,11 +134,8 @@ class Stx247:
     def get_leaders(self, ana_date, min_act=80000, min_rcr=0.015):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
                                      "date='{0:s}'".format(ana_date))
-        all_stocks = []
-        for s in stk_list:
-            sn = s[0]
-            if not sn.startswith('^') and not sn.startswith('#'):
-                all_stocks.append(sn)
+        all_stocks = [s[0] for s in stk_list
+                      if re.match(r'^[A-Za-z]', str(s[0]))
         print('Found {0:d} stocks for {1:s}'.format(len(all_stocks), ana_date))
         next_exp = stxcal.next_expiry(ana_date)
         next_exp_busday = stxcal.move_busdays(next_exp, 0)
