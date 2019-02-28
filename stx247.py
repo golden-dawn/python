@@ -48,6 +48,10 @@ class Stx247:
     5. Have exclusion list, to remove stocks I don't need.
     6. 
     '''
+    yhoo_url = 'https://query1.finance.yahoo.com/v7/finance/options/{0:s}?' \
+               'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
+               'date={1:d}&corsDomain=finance.yahoo.com'
+
     def __init__(self):
         self.tbl_name = 'cache'
         self.opt_tbl_name = 'opt_cache'
@@ -270,8 +274,7 @@ class Stx247:
                         next_exp, und, ldr_date)
                 opt_df = pd.read_sql(opt_q, stxdb.db_get_cnx())
             else:
-                # get the data from yahoo
-                pass
+                opt_df = self.get_data(stk)
             if len(opt_df) < 6:
                 continue
             opt_df['strike_spot'] = abs(opt_df['strike'] - spot)
@@ -281,6 +284,42 @@ class Stx247:
             avg_spread = opt_df.loc[5].avg_spread
             # update here the spread values in the leaders table
 
+    def get_data(self, stk):
+        expiries = stxcal.long_expiries()
+        res = requests.get(self.yhoo_url.format(stk, expiries[0]))
+        print('Got data for {0:s}, status code: {1:d}'.
+              format(stk, res.status_code))
+        res_json = json.loads(res.text)
+        res_0 = res_json['optionChain']['result'][0]
+        quote = res_0['quote']
+        v = quote['regularMarketVolume']
+        o = quote['regularMarketOpen']
+        c = quote['regularMarketPrice']
+        hi = quote['regularMarketDayHigh']
+        lo = quote['regularMarketDayLow']
+        dt = datetime.datetime.fromtimestamp(quote['regularMarketTime'])
+        print('{0:s} {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:d}'.
+              format(stk, str(dt.date()), o, hi, lo, c, v))
+        calls = res_0['options'][0]['calls']
+        puts = res_0['options'][0]['puts']
+        for call in calls:
+            ask = call['ask']['raw']
+            bid = call['bid']['raw']
+            strike = call['strike']['raw']
+            cp = 'C'
+            exp = call['expiration']['fmt']
+            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
+                  .format(cp, exp, strike, bid, ask)) 
+        for put in puts:
+            ask = put['ask']['raw']
+            bid = put['bid']['raw']
+            strike = put['strike']['raw']
+            cp = 'P'
+            exp = put['expiration']['fmt']
+            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
+                  .format(cp, exp, strike, bid, ask)) 
+
+            
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
