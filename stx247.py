@@ -1,7 +1,9 @@
 import argparse
 import datetime
+import json
 import pandas as pd
 import re
+import requests
 import schedule
 import stxcal
 import stxdb
@@ -306,19 +308,25 @@ class Stx247:
         calls = res_0['options'][0]['calls']
         puts = res_0['options'][0]['puts']
         for call in calls:
-            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'], und=stk, cp='C', strike=call['strike']['raw'], dt=crt_date, bid=call['bid']['raw'], ask=call['ask']['raw']))
-            cp = 'C'
-            exp = 
-            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
-                  .format(cp, exp, strike, bid, ask)) 
+            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'],
+                                        und=stk,
+                                        cp='C',
+                                        strike=call['strike']['raw'],
+                                        dt=crt_date,
+                                        bid=call['bid']['raw'],
+                                        ask=call['ask']['raw'],
+                                        volume=call['volume']['raw']),
+                                   ignore_index=True)
         for put in puts:
-            ask = put['ask']['raw']
-            bid = put['bid']['raw']
-            strike = put['strike']['raw']
-            cp = 'P'
-            exp = put['expiration']['fmt']
-            print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
-                  .format(cp, exp, strike, bid, ask)) 
+            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'],
+                                        und=stk,
+                                        cp='P',
+                                        strike=put['strike']['raw'],
+                                        dt=crt_date,
+                                        bid=put['bid']['raw'],
+                                        ask=put['ask']['raw'],
+                                        volume=put['volume']['raw']),
+                                   ignore_index=True)
         return opt_df, c
         
         
