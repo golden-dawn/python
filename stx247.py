@@ -257,6 +257,7 @@ class Stx247:
 
     def get_opt_spread_leaders(self, ldr_date):
         next_exp = stxcal.next_expiry(ldr_date)
+        crt_date = stxcal.current_busdate()
         q = "select distinct stk from leaders where date='{0:s}'".format(
             ldr_date)
         stk_list = stxdb.db_read_cmd(q)
@@ -274,7 +275,7 @@ class Stx247:
                         next_exp, und, ldr_date)
                 opt_df = pd.read_sql(opt_q, stxdb.db_get_cnx())
             else:
-                opt_df = self.get_data(stk)
+                opt_df, spot = self.get_data(stk, crt_date)
             if len(opt_df) < 6:
                 continue
             opt_df['strike_spot'] = abs(opt_df['strike'] - spot)
@@ -284,7 +285,9 @@ class Stx247:
             avg_spread = opt_df.loc[5].avg_spread
             # update here the spread values in the leaders table
 
-    def get_data(self, stk):
+    def get_data(self, stk, crt_date):
+        opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
+                                         'dt', 'bid', 'ask', 'volume' ])
         expiries = stxcal.long_expiries()
         res = requests.get(self.yhoo_url.format(stk, expiries[0]))
         print('Got data for {0:s}, status code: {1:d}'.
@@ -303,11 +306,9 @@ class Stx247:
         calls = res_0['options'][0]['calls']
         puts = res_0['options'][0]['puts']
         for call in calls:
-            ask = call['ask']['raw']
-            bid = call['bid']['raw']
-            strike = call['strike']['raw']
+            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'], und=stk, cp='C', strike=call['strike']['raw'], dt=crt_date, bid=call['bid']['raw'], ask=call['ask']['raw']))
             cp = 'C'
-            exp = call['expiration']['fmt']
+            exp = 
             print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
                   .format(cp, exp, strike, bid, ask)) 
         for put in puts:
@@ -318,8 +319,8 @@ class Stx247:
             exp = put['expiration']['fmt']
             print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
                   .format(cp, exp, strike, bid, ask)) 
-
-            
+        return opt_df, c
+        
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
