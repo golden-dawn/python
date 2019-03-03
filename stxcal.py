@@ -510,7 +510,7 @@ def expiry(dt):
     exp = np.busday_offset(dt, 2, roll='forward', weekmask='Fri')
     if np.datetime64(dt) < sat_fri_date:
         exp = np.busday_offset(exp, 1, weekmask='1111111')
-    return str(exp)
+    return move_busdays(str(exp), 0)
 
 
 # call it like this: expiries('2015-01', '2015-08')
