@@ -86,6 +86,7 @@ class Stx247:
                                   "exp date NOT NULL,"\
                                   "activity integer DEFAULT NULL,"\
                                   "opt_spread integer DEFAULT NULL,"\
+                                  "atm_price numeric(6,2) DEFAULT NULL,"\
                                   "PRIMARY KEY (dt,stk)"\
                                   ")".format(self.ldr_tbl_name)
         self.sql_create_setup_tbl = "CREATE TABLE {0:s} ("\
@@ -285,26 +286,52 @@ class Stx247:
             opt_df.sort_values(by=['strike_spot'], inplace=True)
             opt_df['avg_spread'] = opt_df['spread'].rolling(6).mean()
             avg_spread = opt_df.loc[5].avg_spread
+            avg_atm_price = (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2
+            q = "update leaders set opt_spread={0:d} atm_price={1:.2f} "\
+                "where stk='{2:s}' and exp='{3:s}'".format(
+                    avg_spread, avg_atm_price, stk, next_exp)
+            with stxdb.db_get_cnx().cursor() as crs:
+                crs.execute(q)
+                
             # update here the spread values in the leaders table
 
     def get_data(self, stk, crt_date):
         opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
                                          'dt', 'bid', 'ask', 'volume' ])
         expiries = stxcal.long_expiries()
-        res = requests.get(self.yhoo_url.format(stk, expiries[0]))
-        print('Got data for {0:s}, status code: {1:d}'.
-              format(stk, res.status_code))
+        opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[0],
+                                         save_eod=True)
+        # opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[1],
+        #                                  save_eod=False)
+        cnx = stxdb.db_get_cnx()
+        with cnx.cursor() as crs:
+            for _, row in opt_df.iterrows():
+                crs.execute('insert into opt_cache(expiry, und, cp, strike, '
+                            'dt, bid, ask, volume) values ' + crs.mogrify(
+                            '(%s,%s,%s,%s,%s,%s,%s,%s)', row.values.tolist()) +
+                            'on conflict do nothing')
+        return opt_df, spot
+
+    def get_exp_data(self, opt_df, stk, crt_date, expiry, save_eod=False):
+        res = requests.get(self.yhoo_url.format(stk, expiry))
+        print('Got data for {0:s} - {1:s}, status code: {2:d}'.format(
+            stk, str(datetime.datetime.utcfromtimestamp(expiry).date()),
+            res.status_code))
         res_json = json.loads(res.text)
         res_0 = res_json['optionChain']['result'][0]
         quote = res_0['quote']
-        v = quote['regularMarketVolume']
-        o = quote['regularMarketOpen']
         c = quote['regularMarketPrice']
-        hi = quote['regularMarketDayHigh']
-        lo = quote['regularMarketDayLow']
-        dt = datetime.datetime.fromtimestamp(quote['regularMarketTime'])
-        print('{0:s} {1:s} {2:.2f} {3:.2f} {4:.2f} {5:.2f} {6:d}'.
-              format(stk, str(dt.date()), o, hi, lo, c, v))
+        if save_eod:
+            v = quote['regularMarketVolume']
+            o = quote['regularMarketOpen']
+            hi = quote['regularMarketDayHigh']
+            lo = quote['regularMarketDayLow']
+            cnx = stxdb.db_get_cnx()
+            with cnx.cursor() as crs:
+                crs.execute('insert into cache values ' + crs.mogrify(
+                    '(%s,%s,%s,%s,%s,%s,%s)',
+                    [stk, crt_date, o, hi, lo, c, v]) +
+                    'on conflict do nothing')
         calls = res_0['options'][0]['calls']
         puts = res_0['options'][0]['puts']
         for call in calls:
@@ -327,6 +354,9 @@ class Stx247:
                                         ask=put['ask']['raw'],
                                         volume=put['volume']['raw']),
                                    ignore_index=True)
+        print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
+            len(calls), len(puts), stk,
+            str(datetime.datetime.utcfromtimestamp(expiry).date())))
         return opt_df, c
         
         
