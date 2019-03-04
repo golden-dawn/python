@@ -104,9 +104,9 @@ class Stx247:
                                       self.sql_create_setup_tbl)
         self.df_dct = {}
         # calculate the last date for which we have historical options
-        crt_year = datetime.datetime.now().date().year
+        prev_year = datetime.datetime.now().date().year - 1
         self.last_opt_date = stxcal.move_busdays(
-            '{0:d}-12-31'.format(crt_year), 0)
+            '{0:d}-12-31'.format(prev_year), 0)
         self.ts_dct = {}        
         self.start_date = '1985-01-01'
         self.end_date = stxcal.move_busdays(str(
@@ -261,11 +261,14 @@ class Stx247:
     def get_opt_spread_leaders(self, ldr_date):
         next_exp = stxcal.next_expiry(ldr_date)
         crt_date = stxcal.current_busdate()
-        q = "select distinct stk from leaders where date='{0:s}'".format(
-            ldr_date)
+        q = "select distinct stk from leaders where dt='{0:s}'".format(ldr_date)
         stk_list = stxdb.db_read_cmd(q)
+        print('Calculating option spread for {0:d} stocks'.
+              format(len(stk_list)))
+        num = 0
         for elt in stk_list:
             stk = elt[0]
+            print('stk = {0:s}'.format(stk))
             tokens = stk.split('.')
             und = '.'.join(tokens[:-1]) if tokens[-1].isdigit() else stk
             if ldr_date <= self.last_opt_date:
@@ -285,15 +288,16 @@ class Stx247:
             opt_df['spread'] = 100 * (1 - opt_df['bid'] / opt_df['ask'])
             opt_df.sort_values(by=['strike_spot'], inplace=True)
             opt_df['avg_spread'] = opt_df['spread'].rolling(6).mean()
-            avg_spread = opt_df.loc[5].avg_spread
-            avg_atm_price = (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2
-            q = "update leaders set opt_spread={0:d} atm_price={1:.2f} "\
-                "where stk='{2:s}' and exp='{3:s}'".format(
-                    avg_spread, avg_atm_price, stk, next_exp)
+            avg_spread = int(opt_df.iloc[5].avg_spread * 100)
+            avg_atm_price = round(
+                (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2, 2)
             with stxdb.db_get_cnx().cursor() as crs:
-                crs.execute(q)
-                
-            # update here the spread values in the leaders table
+                crs.execute('update leaders set opt_spread=%s, atm_price=%s '
+                            'where stk=%s and exp=%s',
+                            (avg_spread, avg_atm_price, stk, next_exp))
+            num += 1
+            if num % 100 == 0 or num == len(stk_list):
+                print('Calculated option spread for {0:d} stocks'.format(num))
 
     def get_data(self, stk, crt_date):
         opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
@@ -317,23 +321,26 @@ class Stx247:
         print('Got data for {0:s} - {1:s}, status code: {2:d}'.format(
             stk, str(datetime.datetime.utcfromtimestamp(expiry).date()),
             res.status_code))
+        if res.status_code != 200:
+            return opt_df, 0
         res_json = json.loads(res.text)
         res_0 = res_json['optionChain']['result'][0]
-        quote = res_0['quote']
-        c = quote['regularMarketPrice']
+        quote = res_0.get('quote', {})
+        c = quote.get('regularMarketPrice', -1)
         if save_eod:
-            v = quote['regularMarketVolume']
-            o = quote['regularMarketOpen']
-            hi = quote['regularMarketDayHigh']
-            lo = quote['regularMarketDayLow']
+            v = quote.get('regularMarketVolume', -1)
+            o = quote.get('regularMarketOpen', -1)
+            hi = quote.get('regularMarketDayHigh', -1)
+            lo = quote.get('regularMarketDayLow', -1)
             cnx = stxdb.db_get_cnx()
             with cnx.cursor() as crs:
                 crs.execute('insert into cache values ' + crs.mogrify(
                     '(%s,%s,%s,%s,%s,%s,%s)',
                     [stk, crt_date, o, hi, lo, c, v]) +
                     'on conflict do nothing')
-        calls = res_0['options'][0]['calls']
-        puts = res_0['options'][0]['puts']
+        opts = res_0.get('options', [{}])
+        calls = opts[0].get('calls', [])
+        puts = opts[0].get('puts', [])
         for call in calls:
             opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'],
                                         und=stk,
