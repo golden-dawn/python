@@ -59,6 +59,7 @@ class Stx247:
         self.opt_tbl_name = 'opt_cache'
         self.ldr_tbl_name = 'leaders'
         self.setup_tbl_name = 'setups'
+        self.exclude_tbl_name = 'exclusions'
         self.sql_create_eod_tbl = "CREATE TABLE {0:s} ("\
                                   "stk varchar(8) NOT NULL,"\
                                   "dt date NOT NULL,"\
@@ -95,6 +96,10 @@ class Stx247:
                                     "setup varchar(80) NOT NULL,"\
                                     "PRIMARY KEY (stk,dt)"\
                                   ")".format(self.setup_tbl_name)
+        self.sql_create_exclude_tbl = "CREATE TABLE {0:s} ("\
+                                      "stk varchar(8) NOT NULL,"\
+                                      "PRIMARY KEY (stk)"\
+                                      ")".format(self.exclude_tbl_name)
         stxdb.db_create_missing_table(self.tbl_name, self.sql_create_eod_tbl)
         stxdb.db_create_missing_table(self.opt_tbl_name,
                                       self.sql_create_opt_tbl)
@@ -102,6 +107,8 @@ class Stx247:
                                       self.sql_create_ldr_tbl)
         stxdb.db_create_missing_table(self.setup_tbl_name,
                                       self.sql_create_setup_tbl)
+        stxdb.db_create_missing_table(self.exclude_tbl_name,
+                                      self.sql_create_exclude_tbl)
         self.df_dct = {}
         # calculate the last date for which we have historical options
         prev_year = datetime.datetime.now().date().year - 1
@@ -188,6 +195,15 @@ class Stx247:
                 crs_date = stxcal.next_busday(crs_date)
         stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
 
+    def calc_setups(self, ana_date, max_atm_price=5.0, num_stx=150):
+        with stxdb.db_get_cnx().cursor() as crs:
+            res = crs.execute(
+                'select stk from leaders where dt = %s and opt_spread >= 0 '
+                'and atm_price is not null and atm_price <= %s and '
+                'stk not in (select * from exclusions) order by opt_spread '
+                'limit %s', (ana_date, max_atm_price, num_stx))
+            
+        
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
         # 2. Run StxJL for each leader, for each factor
