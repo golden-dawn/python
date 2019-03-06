@@ -54,7 +54,7 @@ class Stx247:
                'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
                'date={1:d}&corsDomain=finance.yahoo.com'
 
-    def __init__(self):
+    def __init__(self, max_atm_price=5.0, num_stx=150):
         self.tbl_name = 'cache'
         self.opt_tbl_name = 'opt_cache'
         self.ldr_tbl_name = 'leaders'
@@ -118,6 +118,8 @@ class Stx247:
         self.start_date = '1985-01-01'
         self.end_date = stxcal.move_busdays(str(
             datetime.datetime.now().date()), 1)
+        self.max_atm_price = max_atm_price
+        self.num_stx = num_stx
 
     def intraday_job(self):
         print('247 intraday job')
@@ -195,13 +197,13 @@ class Stx247:
                 crs_date = stxcal.next_busday(crs_date)
         stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
 
-    def calc_setups(self, ana_date, max_atm_price=5.0, num_stx=150):
+    def calc_setups(self, ana_date):
         with stxdb.db_get_cnx().cursor() as crs:
             res = crs.execute(
                 'select stk from leaders where dt = %s and opt_spread >= 0 '
                 'and atm_price is not null and atm_price <= %s and '
                 'stk not in (select * from exclusions) order by opt_spread '
-                'limit %s', (ana_date, max_atm_price, num_stx))
+                'limit %s', (ana_date, self.max_atm_price, self.num_stx))
             
         
     def analyze(self, exp):
@@ -315,6 +317,19 @@ class Stx247:
             if num % 100 == 0 or num == len(stk_list):
                 print('Calculated option spread for {0:d} stocks'.format(num))
 
+    def get_data(self, crt_date, get_for_all=True):
+        if get_for_all:
+            q = "select distinct stk from leaders where dt='{0:s}'".format(
+                crt_date)
+        else:
+            q = crs.execute(
+                'select stk from leaders where dt = %s and opt_spread >= 0 '
+                'and atm_price is not null and atm_price <= %s and '
+                'stk not in (select * from exclusions) order by opt_spread '
+                'limit %s', (ana_date, self.max_atm_price, self.num_stx))
+            
+
+                
     def get_data(self, stk, crt_date):
         opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
                                          'dt', 'bid', 'ask', 'volume' ])
