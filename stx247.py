@@ -2,6 +2,7 @@ import argparse
 import datetime
 import json
 import pandas as pd
+from psycopg import sql
 import re
 import requests
 import schedule
@@ -318,18 +319,87 @@ class Stx247:
                 print('Calculated option spread for {0:d} stocks'.format(num))
 
     def get_data(self, crt_date, get_for_all=True):
+        expiries = stxcal.long_expiries()
+        cnx = stxdb.db_get_cnx()
         if get_for_all:
-            q = "select distinct stk from leaders where dt='{0:s}'".format(
-                crt_date)
+            q = sql.Composed(
+                [sql.SQL('select distinct stk from leaders where dt='),
+                 sql.Literal(crt_date)])
         else:
-            q = crs.execute(
-                'select stk from leaders where dt = %s and opt_spread >= 0 '
-                'and atm_price is not null and atm_price <= %s and '
-                'stk not in (select * from exclusions) order by opt_spread '
-                'limit %s', (ana_date, self.max_atm_price, self.num_stx))
-            
+            q = sql.Composed([
+                sql.SQL('select stk from leaders where dt='),
+                sql.Literal(ana_date),
+                sql.SQL('and opt_spread>=0 and atm_price is not null and '
+                        'atm_price<='),
+                sql.Literal(self.max_atm_price),
+                sql.SQL('and stk not in (select * from exclusions) order by '
+                        'opt_spread limit '),
+                sql.Literal(self.num_stx)])
+        with cnx.cursor() as crs:
+            crs.execute(q.as_string(cnx))
+            ldrs = [x[0] for x in crs]
+        exp_dates = [str(datetime.datetime.utcfromtimestamp(x).date())
+                     for x in expiries[:2]]
+        for ldr in ldrs:
+            self.get_stk_data(ldr, crt_date, expiries[0], exp_dates[0],
+                              save_eod=True)
+            self.get_stk_data(ldr, crt_date, expiries[1], exp_dates[1],
+                              save_eod=False)
 
-                
+    def get_stk_data(self, stk, crt_date, expiry, exp_date, save_eod=False):
+        res = requests.get(self.yhoo_url.format(stk, expiry))
+        if res.status_code != 200:
+            print('Failed to get {0:s} data for {1:s}: {2:d}'.
+                  format(exp_date, stk, res.status_code))
+            return
+        res_json = json.loads(res.text)
+        res_0 = res_json['optionChain']['result'][0]
+        quote = res_0.get('quote', {})
+        c = quote.get('regularMarketPrice', -1)
+        if c == -1:
+            print('Failed to get closing price for {0:s}'.format(stk))
+            return
+        if save_eod:
+            v = quote.get('regularMarketVolume', -1)
+            o = quote.get('regularMarketOpen', -1)
+            hi = quote.get('regularMarketDayHigh', -1)
+            lo = quote.get('regularMarketDayLow', -1)
+            if o == -1 or hi == -1 or lo == -1 or v == -1:
+                print('Failed to get EOD quote for {0:s}'.format(stk))
+            else:
+                cnx = stxdb.db_get_cnx()
+                with cnx.cursor() as crs:
+                    crs.execute('insert into cache values ' +
+                                crs.mogrify('(%s,%s,%s,%s,%s,%s,%s)',
+                                            [stk, crt_date, o, hi, lo, c, v]) +
+                                'on conflict do nothing')
+        opts = res_0.get('options', [{}])
+        calls = opts[0].get('calls', [])
+        puts = opts[0].get('puts', [])
+        cnx = stxdb.db_get_cnx()
+        with cnx.cursor() as crs:
+            for call in calls:
+                crs.execute('insert into opt_cache values' +
+                            crs.mogrify(
+                                '(%s,%s,%s,%s,%s,%s,%s,%s)',
+                                [call['expiration']['fmt'], stk, 'C',
+                                 call['strike']['raw'], crt_date,
+                                 call['bid']['raw'], call['ask']['raw'],
+                                 call['volume']['raw']] +
+                            'on conflict do nothing')
+            for put in puts:
+                crs.execute('insert into opt_cache values' +
+                            crs.mogrify(
+                                '(%s,%s,%s,%s,%s,%s,%s,%s)',
+                                [put['expiration']['fmt'], stk, 'C',
+                                 put['strike']['raw'], crt_date,
+                                 put['bid']['raw'], put['ask']['raw'],
+                                 put['volume']['raw']] +
+                            'on conflict do nothing')
+        print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
+            len(calls), len(puts), stk, exp_date))
+
+    
     def get_data(self, stk, crt_date):
         opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
                                          'dt', 'bid', 'ask', 'volume' ])
