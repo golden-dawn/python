@@ -2,7 +2,7 @@ import argparse
 import datetime
 import json
 import pandas as pd
-from psycopg import sql
+from psycopg2 import sql
 import re
 import requests
 import schedule
@@ -385,7 +385,7 @@ class Stx247:
                                 [call['expiration']['fmt'], stk, 'C',
                                  call['strike']['raw'], crt_date,
                                  call['bid']['raw'], call['ask']['raw'],
-                                 call['volume']['raw']] +
+                                 call['volume']['raw']]) +
                             'on conflict do nothing')
             for put in puts:
                 crs.execute('insert into opt_cache values' +
@@ -394,28 +394,28 @@ class Stx247:
                                 [put['expiration']['fmt'], stk, 'C',
                                  put['strike']['raw'], crt_date,
                                  put['bid']['raw'], put['ask']['raw'],
-                                 put['volume']['raw']] +
+                                 put['volume']['raw']]) +
                             'on conflict do nothing')
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
 
     
-    def get_data(self, stk, crt_date):
-        opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
-                                         'dt', 'bid', 'ask', 'volume' ])
-        expiries = stxcal.long_expiries()
-        opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[0],
-                                         save_eod=True)
-        # opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[1],
-        #                                  save_eod=False)
-        cnx = stxdb.db_get_cnx()
-        with cnx.cursor() as crs:
-            for _, row in opt_df.iterrows():
-                crs.execute('insert into opt_cache(expiry, und, cp, strike, '
-                            'dt, bid, ask, volume) values ' + crs.mogrify(
-                            '(%s,%s,%s,%s,%s,%s,%s,%s)', row.values.tolist()) +
-                            'on conflict do nothing')
-        return opt_df, spot
+    # def get_data(self, stk, crt_date):
+    #     opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
+    #                                      'dt', 'bid', 'ask', 'volume' ])
+    #     expiries = stxcal.long_expiries()
+    #     opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[0],
+    #                                      save_eod=True)
+    #     # opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[1],
+    #     #                                  save_eod=False)
+    #     cnx = stxdb.db_get_cnx()
+    #     with cnx.cursor() as crs:
+    #         for _, row in opt_df.iterrows():
+    #             crs.execute('insert into opt_cache(expiry, und, cp, strike, '
+    #                         'dt, bid, ask, volume) values ' + crs.mogrify(
+    #                         '(%s,%s,%s,%s,%s,%s,%s,%s)', row.values.tolist()) +
+    #                         'on conflict do nothing')
+    #     return opt_df, spot
 
     def get_exp_data(self, opt_df, stk, crt_date, expiry, save_eod=False):
         res = requests.get(self.yhoo_url.format(stk, expiry))
