@@ -279,28 +279,50 @@ class Stx247:
 
     def get_opt_spread_leaders(self, ldr_date):
         next_exp = stxcal.next_expiry(ldr_date)
+        calc_exp = stxcal.next_expiry(ldr_date, 9)
         crt_date = stxcal.current_busdate()
-        q = "select distinct stk from leaders where dt='{0:s}'".format(ldr_date)
-        stk_list = stxdb.db_read_cmd(q)
-        print('Calculating option spread for {0:d} stocks'.
-              format(len(stk_list)))
+        cnx = stxdb.db_get_cnx()
+        q = sql.Composed(
+            [sql.SQL('select distinct stk from leaders where dt='),
+             sql.Literal(ldr_date),
+             sql.SQL(' and stk not in (select * from exclusions)')])
+        with cnx.cursor() as crs:
+            crs.execute(q.as_string(cnx))
+            stx = [x[0] for x in crs]
+        print('Calculating option spread for {0:d} stocks'.format(len(stx)))
         num = 0
-        for elt in stk_list:
-            stk = elt[0]
+        if ldr_date <= self.last_opt_date:
+            opt_tbl_name = 'options'
+            spot_tbl_name = 'opt_spots'
+            spot_column = 'spot'
+            opt_date_column = 'date'
+        else:
+            opt_tbl_name = 'opt_cache'
+            spot_tbl_name = 'cache'
+            spot_column = 'c'
+            opt_date_column = 'dt'
+        for stk in stx:
             print('stk = {0:s}'.format(stk))
+            spot_q = sql.Composed([sql.SQL('select {} from {} where stk=').
+                                   format(sql.Identifier(spot_column),
+                                          sql.Identifier(spot_tbl_name)),
+                                   sql.Literal(stk),
+                                   sql.SQL(' and dt='), sql.Literal(crt_date)])
+            with cnx.cursor() as crs:
+                crs.execute(spot_q.as_string(cnx))
+                spot_res = crs.fetchone()
+                if spot_res is None:
+                    continue
+                spot = float(spot_res[0])
             tokens = stk.split('.')
             und = '.'.join(tokens[:-1]) if tokens[-1].isdigit() else stk
-            if ldr_date <= self.last_opt_date:
-                spot_q = "select * from opt_spots where stk='{0:s}' and "\
-                         "date = '{1:s}'".format(und, ldr_date)
-                spot_res = stxdb.db_read_cmd(spot_q)
-                spot = float(spot_res[0][2])
-                opt_q = "select * from options where expiry='{0:s}' " \
-                        "and und='{1:s}' and date = '{2:s}'".format(
-                        next_exp, und, ldr_date)
-                opt_df = pd.read_sql(opt_q, stxdb.db_get_cnx())
-            else:
-                opt_df, spot = self.get_data(stk, crt_date)
+            opt_q = sql.Composed(
+                [sql.SQL('select * from {} where expiry=').
+                 format(sql.Identifier(opt_tbl_name)),
+                 sql.Literal(calc_exp), sql.SQL(' and und='), sql.Literal(und),
+                 sql.SQL(' and {}=').format(sql.Identifier(opt_date_column)),
+                 sql.Literal(crt_date)])
+            opt_df = pd.read_sql(opt_q.as_string(cnx), cnx)
             if len(opt_df) < 6:
                 continue
             opt_df['strike_spot'] = abs(opt_df['strike'] - spot)
@@ -310,12 +332,12 @@ class Stx247:
             avg_spread = int(opt_df.iloc[5].avg_spread * 100)
             avg_atm_price = round(
                 (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2, 2)
-            with stxdb.db_get_cnx().cursor() as crs:
+            with cnx.cursor() as crs:
                 crs.execute('update leaders set opt_spread=%s, atm_price=%s '
                             'where stk=%s and exp=%s',
                             (avg_spread, avg_atm_price, stk, next_exp))
             num += 1
-            if num % 100 == 0 or num == len(stk_list):
+            if num % 100 == 0 or num == len(stx):
                 print('Calculated option spread for {0:d} stocks'.format(num))
 
     def get_data(self, crt_date, get_for_all=True):
