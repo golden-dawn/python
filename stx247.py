@@ -55,6 +55,10 @@ class Stx247:
                'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
                'date={1:d}&corsDomain=finance.yahoo.com'
 
+    yhoo2url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'\
+               '{0:s}?formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&'\
+               'modules=price&corsDomain=finance.yahoo.com'
+
     def __init__(self, max_atm_price=5.0, num_stx=150):
         self.tbl_name = 'cache'
         self.opt_tbl_name = 'opt_cache'
@@ -198,7 +202,25 @@ class Stx247:
                 crs_date = stxcal.next_busday(crs_date)
         stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
 
+
+    def get_leaders(self, ldr_date):
+        cnx = stxdb.db_get_cnx()
+        q = sql.Composed([sql.SQL('select stk from leaders where dt='),
+                          sql.Literal(ldr_date),
+                          sql.SQL(' and opt_spread >= 0 and '
+                                  'atm_price is not null and atm_price<='),
+                          sql.Literal(self.max_atm_price),
+                          sql.SQL('and stk not in (select * from exclusions) '
+                                  'order by opt_spread asc limit '),
+                          sql.Literal(self.num_stx)])
+        with cnx.cursor() as crs:
+            crs.execute(q.as_string(cnx))
+            ldrs = [x[0] for x in crs]
+        return ldrs
+        
     def calc_setups(self, ana_date):
+        ldrs = self.get_leaders(ana_date)
+        
         with stxdb.db_get_cnx().cursor() as crs:
             res = crs.execute(
                 'select stk from leaders where dt = %s and opt_spread >= 0 '
@@ -210,6 +232,7 @@ class Stx247:
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
         # 2. Run StxJL for each leader, for each factor
+        # ldr_list = self.get_leaders(
         setup_df = pd.DataFrame(columns=['date', 'stk', 'setup'])
         factors = [1.0, 1.5, 2.0]
         q1 = "select min(dt), max(dt) from leaders where exp='{0:s}'".format(
@@ -519,6 +542,8 @@ if __name__ == '__main__':
             print('Will retrieve options and calculate spread liquidity')
             s247.get_opt_spread_leaders(ldr_date)
         exit(0)
+
+        https://finance.yahoo.com/quote/AAPL?p=AAPL
     s247= Stx247()
     s247.eow_job()
     schedule.every().monday.at("15:30").do(s247.intraday_job)
