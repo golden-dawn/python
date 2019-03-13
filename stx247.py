@@ -444,73 +444,16 @@ class Stx247:
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
 
-    
-    # def get_data(self, stk, crt_date):
-    #     opt_df = pd.DataFrame(columns = ['expiry', 'und', 'cp', 'strike',
-    #                                      'dt', 'bid', 'ask', 'volume' ])
-    #     expiries = stxcal.long_expiries()
-    #     opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[0],
-    #                                      save_eod=True)
-    #     # opt_df, spot = self.get_exp_data(opt_df, stk, crt_date, expiries[1],
-    #     #                                  save_eod=False)
-    #     cnx = stxdb.db_get_cnx()
-    #     with cnx.cursor() as crs:
-    #         for _, row in opt_df.iterrows():
-    #             crs.execute('insert into opt_cache(expiry, und, cp, strike, '
-    #                         'dt, bid, ask, volume) values ' + crs.mogrify(
-    #                         '(%s,%s,%s,%s,%s,%s,%s,%s)', row.values.tolist()) +
-    #                         'on conflict do nothing')
-    #     return opt_df, spot
-
-    def get_exp_data(self, opt_df, stk, crt_date, expiry, save_eod=False):
-        res = requests.get(self.yhoo_url.format(stk, expiry))
-        print('Got data for {0:s} - {1:s}, status code: {2:d}'.format(
-            stk, str(datetime.datetime.utcfromtimestamp(expiry).date()),
-            res.status_code))
-        if res.status_code != 200:
-            return opt_df, 0
-        res_json = json.loads(res.text)
-        res_0 = res_json['optionChain']['result'][0]
-        quote = res_0.get('quote', {})
-        c = quote.get('regularMarketPrice', -1)
-        if save_eod:
-            v = quote.get('regularMarketVolume', -1)
-            o = quote.get('regularMarketOpen', -1)
-            hi = quote.get('regularMarketDayHigh', -1)
-            lo = quote.get('regularMarketDayLow', -1)
-            cnx = stxdb.db_get_cnx()
-            with cnx.cursor() as crs:
-                crs.execute('insert into cache values ' + crs.mogrify(
-                    '(%s,%s,%s,%s,%s,%s,%s)',
-                    [stk, crt_date, o, hi, lo, c, v]) +
-                    'on conflict do nothing')
-        opts = res_0.get('options', [{}])
-        calls = opts[0].get('calls', [])
-        puts = opts[0].get('puts', [])
-        for call in calls:
-            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'],
-                                        und=stk,
-                                        cp='C',
-                                        strike=call['strike']['raw'],
-                                        dt=crt_date,
-                                        bid=call['bid']['raw'],
-                                        ask=call['ask']['raw'],
-                                        volume=call['volume']['raw']),
-                                   ignore_index=True)
-        for put in puts:
-            opt_df = opt_df.append(dict(expiry=call['expiration']['fmt'],
-                                        und=stk,
-                                        cp='P',
-                                        strike=put['strike']['raw'],
-                                        dt=crt_date,
-                                        bid=put['bid']['raw'],
-                                        ask=put['ask']['raw'],
-                                        volume=put['volume']['raw']),
-                                   ignore_index=True)
-        print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
-            len(calls), len(puts), stk,
-            str(datetime.datetime.utcfromtimestamp(expiry).date())))
-        return opt_df, c
+    def build_cache(self, cache_date):
+        q1 = 'delete from cache'
+        cnx = stxdb.db_get_cnx()
+        with cnx.cursor() as crs:
+            crs.execute(q1)
+        ldr_list = self.get_leaders(cache_date)
+        for ldr in ldr_list:
+            q2 = sql.Composed([sql.SQL('select * from eods where stk='),
+                               sql.Literal(ldr)])
+            
         
         
 if __name__ == '__main__':
