@@ -98,6 +98,13 @@ class StxEOD:
                 v = 1
             upload_lines.append('{0:s}\t{1:d}\t0'.format(
                 '\t'.join(tokens[:6]), v))
+        cnx = stxdb.db_get_cnx()
+        with cnx.cursor() as crs:
+            for line in upload_lines:
+                crs.execute('insert into eods values ' +
+                            crs.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s)', line) +
+                            'on conflict do update')
+
         with open(self.eod_name, 'w') as ofile:
             ofile.write('\n'.join(upload_lines))
         try:
