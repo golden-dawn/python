@@ -42,39 +42,22 @@ def valid_date(s):
 
 class Stx247:    
     '''
-    1. In the constructor, create the database tables, if non-existent
     2. Schedule two runs, one at 15:30, the other at 20:00
     3. Email the analysis results:
        https://medium.freecodecamp.org/send-emails-using-code-4fcea9df63f
     4. If the current date is an option expiry, the 20:00 run should
        be generating new list of leaders.
-    5. Have exclusion list, to remove stocks I don't need.
-    6. 
     '''
     yhoo_url = 'https://query1.finance.yahoo.com/v7/finance/options/{0:s}?' \
                'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
                'date={1:d}&corsDomain=finance.yahoo.com'
 
-    yhoo2url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/'\
-               '{0:s}?formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&'\
-               'modules=price&corsDomain=finance.yahoo.com'
-
     def __init__(self, max_atm_price=5.0, num_stx=150):
-        self.tbl_name = 'cache'
+        self.tbl_name = 'eods'
         self.opt_tbl_name = 'opt_cache'
         self.ldr_tbl_name = 'leaders'
         self.setup_tbl_name = 'setups'
         self.exclude_tbl_name = 'exclusions'
-        self.sql_create_eod_tbl = "CREATE TABLE {0:s} ("\
-                                  "stk varchar(8) NOT NULL,"\
-                                  "dt date NOT NULL,"\
-                                  "o numeric(10,2) DEFAULT NULL,"\
-                                  "hi numeric(10,2) DEFAULT NULL,"\
-                                  "lo numeric(10,2) DEFAULT NULL,"\
-                                  "c numeric(10,2) DEFAULT NULL,"\
-                                  "v integer DEFAULT NULL,"\
-                                  "PRIMARY KEY (stk,dt)"\
-                                  ")".format(self.tbl_name)
         self.sql_create_opt_tbl = "CREATE TABLE {0:s} ("\
                                   'expiry date NOT NULL,'\
                                   'und character varying(16) NOT NULL,'\
@@ -105,7 +88,6 @@ class Stx247:
                                       "stk varchar(8) NOT NULL,"\
                                       "PRIMARY KEY (stk)"\
                                       ")".format(self.exclude_tbl_name)
-        stxdb.db_create_missing_table(self.tbl_name, self.sql_create_eod_tbl)
         stxdb.db_create_missing_table(self.opt_tbl_name,
                                       self.sql_create_opt_tbl)
         stxdb.db_create_missing_table(self.ldr_tbl_name,
@@ -114,7 +96,6 @@ class Stx247:
                                       self.sql_create_setup_tbl)
         stxdb.db_create_missing_table(self.exclude_tbl_name,
                                       self.sql_create_exclude_tbl)
-        self.df_dct = {}
         # calculate the last date for which we have historical options
         prev_year = datetime.datetime.now().date().year - 1
         self.last_opt_date = stxcal.move_busdays(
