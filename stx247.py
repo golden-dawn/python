@@ -106,12 +106,21 @@ class Stx247:
             datetime.datetime.now().date()), 1)
         self.max_atm_price = max_atm_price
         self.num_stx = num_stx
-
+        
     def intraday_job(self):
+        # download data only for option spread leaders
+        # calculate setups, include triggered setups
+        # figure out how to email the results
         print('247 intraday job')
+        intraday_analysis()
+
+    def intraday_analysis():
+        pass
 
     def eod_job(self):
         print('247 end of day job')
+        current_date = str(datetime.datetime.now().date())
+        eod_analysis(current_date)
         max_dt_q = stxdb.db_read_cmd('select max(dt) from setups')
         if max_dt_q[0][0] is not None:
             ana_date = str(max_dt_q[0][0])
@@ -122,6 +131,15 @@ class Stx247:
             self.analyze(ana_date)
             ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
 
+    def eod_analysis(ana_date):
+        # special case when the date is an option expiry date:
+        #   1. wait until eoddata is downloaded.
+        #   2. calculate liquidity leaders
+        #   3. download options for all liquidity leaders
+        #   4. calculate option spread leaders
+        #   5. populate leaders table
+        #   6. MON vs. FRI
+            
     def eow_job(self):
         print('247 end of week job')
         print('247 end of week job')
@@ -178,11 +196,10 @@ class Stx247:
             crs_date = ana_date
             while crs_date < next_exp_busday:
                 for ldr in liq_leaders:
-                    f.write('{0:s}\t{1:s}\t{2:s}\t{3:d}\t1000\n'.
+                    f.write('{0:s}\t{1:s}\t{2:s}\t{3:d}\t-1000\n'.
                             format(crs_date, ldr[0], next_exp, int(ldr[1])))
                 crs_date = stxcal.next_busday(crs_date)
         stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
-
 
     def get_leaders(self, ldr_date):
         cnx = stxdb.db_get_cnx()
@@ -198,18 +215,7 @@ class Stx247:
             crs.execute(q.as_string(cnx))
             ldrs = [x[0] for x in crs]
         return ldrs
-        
-    def calc_setups(self, ana_date):
-        ldrs = self.get_leaders(ana_date)
-        
-        with stxdb.db_get_cnx().cursor() as crs:
-            res = crs.execute(
-                'select stk from leaders where dt = %s and opt_spread >= 0 '
-                'and atm_price is not null and atm_price <= %s and '
-                'stk not in (select * from exclusions) order by opt_spread '
-                'limit %s', (ana_date, self.max_atm_price, self.num_stx))
-            
-        
+
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
         # 2. Run StxJL for each leader, for each factor
@@ -270,7 +276,7 @@ class Stx247:
                     dict(date=ts.current_date(), stk=ts.stk, setup='--1234--'),
                     ignore_index=True)
         return setup_df
-            
+
     def is_liq_leader(self, ts, ana_date, min_act, min_rcr, stk_act):
         ts.set_day(ana_date)
         if ts.pos < 50:
@@ -302,7 +308,7 @@ class Stx247:
             opt_date_column = 'date'
         else:
             opt_tbl_name = 'opt_cache'
-            spot_tbl_name = 'cache'
+            spot_tbl_name = 'eods'
             spot_column = 'c'
             opt_date_column = 'dt'
         for stk in stx:
@@ -425,18 +431,7 @@ class Stx247:
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
 
-    def build_cache(self, cache_date):
-        q1 = 'delete from cache'
-        cnx = stxdb.db_get_cnx()
-        with cnx.cursor() as crs:
-            crs.execute(q1)
-        ldr_list = self.get_leaders(cache_date)
-        for ldr in ldr_list:
-            q2 = sql.Composed([sql.SQL('select * from eods where stk='),
-                               sql.Literal(ldr)])
-            
-        
-        
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--leaders', action='store_true',
