@@ -70,13 +70,12 @@ class Stx247:
                                   'PRIMARY KEY (expiry,und,cp,strike,dt)'\
                                   ')'.format(self.opt_tbl_name)
         self.sql_create_ldr_tbl = "CREATE TABLE {0:s} ("\
-                                  "dt date NOT NULL,"\
-                                  "stk varchar(16) NOT NULL,"\
                                   "exp date NOT NULL,"\
+                                  "stk varchar(16) NOT NULL,"\
                                   "activity integer DEFAULT NULL,"\
                                   "opt_spread integer DEFAULT NULL,"\
                                   "atm_price numeric(6,2) DEFAULT NULL,"\
-                                  "PRIMARY KEY (dt,stk)"\
+                                  "PRIMARY KEY (exp,stk)"\
                                   ")".format(self.ldr_tbl_name)
         self.sql_create_setup_tbl = "CREATE TABLE {0:s} ("\
                                     "stk varchar(8) NOT NULL,"\
@@ -112,26 +111,18 @@ class Stx247:
         # calculate setups, include triggered setups
         # figure out how to email the results
         print('247 intraday job')
-        intraday_analysis()
+        self.intraday_analysis()
 
-    def intraday_analysis():
+    def intraday_analysis(self):
         pass
 
     def eod_job(self):
         print('247 end of day job')
         current_date = str(datetime.datetime.now().date())
-        eod_analysis(current_date)
-        max_dt_q = stxdb.db_read_cmd('select max(dt) from setups')
-        if max_dt_q[0][0] is not None:
-            ana_date = str(max_dt_q[0][0])
-        crt_date = str(datetime.datetime.now().date())
-        self.end_date = stxcal.move_busdays(str(
-            datetime.datetime.now().date()), 1)
-        while ana_date <= crt_date:
-            self.analyze(ana_date)
-            ana_date = stxcal.move_busdays(stxcal.next_expiry(ana_date), 0)
+        ana_date = stxcal.move_busdays(current_date, 0)
+        self.eod_analysis(ana_date)
 
-    def eod_analysis(ana_date):
+    def eod_analysis(self, ana_date):
         # special case when the date is an option expiry date:
         #   1. wait until eoddata is downloaded.
         #   2. calculate liquidity leaders
@@ -139,6 +130,25 @@ class Stx247:
         #   4. calculate option spread leaders
         #   5. populate leaders table
         #   6. MON vs. FRI
+        next_exp = stxcal.next_expiry(ana_date, 0)
+        if next_exp == ana_date:
+            res = stxdb.db_read_cmd('select max(date) from eods where '
+                                    'open_interest>=0')
+            last_eod_date = str(res[0][0])
+            while last_eod_date < ana_date:
+                print('Could not find eod data for {0:s}, sleeping one hour'.
+                      format(ana_date))
+                time.sleep(3600)
+                res = stxdb.db_read_cmd('select max(date) from eods where '
+                                        'open_interest>=0')
+                last_eod_date = str(res[0][0])
+            self.get_liq_leaders(ana_date)
+            self.get_data(ana_date, get_eod=False, get_for_all=True)
+            self.get_opt_spread_leaders(ana_date)
+        else:
+            self.get_data(ana_date, get_for_all=False, save_eods=True,
+                          save_opts=False)
+        # self.analysis(ana_date)
             
     def eow_job(self):
         print('247 end of week job')
@@ -158,7 +168,8 @@ class Stx247:
 
     def get_liq_leaders(self, ana_date, min_act=80000, min_rcr=0.015):
         stk_list = stxdb.db_read_cmd("select distinct stk from eods where "
-                                     "date='{0:s}'".format(ana_date))
+                                     "date='{0:s}' order by stk".
+                                     format(ana_date))
         all_stocks = [s[0] for s in stk_list
                       if re.match(r'^[A-Za-z]', str(s[0]))]
         print('Found {0:d} stocks for {1:s}'.format(len(all_stocks), ana_date))
@@ -181,36 +192,38 @@ class Stx247:
                 self.ts_dct[s] = ts
                 num_stx += 1
             stk_act = [s]
-            # if self.is_act_leader(ts, ana_date, next_exp):
             if self.is_liq_leader(ts, ana_date, min_act, min_rcr, stk_act):
                 liq_leaders.append(stk_act)
             if num % 1000 == 0 or num == len(all_stocks):
                 print('Processed {0:d} stocks, found {1:d} liquidity leaders'.
                       format(num, len(liq_leaders)))
-        # leaders.sort()
         print('Found {0:d} liquidity leaders for {1:s}'.format(
             len(liq_leaders), ana_date))
         print('Loaded {0:d} stocks for {1:s}'.format(num_stx, ana_date))
-        liq_ldr_fname = '/tmp/liq_leaders.txt'
-        with open(liq_ldr_fname, 'w') as f:
-            crs_date = ana_date
-            while crs_date < next_exp_busday:
-                for ldr in liq_leaders:
-                    f.write('{0:s}\t{1:s}\t{2:s}\t{3:d}\t-1000\n'.
-                            format(crs_date, ldr[0], next_exp, int(ldr[1])))
-                crs_date = stxcal.next_busday(crs_date)
-        stxdb.db_upload_file(liq_ldr_fname, self.ldr_tbl_name)
-
-    def get_leaders(self, ldr_date):
         cnx = stxdb.db_get_cnx()
-        q = sql.Composed([sql.SQL('select stk from leaders where dt='),
-                          sql.Literal(ldr_date),
-                          sql.SQL(' and opt_spread >= 0 and '
-                                  'atm_price is not null and atm_price<='),
-                          sql.Literal(self.max_atm_price),
-                          sql.SQL('and stk not in (select * from exclusions) '
-                                  'order by opt_spread asc limit '),
-                          sql.Literal(self.num_stx)])
+        with cnx.cursor() as crs:
+            for ldr in liq_leaders:
+                crs.execute(
+                    'insert into leaders(exp,stk,activity,opt_spread) values ' +
+                    crs.mogrify('(%s,%s,%s,%s)',
+                                [next_exp, ldr[0], int(ldr[1]), -1000]) +
+                    'on conflict do nothing')
+
+    def get_leaders(self, ldr_date, get_for_all=True):
+        ldr_expiry = stxcal.next_expiry(ldr_date, -1)
+        cnx = stxdb.db_get_cnx()
+        if get_for_all:
+            q = sql.Composed([sql.SQL('select stk from leaders where exp='),
+                              sql.Literal(ldr_expiry)])
+        else:
+            q = sql.Composed(
+                [sql.SQL('select stk from leaders where exp='),
+                 sql.Literal(ldr_expiry),
+                 sql.SQL(' and opt_spread >= 0 and atm_price is not null '
+                         'and atm_price<='), sql.Literal(self.max_atm_price),
+                 sql.SQL('and stk not in (select * from exclusions) '
+                         'order by opt_spread asc limit '),
+                 sql.Literal(self.num_stx)])
         with cnx.cursor() as crs:
             crs.execute(q.as_string(cnx))
             ldrs = [x[0] for x in crs]
@@ -292,13 +305,7 @@ class Stx247:
         calc_exp = stxcal.next_expiry(ldr_date, 9)
         crt_date = stxcal.current_busdate()
         cnx = stxdb.db_get_cnx()
-        q = sql.Composed(
-            [sql.SQL('select distinct stk from leaders where dt='),
-             sql.Literal(ldr_date),
-             sql.SQL(' and stk not in (select * from exclusions)')])
-        with cnx.cursor() as crs:
-            crs.execute(q.as_string(cnx))
-            stx = [x[0] for x in crs]
+        stx = self.get_leaders(ldr_date)
         print('Calculating option spread for {0:d} stocks'.format(len(stx)))
         num = 0
         if ldr_date <= self.last_opt_date:
@@ -350,35 +357,20 @@ class Stx247:
             if num % 100 == 0 or num == len(stx):
                 print('Calculated option spread for {0:d} stocks'.format(num))
 
-    def get_data(self, crt_date, get_for_all=True):
+    def get_data(self, crt_date, get_eod=True, get_for_all=True):
         expiries = stxcal.long_expiries()
         cnx = stxdb.db_get_cnx()
-        if get_for_all:
-            q = sql.Composed(
-                [sql.SQL('select distinct stk from leaders where dt='),
-                 sql.Literal(crt_date)])
-        else:
-            q = sql.Composed([
-                sql.SQL('select stk from leaders where dt='),
-                sql.Literal(ana_date),
-                sql.SQL('and opt_spread>=0 and atm_price is not null and '
-                        'atm_price<='),
-                sql.Literal(self.max_atm_price),
-                sql.SQL('and stk not in (select * from exclusions) order by '
-                        'opt_spread limit '),
-                sql.Literal(self.num_stx)])
-        with cnx.cursor() as crs:
-            crs.execute(q.as_string(cnx))
-            ldrs = [x[0] for x in crs]
+        ldrs = self.get_leaders(crt_date, get_for_all)
         exp_dates = [str(datetime.datetime.utcfromtimestamp(x).date())
                      for x in expiries[:2]]
         for ldr in ldrs:
             self.get_stk_data(ldr, crt_date, expiries[0], exp_dates[0],
-                              save_eod=True)
+                              save_eod=get_eod)
             self.get_stk_data(ldr, crt_date, expiries[1], exp_dates[1],
                               save_eod=False)
 
-    def get_stk_data(self, stk, crt_date, expiry, exp_date, save_eod=False):
+    def get_stk_data(self, stk, crt_date, expiry, exp_date, save_eod=False,
+                     save_opts=True):
         res = requests.get(self.yhoo_url.format(stk, expiry))
         if res.status_code != 200:
             print('Failed to get {0:s} data for {1:s}: {2:d}'.
@@ -399,12 +391,9 @@ class Stx247:
             if o == -1 or hi == -1 or lo == -1 or v == -1:
                 print('Failed to get EOD quote for {0:s}'.format(stk))
             else:
-                cnx = stxdb.db_get_cnx()
-                with cnx.cursor() as crs:
-                    crs.execute('insert into cache values ' +
-                                crs.mogrify('(%s,%s,%s,%s,%s,%s,%s)',
-                                            [stk, crt_date, o, hi, lo, c, v]) +
-                                'on conflict do nothing')
+                stxdb.db_insert_eods([[stk, crt_date, o, hi, lo, c, v, -1]])
+        if not save_opts:
+            return
         opts = res_0.get('options', [{}])
         calls = opts[0].get('calls', [])
         puts = opts[0].get('puts', [])
@@ -462,7 +451,6 @@ if __name__ == '__main__':
             s247.get_opt_spread_leaders(ldr_date)
         exit(0)
 
-        https://finance.yahoo.com/quote/AAPL?p=AAPL
     s247= Stx247()
     s247.eow_job()
     schedule.every().monday.at("15:30").do(s247.intraday_job)
@@ -475,7 +463,7 @@ if __name__ == '__main__':
     schedule.every().wednesday.at("21:00").do(s247.eod_job)
     schedule.every().thursday.at("21:00").do(s247.eod_job)
     schedule.every().friday.at("21:00").do(s247.eod_job)
-    schedule.every().friday.at("23:00").do(s247.eow_job)
+    schedule.every().friday.at("23:00").do(s247.eod_job)
     while True:
         schedule.run_pending()
         time.sleep(1)
