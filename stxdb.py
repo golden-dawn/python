@@ -135,3 +135,15 @@ def db_sql_timeframe(sd, ed, include_and):
     elif ed is not None:
         res = "{0:s} date <= '{1:s}'".format(prefix, ed)
     return res
+
+
+def db_insert_eods(record_list):                    
+    cnx = stxdb.db_get_cnx()
+    with cnx.cursor() as crs:
+        for rec in record_list:
+            crs.execute(
+                'insert into eods values ' +
+                crs.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s)', rec) +
+                'on conflict on constraint eods_pkey do update set '
+                'o=excluded.o, hi=excluded.hi, lo=excluded.lo, c=excluded.c, '
+                'volume=excluded.volume, open_interest=excluded.open_interest')
