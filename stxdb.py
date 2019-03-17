@@ -138,8 +138,7 @@ def db_sql_timeframe(sd, ed, include_and):
 
 
 def db_insert_eods(record_list):                    
-    cnx = stxdb.db_get_cnx()
-    with cnx.cursor() as crs:
+    with db_get_cnx().cursor() as crs:
         for rec in record_list:
             crs.execute(
                 'insert into eods values ' +
