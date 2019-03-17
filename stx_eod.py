@@ -96,22 +96,8 @@ class StxEOD:
             v = v // 1000
             if v == 0:
                 v = 1
-            upload_lines.append('{0:s}\t{1:d}\t0'.format(
-                '\t'.join(tokens[:6]), v))
-        cnx = stxdb.db_get_cnx()
-        with cnx.cursor() as crs:
-            for line in upload_lines:
-                crs.execute('insert into eods values ' +
-                            crs.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s)', line) +
-                            'on conflict do update')
-
-        with open(self.eod_name, 'w') as ofile:
-            ofile.write('\n'.join(upload_lines))
-        try:
-            stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
-            print('{0:s}: uploaded eods'.format(ifname))
-        except Exception as ex:
-            print('Failed to upload {0:s}, error {1:s}'.format(ifname, str(ex)))
+            upload_lines.append([stk, dt, o, hi, lo, c, v, 0])
+        stxdb.db_insert_eods(upload_lines)
 
     def parseeodline(self, line, db_stx):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
@@ -330,12 +316,12 @@ if __name__ == '__main__':
     # seod.load_eoddata_files(s_date_ed, e_date_ed)
 
     # 1. Get the last date for which eod data is available in the database
-    res = stxdb.db_read_cmd("select max(date) from eods")
+    res = stxdb.db_read_cmd("select max(date) from eods where open_interest=0")
     start_date = stxcal.next_busday(str(res[0][0]))
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
-    # 4. if the files are available, perform analysis for the current date
+    # 4. if the files are available, upload them
     seod.load_eoddata_files(start_date, end_date)
     res = stxdb.db_read_cmd("select max(date) from dividends")
     start_date = stxcal.next_busday(str(res[0][0]))
