@@ -210,7 +210,7 @@ class StxEOD:
 import os
 from stx_eod import StxEOD
 data_dir = os.getenv('DOWNLOAD_DIR')
-splits_file = os.path.join(data_dir, 'splits_20181130_ana.txt')
+splits_file = os.path.join(data_dir, 'splits_20190315_ana.txt')
 seod = StxEOD(data_dir)
 seod.upload_splits(splits_file)
     '''
