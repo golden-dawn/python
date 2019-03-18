@@ -148,7 +148,7 @@ class Stx247:
         else:
             self.get_data(ana_date, get_for_all=False, save_eods=True,
                           save_opts=False)
-        # self.analysis(ana_date)
+        self.calc_setups(ana_date)
             
     def eow_job(self):
         print('247 end of week job')
@@ -210,7 +210,7 @@ class Stx247:
                     'on conflict do nothing')
 
     def get_leaders(self, ldr_date, get_for_all=True):
-        ldr_expiry = stxcal.next_expiry(ldr_date, -1)
+        ldr_expiry = stxcal.next_expiry(ldr_date)
         cnx = stxdb.db_get_cnx()
         if get_for_all:
             q = sql.Composed([sql.SQL('select stk from leaders where exp='),
@@ -228,6 +228,29 @@ class Stx247:
             crs.execute(q.as_string(cnx))
             ldrs = [x[0] for x in crs]
         return ldrs
+
+    def calc_setups(self, ana_date):
+        setup_df = pd.DataFrame(columns=['date', 'stk', 'setup', 'triggered'])
+        # factors = [1.0, 1.5, 2.0]
+        factors = [2.0]
+        stx = self.get_leaders(ana_date, get_for_all=False)
+        for stk in stx:
+            ts = StxTS(stk, self.start_date, ana_date)
+            for ixx in range(1, 5):
+                ts.df['hi_{0:d}'.format(ixx)] = ts.df['hi'].shift(ixx)
+                ts.df['lo_{0:d}'.format(ixx)] = ts.df['lo'].shift(ixx)
+            jl_list = []
+            for factor in factors:
+                jl = StxJL(ts, factor)
+                jl.jl(ana_date)
+                jl_list.append(jl)
+            setup_df = self.setups(ts, jl_list, setup_df)
+            print('Finished {0:s}'.format(stk))
+        # setup_df = setup_df.sort_values(by=['date', 'setup', 'stk'])
+        for _, row in setup_df.iterrows():
+            print('{0:s} {1:12s} {2:s}'.
+                  format(row['date'], row['stk'], row['setup']))
+            
 
     def analyze(self, exp):
         # 1. Select all the leaders for that expiry
@@ -270,7 +293,8 @@ class Stx247:
 
     def setups(self, ts, jl_list, setup_df):
         # print('setups {0:s},{1:s}'.format(ts.stk, ts.current_date()))
-        jl10, jl15, jl20 = jl_list
+        # jl10, jl15, jl20 = jl_list
+        jl20 = jl_list[0]
         l20 = jl20.last
         if l20['prim_state'] == StxJL.UT and l20['prim_state'] == l20['state']:
             if ts.current('hi') < ts.current('hi_1') and \
@@ -323,8 +347,8 @@ class Stx247:
             spot_q = sql.Composed([sql.SQL('select {} from {} where stk=').
                                    format(sql.Identifier(spot_column),
                                           sql.Identifier(spot_tbl_name)),
-                                   sql.Literal(stk),
-                                   sql.SQL(' and dt='), sql.Literal(crt_date)])
+                                   sql.Literal(stk), sql.SQL(' and date='),
+                                   sql.Literal(crt_date)])
             with cnx.cursor() as crs:
                 crs.execute(spot_q.as_string(cnx))
                 spot_res = crs.fetchone()
@@ -346,13 +370,16 @@ class Stx247:
             opt_df['spread'] = 100 * (1 - opt_df['bid'] / opt_df['ask'])
             opt_df.sort_values(by=['strike_spot'], inplace=True)
             opt_df['avg_spread'] = opt_df['spread'].rolling(6).mean()
-            avg_spread = int(opt_df.iloc[5].avg_spread * 100)
-            avg_atm_price = round(
-                (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2, 2)
-            with cnx.cursor() as crs:
-                crs.execute('update leaders set opt_spread=%s, atm_price=%s '
-                            'where stk=%s and exp=%s',
-                            (avg_spread, avg_atm_price, stk, next_exp))
+            try:
+                avg_spread = int(opt_df.iloc[5].avg_spread * 100)
+                avg_atm_price = round(
+                    (opt_df.iloc[0].ask + opt_df.iloc[1].ask) / 2, 2)
+                with cnx.cursor() as crs:
+                    crs.execute('update leaders set opt_spread=%s, '
+                                'atm_price=%s where stk=%s and exp=%s',
+                                (avg_spread, avg_atm_price, stk, next_exp))
+            except:
+                print('Failed to calc avg_spread for {0:s}'.format(stk))
             num += 1
             if num % 100 == 0 or num == len(stx):
                 print('Calculated option spread for {0:d} stocks'.format(num))
