@@ -114,12 +114,14 @@ class Stx247:
         self.intraday_analysis()
 
     def intraday_analysis(self):
-        pass
+        self.get_data(ana_date, get_for_all=False, save_eods=True,
+                      save_opts=False)
 
     def eod_job(self):
         print('247 end of day job')
         current_date = str(datetime.datetime.now().date())
         ana_date = stxcal.move_busdays(current_date, 0)
+        print('    ana_date = {0:s}'.format(ana_date))
         self.eod_analysis(ana_date)
 
     def eod_analysis(self, ana_date):
@@ -146,8 +148,7 @@ class Stx247:
             self.get_data(ana_date, get_eod=False, get_for_all=True)
             self.get_opt_spread_leaders(ana_date)
         else:
-            self.get_data(ana_date, get_for_all=False, save_eods=True,
-                          save_opts=False)
+            self.get_data(ana_date, get_for_all=False, get_eod=True)
         self.calc_setups(ana_date)
             
     def eow_job(self):
@@ -389,12 +390,13 @@ class Stx247:
         cnx = stxdb.db_get_cnx()
         ldrs = self.get_leaders(crt_date, get_for_all)
         exp_dates = [str(datetime.datetime.utcfromtimestamp(x).date())
-                     for x in expiries[:2]]
+                     for x in expiries[:3]]
+        six = 1 if exp_dates[0] < crt_date else 0
         for ldr in ldrs:
-            self.get_stk_data(ldr, crt_date, expiries[0], exp_dates[0],
+            self.get_stk_data(ldr, crt_date, expiries[six], exp_dates[six],
                               save_eod=get_eod)
-            self.get_stk_data(ldr, crt_date, expiries[1], exp_dates[1],
-                              save_eod=False)
+            self.get_stk_data(ldr, crt_date, expiries[six + 1],
+                              exp_dates[six + 1], save_eod=False)
 
     def get_stk_data(self, stk, crt_date, expiry, exp_date, save_eod=False,
                      save_opts=True):
