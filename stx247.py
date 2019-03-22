@@ -119,8 +119,7 @@ class Stx247:
 
     def eod_job(self):
         print('247 end of day job')
-        current_date = str(datetime.datetime.now().date())
-        ana_date = stxcal.move_busdays(current_date, 0)
+        ana_date = stxcal.current_busdate(hr=10)
         print('    ana_date = {0:s}'.format(ana_date))
         self.eod_analysis(ana_date)
 
@@ -420,7 +419,8 @@ class Stx247:
             if o == -1 or hi == -1 or lo == -1 or v == -1:
                 print('Failed to get EOD quote for {0:s}'.format(stk))
             else:
-                stxdb.db_insert_eods([[stk, crt_date, o, hi, lo, c, v, -1]])
+                stxdb.db_insert_eods([[stk, crt_date, o, hi, lo, c, v / 1000,
+                                       -1]])
         if not save_opts:
             return
         opts = res_0.get('options', [{}])
@@ -432,7 +432,7 @@ class Stx247:
                 crs.execute('insert into opt_cache values' +
                             crs.mogrify(
                                 '(%s,%s,%s,%s,%s,%s,%s,%s)',
-                                [call['expiration']['fmt'], stk, 'C',
+                                [call['expiration']['fmt'], stk, 'c',
                                  call['strike']['raw'], crt_date,
                                  call['bid']['raw'], call['ask']['raw'],
                                  call['volume']['raw']]) +
@@ -441,7 +441,7 @@ class Stx247:
                 crs.execute('insert into opt_cache values' +
                             crs.mogrify(
                                 '(%s,%s,%s,%s,%s,%s,%s,%s)',
-                                [put['expiration']['fmt'], stk, 'C',
+                                [put['expiration']['fmt'], stk, 'p',
                                  put['strike']['raw'], crt_date,
                                  put['bid']['raw'], put['ask']['raw'],
                                  put['volume']['raw']]) +
@@ -464,6 +464,8 @@ if __name__ == '__main__':
                         help='Minimum range to close ratio for leaders')
     parser.add_argument('-d', '--ldr_date',  type=valid_date,
                         help="The date for leaders - format YYYY-MM-DD")
+    parser.add_argument('-e', '--eod', action='store_true',
+                        help="Run EOD analysis")
     
     args = parser.parse_args()
     if args.leaders:
@@ -478,6 +480,10 @@ if __name__ == '__main__':
         if args.get_options:
             print('Will retrieve options and calculate spread liquidity')
             s247.get_opt_spread_leaders(ldr_date)
+        exit(0)
+    if args.eod:
+        s247= Stx247()
+        s247.eod_job()
         exit(0)
 
     s247= Stx247()
