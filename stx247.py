@@ -1,18 +1,21 @@
 import argparse
 import datetime
+from email.mime.text import MIMEText
 import json
+import os
 import pandas as pd
 from psycopg2 import sql
 import re
 import requests
 import schedule
+import smtplib
 import stxcal
 import stxdb
 from stxjl import StxJL
 from stxts import StxTS
 import sys
 import time
-
+import traceback
 
 old_out = sys.stdout
 
@@ -116,6 +119,7 @@ class Stx247:
     def intraday_analysis(self):
         self.get_data(ana_date, get_for_all=False, save_eods=True,
                       save_opts=False)
+        self.mail_analysis(analysis)
 
     def eod_job(self):
         print('247 end of day job')
@@ -449,6 +453,31 @@ class Stx247:
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
 
+    def mail_analysis(analysis):
+        smtp_fname = '{0:s}/.smtp.cfg'.format(os.getenv('HOME'))
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+        smtp_server = lines[0].strip()
+        smtp_user = lines[1].strip()
+        smtp_passwd = lines[2].strip()
+        smtp_email = lines[3].strip()
+        smtp_port = 587
+        try:
+            try:
+                s = smtplib.SMTP(host=smtp_server, port=smtp_port)
+                s.starttls()
+                s.login(smtp_user, smtp_passwd)
+                msg = MIMEText(analysis, 'plain')
+                msg['Subject'] = 'IDA {0:s}'.format(
+                    stxcal.current_busdate(hr=12))
+                msg['From'] = smtp_email
+                msg['To'] = smtp_email
+                s.sendmail(smtp_email, smtp_email, msg.as_string())
+            finally:
+                s.quit()
+        except:
+            print('Failed to send email: {0:s}'.traceback.print_exc())
+        
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
