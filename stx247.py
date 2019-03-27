@@ -459,9 +459,9 @@ class Stx247:
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
 
-    def mail_analysis(analysis):
+    def mail_analysis(self, analysis):
         smtp_fname = '{0:s}/.smtp.cfg'.format(os.getenv('HOME'))
-        with open(filename, 'r') as f:
+        with open(smtp_fname, 'r') as f:
             lines = f.readlines()
         smtp_server = lines[0].strip()
         smtp_user = lines[1].strip()
@@ -471,8 +471,8 @@ class Stx247:
         res = ''
         for _, row in analysis.iterrows():
             res = '{0:s}\r\n{1:s} {2:6s} {3:12s} {4:6.2f} {5:11d}'.format(
-                res, str(res['date']), res['stk'], res['setup'], res['rg'],
-                int(res['v_50']))
+                res, str(row['date']), row['stk'], row['setup'], row['rg'],
+                int(row['v_50']))
         try:
             try:
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
@@ -487,7 +487,7 @@ class Stx247:
             finally:
                 s.quit()
         except:
-            print('Failed to send email: {0:s}'.traceback.print_exc())
+            print('Failed to send email: {0:s}'.format(traceback.print_exc()))
         
 
 if __name__ == '__main__':
