@@ -152,7 +152,8 @@ class Stx247:
             self.get_opt_spread_leaders(ana_date)
         else:
             self.get_data(ana_date, get_for_all=False, get_eod=True)
-        self.calc_setups(ana_date)
+        setup_df = self.calc_setups(ana_date)
+        self.mail_analysis(setup_df)
             
     def eow_job(self):
         print('247 end of week job')
@@ -243,6 +244,7 @@ class Stx247:
             for ixx in range(1, 5):
                 ts.df['hi_{0:d}'.format(ixx)] = ts.df['hi'].shift(ixx)
                 ts.df['lo_{0:d}'.format(ixx)] = ts.df['lo'].shift(ixx)
+            ts.df['v_50'] = ts.df['volume'].rolling(50).mean()
             jl_list = []
             for factor in factors:
                 jl = StxJL(ts, factor)
@@ -254,6 +256,7 @@ class Stx247:
         for _, row in setup_df.iterrows():
             print('{0:s} {1:12s} {2:s}'.
                   format(row['date'], row['stk'], row['setup']))
+        return setup_df
             
 
     def analyze(self, exp):
@@ -278,6 +281,7 @@ class Stx247:
             for ixx in range(1, 5):
                 ts.df['hi_{0:d}'.format(ixx)] = ts.df['hi'].shift(ixx)
                 ts.df['lo_{0:d}'.format(ixx)] = ts.df['lo'].shift(ixx)
+            
             jl_list = []
             for factor in factors:
                 jl = StxJL(ts, factor)
@@ -306,7 +310,8 @@ class Stx247:
                ts.current('hi_2') < ts.current('hi_3'):
                 print('++1234++: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
                 setup_df = setup_df.append(
-                    dict(date=ts.current_date(), stk=ts.stk, setup='++1234++'),
+                    dict(date=ts.current_date(), stk=ts.stk, setup='++1234++',
+                    rg=jl20.avg_rg, v_50=ts.current('v_50')),
                     ignore_index=True)
         if l20['prim_state'] == StxJL.DT and l20['prim_state'] == l20['state']:
             if ts.current('lo') > ts.current('lo_1') and \
@@ -314,7 +319,8 @@ class Stx247:
                ts.current('lo_2') > ts.current('lo_3'):
                 print('--1234--: {0:s} {1:s}'.format(ts.stk, ts.current_date()))
                 setup_df = setup_df.append(
-                    dict(date=ts.current_date(), stk=ts.stk, setup='--1234--'),
+                    dict(date=ts.current_date(), stk=ts.stk, setup='--1234--',
+                         rg=jl20.avg_rg, v_50=ts.current('v_50')),
                     ignore_index=True)
         return setup_df
 
@@ -462,12 +468,17 @@ class Stx247:
         smtp_passwd = lines[2].strip()
         smtp_email = lines[3].strip()
         smtp_port = 587
+        res = ''
+        for _, row in analysis.iterrows():
+            res = '{0:s}\r\n{1:s} {2:6s} {3:12s} {4:6.2f} {5:11d}'.format(
+                res, str(res['date']), res['stk'], res['setup'], res['rg'],
+                int(res['v_50']))
         try:
             try:
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
                 s.starttls()
                 s.login(smtp_user, smtp_passwd)
-                msg = MIMEText(analysis, 'plain')
+                msg = MIMEText(res, 'plain')
                 msg['Subject'] = 'IDA {0:s}'.format(
                     stxcal.current_busdate(hr=12))
                 msg['From'] = smtp_email
