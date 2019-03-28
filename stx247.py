@@ -402,10 +402,18 @@ class Stx247:
                      for x in expiries[:3]]
         six = 1 if exp_dates[0] < crt_date else 0
         for ldr in ldrs:
-            self.get_stk_data(ldr, crt_date, expiries[six], exp_dates[six],
-                              save_eod=get_eod)
-            self.get_stk_data(ldr, crt_date, expiries[six + 1],
+            try:
+                self.get_stk_data(ldr, crt_date, expiries[six], exp_dates[six],
+                                  save_eod=get_eod)
+            except:
+                print('Failed to get options for {0:s} exp {1:s}: {2:s}'.
+                      format(ldr, exp_dates[six], traceback.print_exc()))
+            try:
+                self.get_stk_data(ldr, crt_date, expiries[six + 1],
                               exp_dates[six + 1], save_eod=False)
+            except:
+                print('Failed to get options for {0:s} exp {1:s}: {2:s}'.
+                      format(ldr, exp_dates[six + 1], traceback.print_exc()))
 
     def get_stk_data(self, stk, crt_date, expiry, exp_date, save_eod=False,
                      save_opts=True):
@@ -439,22 +447,26 @@ class Stx247:
         cnx = stxdb.db_get_cnx()
         with cnx.cursor() as crs:
             for call in calls:
+                opt_volume = 0 if call.get('volume') is None \
+                             else call['volume']['raw']
                 crs.execute('insert into opt_cache values' +
                             crs.mogrify(
                                 '(%s,%s,%s,%s,%s,%s,%s,%s)',
                                 [call['expiration']['fmt'], stk, 'c',
                                  call['strike']['raw'], crt_date,
                                  call['bid']['raw'], call['ask']['raw'],
-                                 call['volume']['raw']]) +
+                                 opt_volume]) +
                             'on conflict do nothing')
             for put in puts:
+                opt_volume = 0 if put.get('volume') is None \
+                             else put['volume']['raw']
                 crs.execute('insert into opt_cache values' +
                             crs.mogrify(
                                 '(%s,%s,%s,%s,%s,%s,%s,%s)',
                                 [put['expiration']['fmt'], stk, 'p',
                                  put['strike']['raw'], crt_date,
                                  put['bid']['raw'], put['ask']['raw'],
-                                 put['volume']['raw']]) +
+                                 opt_volume]) +
                             'on conflict do nothing')
         print('Got {0:d} calls and {1:d} puts for {2:s} exp {3:s}'.format(
             len(calls), len(puts), stk, exp_date))
