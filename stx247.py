@@ -117,8 +117,9 @@ class Stx247:
         self.intraday_analysis()
 
     def intraday_analysis(self):
-        self.get_data(ana_date, get_for_all=False, save_eods=True,
-                      save_opts=False)
+        ana_date = stxcal.current_busdate(hr=10)
+        self.get_data(ana_date, get_for_all=False, get_eod=True,
+                      get_opts=False)
         self.mail_analysis(analysis)
 
     def eod_job(self):
@@ -394,7 +395,8 @@ class Stx247:
             if num % 100 == 0 or num == len(stx):
                 print('Calculated option spread for {0:d} stocks'.format(num))
 
-    def get_data(self, crt_date, get_eod=True, get_for_all=True):
+    def get_data(self, crt_date, get_eod=True, get_for_all=True,
+                 get_opts=True):
         expiries = stxcal.long_expiries()
         cnx = stxdb.db_get_cnx()
         ldrs = self.get_leaders(crt_date, get_for_all)
@@ -404,13 +406,15 @@ class Stx247:
         for ldr in ldrs:
             try:
                 self.get_stk_data(ldr, crt_date, expiries[six], exp_dates[six],
-                                  save_eod=get_eod)
+                                  save_eod=get_eod, save_opts=get_opts)
             except:
                 print('Failed to get options for {0:s} exp {1:s}: {2:s}'.
                       format(ldr, exp_dates[six], traceback.print_exc()))
             try:
-                self.get_stk_data(ldr, crt_date, expiries[six + 1],
-                              exp_dates[six + 1], save_eod=False)
+                if get_opts:
+                    self.get_stk_data(ldr, crt_date, expiries[six + 1],
+                                      exp_dates[six + 1], save_eod=False,
+                                      save_opts=get_opts)
             except:
                 print('Failed to get options for {0:s} exp {1:s}: {2:s}'.
                       format(ldr, exp_dates[six + 1], traceback.print_exc()))
