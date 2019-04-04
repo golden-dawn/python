@@ -120,7 +120,7 @@ class Stx247:
         ana_date = stxcal.current_busdate(hr=10)
         self.get_data(ana_date, get_for_all=False, get_eod=True,
                       get_opts=False)
-        self.mail_analysis(analysis)
+        # self.mail_analysis(analysis)
 
     def eod_job(self):
         print('247 end of day job')
@@ -522,6 +522,8 @@ if __name__ == '__main__':
                         help="The date for leaders - format YYYY-MM-DD")
     parser.add_argument('-e', '--eod', action='store_true',
                         help="Run EOD analysis")
+    parser.add_argument('-i', '--intraday', action='store_true',
+                        help="Run Intraday analysis")
     
     args = parser.parse_args()
     if args.leaders:
@@ -540,6 +542,10 @@ if __name__ == '__main__':
     if args.eod:
         s247= Stx247()
         s247.eod_job()
+        exit(0)
+    if args.intraday:
+        s247= Stx247()
+        s247.intraday_job()
         exit(0)
 
     s247= Stx247()
