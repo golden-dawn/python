@@ -11,3 +11,15 @@ bootup USB).
 4. Exit the BIOS, saving the changes.
 5. When the OS boots up, select the option to install Ubuntu.
 6. Ubuntu installation will override all the data previously stored.
+
+
+### Instructions for installing Postgres:
+```
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+RELEASE=$(lsb_release -cs)
+echo "deb http://apt.postgresql.org/pub/repos/apt/ ${RELEASE}"-pgdg main | sudo tee  /etc/apt/sources.list.d/pgdg.list
+cat /etc/apt/sources.list.d/pgdg.list
+sudo apt update
+sudo apt -y install postgresql-11
+sudo -u postgres createuser -P -s -e cma
+```
