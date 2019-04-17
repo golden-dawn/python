@@ -32,3 +32,18 @@ echo -e "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> $HOME/.bashrc
 echo -e "export PATH=PATH:$JAVA_HOME/bin" >> $HOME/.bashrc
 ```
 
+### Setting up the Python workspace:
+
+Python3 is already installed on ubuntu 18.04.  So let's move to Python3.
+Need to install the following: pip, virtualenv, autoenv
+
+```
+sudo apt install python3-pip
+pip3 install virtualenv
+pip3 install virtualenv virtualenvwrapper autoenv
+pip install rope jedi importmagic autopep8 flake8
+mkdir -p ${HOME}/.envs
+echo "export WORKON_HOME=${HOME}/.envs" >> $/u{HOME}/.bashrc
+echo "source /usr/local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
+echo "source /usr/local/bin/activate.sh" >> ${HOME}/.bashrc
+```
