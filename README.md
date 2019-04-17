@@ -23,3 +23,12 @@ sudo apt update
 sudo apt -y install postgresql-11
 sudo -u postgres createuser -P -s -e cma
 ```
+
+### Installing Java:
+```
+sudo apt update
+sudo apt install openjdk-8-jdk
+echo -e "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> $HOME/.bashrc
+echo -e "export PATH=PATH:$JAVA_HOME/bin" >> $HOME/.bashrc
+```
+
