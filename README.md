@@ -24,6 +24,24 @@ sudo apt -y install postgresql-11
 sudo -u postgres createuser -P -s -e cma
 ```
 
+Install the Postgres development library:
+```
+sudo apt-get install libpq-dev
+```
+
+Use `pg_config` to find out where the include and library files are:
+```
+$ pg_config --includedir
+/usr/include/postgresql
+$ pg_config --libdir
+/usr/lib/x86_64-linux-gnu
+```
+
+Use this command line to compile C files using postgres:
+```
+$ gcc -o file_name file_name.c -I/usr/include/postgresql -lpq -std=c99
+```
+
 ### Installing Java:
 ```
 sudo apt update
@@ -41,9 +59,9 @@ Need to install the following: pip, virtualenv, autoenv
 sudo apt install python3-pip
 pip3 install virtualenv
 pip3 install virtualenv virtualenvwrapper autoenv
-pip install rope jedi importmagic autopep8 flake8
+pip3 install rope jedi importmagic autopep8 flake8
 mkdir -p ${HOME}/.envs
 echo "export WORKON_HOME=${HOME}/.envs" >> $/u{HOME}/.bashrc
-echo "source /usr/local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
-echo "source /usr/local/bin/activate.sh" >> ${HOME}/.bashrc
+echo "source ${HOME}/.local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
+echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
 ```
