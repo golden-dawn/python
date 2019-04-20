@@ -77,6 +77,7 @@ export POSTGRES_USER=...
 export POSTGRES_PASSWORD=...
 export POSTGRES_DB=...
 export POSTGRES_CNX="user=${POSTGRES_USER} dbname=${POSTGRES_DB}"
+export NORGATE_DIR=...
 ```
 
 ### Create a Postgres database, using a script command
@@ -106,3 +107,22 @@ autoreconf -vfi
 make
 sudo make install
 ```
+
+### Unzipping the norgate files
+
+To unzip the norgate files, install 7z:
+
+```
+sudo apt-get install p7zip-full p7zip-rar
+```
+
+Then, copy the files from the media, and unzip them using 7z:
+
+```
+mkdir -p ${HOME}/norgate
+cd ${HOME}/norgate
+cp /media/.../InstallHistory.U* .
+7z x InstallHistory.US.1985.20180309.exe 
+7z x InstallHistory.UsDelisted.1985.20180302.exe 
+```
+
