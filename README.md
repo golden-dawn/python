@@ -65,3 +65,8 @@ echo "export WORKON_HOME=${HOME}/.envs" >> $/u{HOME}/.bashrc
 echo "source ${HOME}/.local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
 echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
 ```
+
+### Create a Postgres database, using a script command
+```
+sudo -u postgres createdb stx_ng --owner cma
+```
