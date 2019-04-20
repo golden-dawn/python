@@ -61,6 +61,7 @@ pip3 install virtualenv
 pip3 install virtualenv virtualenvwrapper autoenv
 pip3 install rope jedi importmagic autopep8 flake8
 mkdir -p ${HOME}/.envs
+echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3" >> $/u{HOME}/.bashrc
 echo "export WORKON_HOME=${HOME}/.envs" >> $/u{HOME}/.bashrc
 echo "source ${HOME}/.local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
 echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
@@ -68,5 +69,5 @@ echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
 
 ### Create a Postgres database, using a script command
 ```
-sudo -u postgres createdb stx_ng --owner cma
+sudo -u postgres createdb stx_ng --owner ${POSTGRES_USER}
 ```
