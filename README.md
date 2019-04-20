@@ -92,3 +92,17 @@ cd ${HOME}/c
 ./compile.sh create_tables.c
 ./create_tables.exe
 ```
+
+### Download and install the metastock code
+
+Installation of the code:
+
+```
+git clone git@github.com:rudimeier/atem.git
+cd atem/
+sudo apt install autoconf gengetopt help2man
+autoreconf -vfi
+./configure 
+make
+sudo make install
+```
