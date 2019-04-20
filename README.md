@@ -67,6 +67,16 @@ echo "source ${HOME}/.local/bin/virtualenvwrapper.sh" >> ${HOME}/.bashrc
 echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
 ```
 
+### Create an Environment file in the home directory
+
+Create file `${HOME}/.env`.  Add the following variables in the file:
+```
+export POSTGRES_USER=...
+export POSTGRES_PASSWORD=...
+export POSTGRES_DB=...
+export POSTGRES_CNX="user=${POSTGRES_USER} dbname=${POSTGRES_DB}"
+```
+
 ### Create a Postgres database, using a script command
 ```
 sudo -u postgres createdb stx_ng --owner ${POSTGRES_USER}
