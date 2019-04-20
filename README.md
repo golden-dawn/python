@@ -126,3 +126,16 @@ cp /media/.../InstallHistory.U* .
 7z x InstallHistory.UsDelisted.1985.20180302.exe 
 ```
 
+### Create a Python virtual environment
+
+Create the virtual environment
+```
+mkvirtualenv venv-py
+```
+
+Then create `${HOME}/python/.env` file, and write workon directive in
+it:
+```
+echo -e "workon venv-py" >> ${HOME}/python/.env
+```
+
