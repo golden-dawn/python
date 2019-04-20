@@ -69,7 +69,9 @@ echo "source ${HOME}/.local/bin/activate.sh" >> ${HOME}/.bashrc
 
 ### Create an Environment file in the home directory
 
-Create file `${HOME}/.env`.  Add the following variables in the file:
+Create file `${HOME}/.env`.  This will be used by autoenv when it is
+installed. Add the following variables in the file:
+
 ```
 export POSTGRES_USER=...
 export POSTGRES_PASSWORD=...
@@ -78,6 +80,15 @@ export POSTGRES_CNX="user=${POSTGRES_USER} dbname=${POSTGRES_DB}"
 ```
 
 ### Create a Postgres database, using a script command
+
 ```
-sudo -u postgres createdb stx_ng --owner ${POSTGRES_USER}
+sudo -u postgres createdb ${POSTGRES_DB} --owner ${POSTGRES_USER}
+```
+
+### Create the database tables and create indexes
+
+```
+cd ${HOME}/c
+./compile.sh create_tables.c
+./create_tables.exe
 ```
