@@ -6,6 +6,7 @@ from shutil import rmtree
 import stxcal
 import stxdb
 import sys
+import traceback
 import zipfile
 
 
@@ -81,37 +82,35 @@ class OptEOD:
         edt = sdt + relativedelta(months=+7)
         sdt = str(sdt.date())[:-3]
         edt = str(edt.date())[:-3]
-        exps = {exp: '' for exp in stxcal.expiries(sdt, edt)}
+        exps = {str(exp): '' for exp in stxcal.expiries(sdt, edt)}
         spot_dct, opt_dct, spots, opts = {}, {}, [], []
-        xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
-        if not xchgs:
-            stxdb.db_write_cmd("insert into exchanges values('US')")
-        insert_stx = 'INSERT INTO equities VALUES '
-        db_stx = {x[0]: '' for x in stxdb.db_read_cmd(
-            "select * from equities where exchange='US'")}
         stx = {}
         sep = ' '
+        # print('opt_fname = {0:s}'.format(opt_fname))
         with open(opt_fname) as csvfile:
             frdr = csv.reader(csvfile)
             for row in frdr:
                 stk = row[0]
+                # print('dt = {0:s}, stk = {1:s}, exps = {2:s}'.
+                #       format(dt, stk, str(exps)))
+                # print('row = {0:s}'.format(str(row)))
                 try:
-                    spot = round(float(row[1]), 2)
+                    spot = int(100 * float(row[1]))
                     cp = row[5][:1]
                     exp = str(datetime.strptime(row[6], '%m/%d/%Y').date())
-                    strike = round(float(row[8]), 2)
-                    bid = round(float(row[10]), 2)
-                    ask = round(float(row[11]), 2)
+                    strike = int(100 * float(row[8]))
+                    bid = int(100 * float(row[10]))
+                    ask = int(100 * float(row[11]))
                     volume = int(row[12])
-                except Exception:
+                except:
+                    # print(traceback.print_exc())
                     continue
-                if exp not in exps or ask == 0:
+                # print('1')
+                if exp not in exps or ask == 0 or spot >= 2147483647 or \
+                   strike >= 2147483647 or bid >= 2147483647 or \
+                   ask >= 2147483647 or volume >= 2147483647:
                     continue
-                if (stk not in db_stx) and (stk not in stx):
-                    insert_stx = "{0:s}{1:s}('{2:s}', '', 'US Stocks', 'US')".\
-                        format(insert_stx, sep, stk)
-                    stx[stk] = ''
-                    sep = ','
+                # print('2')
                 if stk not in spot_dct:
                     spot_dct[stk] = spot
                     spots.append([stk, dt, spot])
@@ -119,20 +118,21 @@ class OptEOD:
                 if opt_key not in opt_dct:
                     opt_dct[opt_key] = [bid, ask, volume]
                     opts.append([exp, stk, cp, strike, dt, bid, ask, volume])
+                # print('len(spots) {0:d}, len(opts) = {1:d}'.format(
+                #     len(spots), len(opts)))
+
         spots_upload_file = '{0:s}/spots.txt'.format(self.upload_dir)
         opts_upload_file = '{0:s}/opts.txt'.format(self.upload_dir)
         with open(spots_upload_file, 'w') as spots_file:
             for s in spots:
-                spots_file.write('{0:s}\t{1:s}\t{2:2f}\n'.
+                spots_file.write('{0:s}\t{1:s}\t{2:d}\n'.
                                  format(s[0], s[1], s[2]))
         with open(opts_upload_file, 'w') as opts_file:
             for o in opts:
-                opts_file.write('{0:s}\t{1:s}\t{2:s}\t{3:2f}\t{4:s}\t{5:2f}\t'
-                                '{6:2f}\t{7:d}\n'.format(o[0], o[1], o[2],
-                                                         o[3], o[4], o[5],
-                                                         o[6], o[7]))
-        if insert_stx != 'INSERT INTO equities VALUES ':
-            stxdb.db_write_cmd(insert_stx)
+                opts_file.write('{0:s}\t{1:s}\t{2:s}\t{3:d}\t{4:s}\t{5:d}\t'
+                                '{6:d}\t{7:d}\t0\n'.format(o[0], o[1], o[2],
+                                                           o[3], o[4], o[5],
+                                                           o[6], o[7]))
         if self.upload_spots:
             stxdb.db_upload_file(spots_upload_file, self.spot_tbl, '\t')
         if self.upload_options:
@@ -173,6 +173,6 @@ if __name__ == '__main__':
         upload_options = False
     opt_eod = OptEOD(opt_tbl='options', spot_tbl='opt_spots',
                      upload_options=upload_options, upload_spots=upload_spots)
-    opt_eod.load_opts('2002-02', '2017-12')
+    opt_eod.load_opts('2002-02', '2018-12')
     # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
     #                           format(opt_eod.in_dir), 2016, 4)
