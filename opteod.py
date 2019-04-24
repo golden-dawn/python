@@ -78,11 +78,12 @@ class OptEOD:
                                         opt_fname[-6:-4])
         if dt in invalid_days:
             return 0, 0
-        sdt = datetime.strptime(dt, '%Y-%m-%d')
-        edt = sdt + relativedelta(months=+7)
-        sdt = str(sdt.date())[:-3]
-        edt = str(edt.date())[:-3]
-        exps = {str(exp): '' for exp in stxcal.expiries(sdt, edt)}
+        # print('dt = {0:s}'.format(dt))
+        exp_0 = stxcal.next_expiry(dt, min_days=0)
+        # print('exp_0 = {0:s}'.format(exp_0))
+        exp_1 = stxcal.next_expiry(exp_0)
+        # print('exp_1 = {0:s}'.format(exp_1))
+        exps = [str(exp_0), str(exp_1)]
         spot_dct, opt_dct, spots, opts = {}, {}, [], []
         stx = {}
         sep = ' '
@@ -102,6 +103,7 @@ class OptEOD:
                     bid = int(100 * float(row[10]))
                     ask = int(100 * float(row[11]))
                     volume = int(row[12])
+                    # print('exp = {0:s}'.format(exp))
                 except:
                     # print(traceback.print_exc())
                     continue
