@@ -141,3 +141,13 @@ it:
 echo -e "workon venv-py" >> ${HOME}/python/.env
 ```
 
+### Insert stocks and options data in the database
+
+First, insert the norgate data.  Then the options data.  Finally, the
+stooq data and the eoddata:
+```
+python stx_ng.py
+python opteod.py
+python stx_eod.py --stooq
+python stx_eod.py --batch
+```
