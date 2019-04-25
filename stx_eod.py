@@ -11,7 +11,7 @@ import sys
 
 class StxEOD:
     upload_dir = '/tmp'
-    eod_name = '{0:s}/eod_upload.txt'.format(upload_dir)
+    eod_name = os.path.join(upload_dir, 'eod_upload.txt')
     status_none = 0
     status_ok = 1
     status_ko = 2
@@ -35,7 +35,7 @@ class StxEOD:
     #     xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
     #     if not xchgs:
     #         stxdb.db_write_cmd("insert into exchanges values('US')")
-    #     db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
+    #  db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
     #     stx = {}
     #     return db_stx, stx
 
@@ -43,7 +43,7 @@ class StxEOD:
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
-    def load_eoddata_files(self, sd, ed, stks=''):
+    def load_eoddata_files(self, sd, ed, stks='', batch=False):
         print('Loading eoddata files...')
         dt = sd
         # dt = stxcal.move_busdays(sd, -25)
@@ -64,14 +64,14 @@ class StxEOD:
                 return
             for fname in fnames:
                 fname_dt = fname.format(dtc)
-                self.load_eoddata_file(fname_dt, dt, dtc, stks)
+                self.load_eoddata_file(fname_dt, dt, dtc, stks, batch=batch)
             dt = stxcal.next_busday(dt)
         print('Loaded eoddata files')
 
     # Load data from a single EODData file in the database Perform
     # some quality checks on the data: do not upload days where volume
     # is 0, or where the open/close are outside the [low, high] range.
-    def load_eoddata_file(self, ifname, dt, dtc, stks=''):
+    def load_eoddata_file(self, ifname, dt, dtc, stks='', batch=False):
         upload_lines = []
         stk_list = [] if stks == '' else stks.split(',')
         # db_stx, _ = self.create_exchange()
@@ -99,8 +99,19 @@ class StxEOD:
             v = v // 1000
             if v == 0:
                 v = 1
-            upload_lines.append([stk, dt, o, hi, lo, c, v, 0])
-        stxdb.db_insert_eods(upload_lines)
+            if batch:
+                upload_lines.append(
+                    '{0:s}\t{1:s}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:d}\t0\n'.
+                    format(stk, dt, o, hi, lo, c, v))
+            else:
+                upload_lines.append([stk, dt, o, hi, lo, c, v, 0])
+        if batch:
+            with open(self.eod_name, 'w') as f:
+                for line in upload_lines:
+                    f.write(line)
+            stxdb.db_upload_file(self.eod_name, self.eod_tbl, '\t')
+        else:
+            stxdb.db_insert_eods(upload_lines)
 
     def parseeodline(self, line):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
@@ -317,6 +328,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--stooq', action='store_true',
                         help='Use data from stooq')
+    parser.add_argument('-b', '--batch', action='store_true',
+                        help='Batch upload of data using file copy')
     args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
     logging.basicConfig(filename='stxeod.log', level=logging.INFO)
@@ -335,7 +348,8 @@ if __name__ == '__main__':
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
     # 4. if the files are available, upload them
-    seod.load_eoddata_files(start_date, end_date)
+    batch_load = True if args.batch else False
+    seod.load_eoddata_files(start_date, end_date, batch=batch_load)
     res = stxdb.db_read_cmd("select max(dt) from dividends")
     start_date = stxcal.next_busday(str(res[0][0]))
     seod.handle_splits(start_date)
