@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import json
 import logging
@@ -5,6 +6,7 @@ import os
 import requests
 import stxcal
 import stxdb
+import sys
 
 
 class StxEOD:
@@ -29,13 +31,13 @@ class StxEOD:
             'sq': 'stooq'
         }.get(x, 'final')
 
-    def create_exchange(self):
-        xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
-        if not xchgs:
-            stxdb.db_write_cmd("insert into exchanges values('US')")
-        db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
-        stx = {}
-        return db_stx, stx
+    # def create_exchange(self):
+    #     xchgs = stxdb.db_read_cmd("select * from exchanges where name='US'")
+    #     if not xchgs:
+    #         stxdb.db_write_cmd("insert into exchanges values('US')")
+    #     db_stx = {x[0]: 0 for x in stxdb.db_read_cmd("select * from equities")}
+    #     stx = {}
+    #     return db_stx, stx
 
     # Load data from EODData data source in the database. There is a
     # daily file for each exchange (Amex, Nasdaq, NYSE). Use an
@@ -72,7 +74,7 @@ class StxEOD:
     def load_eoddata_file(self, ifname, dt, dtc, stks=''):
         upload_lines = []
         stk_list = [] if stks == '' else stks.split(',')
-        db_stx, _ = self.create_exchange()
+        # db_stx, _ = self.create_exchange()
         with open(ifname, 'r') as ifile:
             lines = ifile.readlines()
         for line in lines[1:]:
@@ -81,17 +83,18 @@ class StxEOD:
             if (stk_list and stk not in stk_list) or ('/' in stk) or \
                ('*' in stk) or (stk in ['AUX', 'PRN']):
                 continue
-            if stk not in db_stx:
-                insert_stx = "INSERT INTO equities VALUES "\
-                             "('{0:s}', '', 'US Stocks', 'US')".format(stk)
-                stxdb.db_write_cmd(insert_stx)
-            o = float(tokens[2])
-            hi = float(tokens[3])
-            lo = float(tokens[4])
-            c = float(tokens[5])
+            # if stk not in db_stx:
+            #     insert_stx = "INSERT INTO equities VALUES "\
+            #                  "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+            #     stxdb.db_write_cmd(insert_stx)
+            o = int(100 * float(tokens[2]))
+            hi = int(100 * float(tokens[3]))
+            lo = int(100 * float(tokens[4]))
+            c = int(100 * float(tokens[5]))
             v = int(tokens[6])
             if v == 0 or o < lo or o > hi or c < lo or c > hi or \
-               len(tokens[0]) > 6:
+               len(tokens[0]) > 6 or o >= 2147483647 or hi >= 2147483647 \
+               or lo >= 2147483647 or c >= 2147483647:
                 continue
             v = v // 1000
             if v == 0:
@@ -99,7 +102,7 @@ class StxEOD:
             upload_lines.append([stk, dt, o, hi, lo, c, v, 0])
         stxdb.db_insert_eods(upload_lines)
 
-    def parseeodline(self, line, db_stx):
+    def parseeodline(self, line):
         stk, _, dt, o, h, l, c, v, oi = line.split(',')
         # look only at the US stocks, for the time being
         if not stk.endswith('.US'):
@@ -107,10 +110,16 @@ class StxEOD:
         dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
         if not stxcal.is_busday(dt):
             raise Exception('{0:s} is not a business day'.format(dt))
-        o, h, l, c = float(o), float(h), float(l), float(c)
+        o = int(100 * float(o))
+        h = int(100 * float(h))
+        l = int(100 * float(l))
+        c = int(100 * float(c))
         # Make sure o and c are in the interval [l, h]
         o = o if o <= h and o >= l else (h if o > h else l)
         c = c if c <= h and c >= l else (h if c > h else l)
+        if o >= 2147483647 or h >= 2147483647 or l >= 2147483647 or \
+           c >= 2147483647:
+            return
         v, oi = int(v), int(oi)
         if stk.endswith('.US'):  # proces stock tickers, volume must be > 0
             stk = stk[:-3].replace("-.", ".P.").replace("_", ".").replace(
@@ -135,13 +144,13 @@ class StxEOD:
             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
         # all tickers ending in .F are futures, except the LME tickers
         v = 1 if v == 0 else v
-        if stk not in db_stx:
-            insert_stx = "INSERT INTO equities VALUES "\
-                         "('{0:s}', '', 'US Stocks', 'US')".format(stk)
-            stxdb.db_write_cmd(insert_stx)
-        db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:2f},{4:2f},"\
-            "{5:2f},{6:2f},{7:d},{8:d}) on conflict (stk, date) do update "\
-            "set volume={9:d}, open_interest={10:d}".format(
+        # if stk not in db_stx:
+        #     insert_stx = "INSERT INTO equities VALUES "\
+        #                  "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+        #     stxdb.db_write_cmd(insert_stx)
+        db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:d},{4:d},"\
+            "{5:d},{6:d},{7:d},{8:d}) on conflict (stk, dt) do update "\
+            "set v={9:d}, oi={10:d}".format(
                 self.eod_tbl, stk, dt, o, h, l, c, v, oi, v, oi)
         stxdb.db_write_cmd(db_cmd)
 
@@ -152,7 +161,7 @@ class StxEOD:
         day_num = 0
         while dt <= e_date:
             print('stooq: {0:s}'.format(dt))
-            db_stx, _ = self.create_exchange()
+            # db_stx, _ = self.create_exchange()
             try:
                 with open('{0:s}/{1:s}_d.prn'.format
                           (self.in_dir, dt.replace('-', ''))) as ifile:
@@ -164,7 +173,7 @@ class StxEOD:
                 continue
             for line in lines:
                 try:
-                    self.parseeodline(line, db_stx)
+                    self.parseeodline(line)
                 except Exception as ex:
                     logging.info('Error with line {0:s}: {1:s}'.format
                                  (line.strip(), str(ex)))
@@ -227,7 +236,7 @@ seod.upload_splits(splits_file)
             dt = stxcal.prev_busday(tokens[1].strip())
             ratio = float(tokens[2].strip())
             db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:f},0) "\
-                "on conflict (stk, date) do update set ratio={4:f}".format(
+                "on conflict (stk, dt) do update set ratio={4:f}".format(
                 self.divi_tbl, stk, dt, ratio, ratio)
             try:
                 stxdb.db_write_cmd(db_cmd)
@@ -305,24 +314,28 @@ seod.upload_splits(splits_file)
 # - eod_cache
 # - options_cache
 if __name__ == '__main__':
-    logging.basicConfig(filename='stxeod.log', level=logging.INFO)
-    # s_date_ed = '2018-04-02'
-    # e_date_ed = '2018-11-23'
-    # s_date_sq = '2018-03-12'
-    # e_date_sq = '2018-03-29'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--stooq', action='store_true',
+                        help='Use data from stooq')
+    args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
+    logging.basicConfig(filename='stxeod.log', level=logging.INFO)
     seod = StxEOD(data_dir)
-    # seod.parseeodfiles(s_date_sq, e_date_sq)
-    # seod.load_eoddata_files(s_date_ed, e_date_ed)
+    if args.stooq:
+        s_date_sq = '2018-03-12'
+        e_date_sq = '2018-03-29'
+        seod.parseeodfiles(s_date_sq, e_date_sq)
+        sys.exit(0)
 
+    # Handle default EODData stream
     # 1. Get the last date for which eod data is available in the database
-    res = stxdb.db_read_cmd("select max(date) from eods where open_interest=0")
+    res = stxdb.db_read_cmd("select max(dt) from eods where oi=0")
     start_date = stxcal.next_busday(str(res[0][0]))
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
     # 4. if the files are available, upload them
     seod.load_eoddata_files(start_date, end_date)
-    res = stxdb.db_read_cmd("select max(date) from dividends")
+    res = stxdb.db_read_cmd("select max(dt) from dividends")
     start_date = stxcal.next_busday(str(res[0][0]))
     seod.handle_splits(start_date)
