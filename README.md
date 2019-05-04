@@ -93,6 +93,7 @@ export POSTGRES_CNX="user=${POSTGRES_USER} dbname=${POSTGRES_DB}"
 export DB_URL="user=${POSTGRES_USER} dbname=${POSTGRES_DB}"
 export NORGATE_DIR=...
 export DATA_DIR=...
+export DOWNLOAD_DIR=...
 ```
 
 ### Create a Postgres database, using a script command
@@ -171,6 +172,12 @@ it:
 ```
 echo -e "workon venv-py" >> ${HOME}/python/.env
 ```
+
+Finally, install the necessary packages, from here:
+```
+pip install -r requirements.txt
+```
+
 
 ### Insert stocks and options data in the database
 
