@@ -159,6 +159,9 @@ cp /media/.../InstallHistory.U* .
 Install keka, from here: https://www.keka.io/en/ Then drag and drop
 the norgate archives into keka.
 
+Keka extracts the files in all kinds of places.  Once extraction is
+complete, make sure that the input directories mentioned in stx_ng,py
+are under the norgate directory.
 
 ### Create a Python virtual environment
 
