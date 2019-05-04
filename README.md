@@ -42,6 +42,19 @@ Use this command line to compile C files using postgres:
 $ gcc -o file_name file_name.c -I/usr/include/postgresql -lpq -std=c99
 ```
 
+### Installing Postgres for Mac
+
+```
+brew doctor
+brew update
+brew install postgresql
+```
+
+This will install the latest version of postgresql, which is what I
+want.  Also, there is no need to install libpq-dev, as it is
+automatically installed.
+
+
 ### Installing Java:
 ```
 sudo apt update
