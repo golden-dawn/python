@@ -123,6 +123,18 @@ make
 sudo make install
 ```
 
+Installation on Mac:
+
+```
+git clone git@github.com:rudimeier/atem.git
+cd atem/
+brew install autoconf gengetopt help2man automake libtool
+autoreconf -vfi
+./configure 
+make
+sudo make install
+```
+
 ### Unzipping the norgate files
 
 To unzip the norgate files, install 7z:
@@ -140,6 +152,12 @@ cp /media/.../InstallHistory.U* .
 7z x InstallHistory.US.1985.20180309.exe 
 7z x InstallHistory.UsDelisted.1985.20180302.exe 
 ```
+
+### Unzipping the norgate files on Mac
+
+Install keka, from here: https://www.keka.io/en/ Then drag and drop
+the norgate archives into keka.
+
 
 ### Create a Python virtual environment
 
