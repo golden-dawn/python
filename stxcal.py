@@ -10,11 +10,16 @@ this = sys.modules[__name__]
 this.cal = None
 epoch = datetime.utcfromtimestamp(0)
 
-def get_cal():
+def get_cal(start=None, end=None):
     if this.cal is None:
-        start = pd.Timestamp('1901-01-01', tz='UTC')
-        end = pd.Timestamp('today', tz='UTC') + \
-            pd.datetools.Timedelta(weeks=52)
+        if start is None:
+            start = '1901-01-01'
+        start = pd.Timestamp(start, tz='UTC')
+        if end is None:
+            end = pd.Timestamp('today', tz='UTC') + \
+                pd.datetools.Timedelta(weeks=52)
+        else:
+            end = pd.Timestamp(end, tz='UTC')
         print('Initializing calendar between {0:s} and {1:s}'.
               format(str(start.date()), str(end.date())))
         non_trading_rules = []
@@ -565,3 +570,25 @@ def current_busdate(hr=20):
     if crt_time.hour < hr:
         crt_date -= timedelta(days=1)
     return move_busdays(str(crt_date), 0)
+
+
+
+
+def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
+    busday_cal = get_cal(start_date, end_date)
+    s_date = np.datetime64(start_date)
+    e_date = np.datetime64(end_date)
+    day_num = 0
+    busday_num = 0
+    while s_date <= e_date:
+        day_num += 1
+        if np.is_busday(s_date, busdaycal=busday_cal):
+            busday_num += 1
+            
+        s_date += np.timedelta64(1, 'D')
+    s_date = datetime.strptime(start_date, '%Y-%m-%d')
+    e_date = busdaycal=get_cal()
+
+
+if __name__ == '__main__':
+    gen_cal()
