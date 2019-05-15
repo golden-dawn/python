@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytz
+import stxdb
 import sys
 
 from datetime import datetime, timedelta
@@ -571,11 +572,7 @@ def current_busdate(hr=20):
         crt_date -= timedelta(days=1)
     return move_busdays(str(crt_date), 0)
 
-
-
-
 def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
-    ll = []
     busday_cal = get_cal(start_date, end_date)
     s_date = np.datetime64(start_date)
     e_date = np.datetime64(end_date)
@@ -583,12 +580,16 @@ def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
     busday_num = 0
     while s_date <= e_date:
         day_num += 1
-        ibd = 0
+        ibd = -1
         if np.is_busday(s_date, busdaycal=busday_cal):
             busday_num += 1
-            ibd = 1 << 32
-        res = ibd | (busday_num << 16) | day_num
-        ll.append([str(s_date), res])
+            ibd = 1
+        res = ibd * ((busday_num << 16) | day_num)
+        sql_cmd = "INSERT INTO calendar VALUES ('{0:s}', {1:d})".format(
+            str(s_date), res)
+        stxdb.db_write_cmd(sql_cmd)
+        if day_num % 1000 == 0:
+            print('Inserted {0:s}'.format(str(s_date)))
         s_date += np.timedelta64(1, 'D')
 
 
