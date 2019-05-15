@@ -575,6 +575,7 @@ def current_busdate(hr=20):
 
 
 def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
+    ll = []
     busday_cal = get_cal(start_date, end_date)
     s_date = np.datetime64(start_date)
     e_date = np.datetime64(end_date)
@@ -582,12 +583,13 @@ def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
     busday_num = 0
     while s_date <= e_date:
         day_num += 1
+        ibd = 0
         if np.is_busday(s_date, busdaycal=busday_cal):
             busday_num += 1
-            
+            ibd = 1 << 32
+        res = ibd | (busday_num << 16) | day_num
+        ll.append([str(s_date), res])
         s_date += np.timedelta64(1, 'D')
-    s_date = datetime.strptime(start_date, '%Y-%m-%d')
-    e_date = busdaycal=get_cal()
 
 
 if __name__ == '__main__':
