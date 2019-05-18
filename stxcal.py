@@ -572,12 +572,12 @@ def current_busdate(hr=20):
         crt_date -= timedelta(days=1)
     return move_busdays(str(crt_date), 0)
 
-def gen_cal(start_date='1985-01-01', end_date='2025-12-31'):
+def gen_cal(start_date='1984-12-31', end_date='2025-12-31'):
     busday_cal = get_cal(start_date, end_date)
     s_date = np.datetime64(start_date)
     e_date = np.datetime64(end_date)
-    day_num = 0
-    busday_num = 0
+    day_num = -1
+    busday_num = -1
     while s_date <= e_date:
         day_num += 1
         ibd = -1
