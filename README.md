@@ -192,3 +192,20 @@ python opteod.py
 python stx_eod.py --stooq
 python stx_eod.py --batch
 ```
+
+### Generate a calendar and save it in the database
+
+Run this file without any arguments:
+```
+python stxcal.py
+```
+
+This will generate a calendar from `1984-12-31` until `2025-12-31`,
+and save it in the database.  To change the default values for the
+`start_date` and `end_date`, edit the following line in the
+`stxcal.py` code:
+
+```
+def gen_cal(start_date='1984-12-31', end_date='2025-12-31'):
+```
+
