@@ -12,10 +12,11 @@ class StxTS:
         self.stk = stk
         self.sd = pd.to_datetime(sd)
         self.ed = pd.to_datetime(ed)
-        q = "select * from {0:s} where stk='{1:s}' and date between '{2:s}' "\
-            "and '{3:s}' order by date".format(eod_tbl, stk, sd, ed)
-        df = pd.read_sql(q, stxdb.db_get_cnx(), index_col='date',
-                         parse_dates=['date'])
+        q = "select * from {0:s} where stk='{1:s}' and dt "\
+            "between '{2:s}' and '{3:s}' order by dt".format(
+            eod_tbl, stk, sd, ed)
+        df = pd.read_sql(q, stxdb.db_get_cnx(), index_col='dt',
+                         parse_dates=['dt'])
         if self.sd < df.index[0]:
             self.sd = df.index[0]
         if self.ed > df.index[-1]:
@@ -23,9 +24,11 @@ class StxTS:
         self.sd_str = str(self.sd.date())
         self.ed_str = str(self.ed.date())
         self.gaps = self.get_gaps(df)
-        df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, inplace=True)
-        s_lst = stxdb.db_read_cmd("select date, ratio, divi_type from {0:s} "
-                                  "where stk='{1:s}'".format(split_tbl, stk))
+        df.drop(['stk', 'prev_dt', 'prev_date', 'gap'], axis=1, 
+                inplace=True)
+        s_lst = stxdb.db_read_cmd("select dt, ratio, divi_type from "
+                                  "{0:s} where stk='{1:s}'".
+                                  format(split_tbl, stk))
         # print('stk = {0:s}, s_lst = {1:s}'.format(stk, str(s_lst)))
         self.splits = {pd.to_datetime(stxcal.next_busday(s[0])):
                        [float(s[1]), int(s[2])] for s in s_lst}
@@ -66,7 +69,7 @@ class StxTS:
         idx = pd.date_range(self.sd, self.ed, freq=StxTS.busday_us)
         df = df.reindex(idx)
         df['c'] = df['c'].ffill()
-        df['volume'] = df['volume'].fillna(0)
+        df['v'] = df['v'].fillna(0)
         df.loc[df['o'].isnull(), 'o'] = df['c']
         df.loc[df['hi'].isnull(), 'hi'] = df['c']
         df.loc[df['lo'].isnull(), 'lo'] = df['c']
@@ -146,9 +149,10 @@ class StxTS:
         splts = {k: v for k, v in self.splits.items() if sdd < k <= edd}
         for k, v in splts.items():
             r = v[0] if inv == 0 else 1 / v[0]
-            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'hi', 'lo', 'c'])
+            self.adjust(bdd, stxcal.prev_busday(k), r, ['o', 'hi', 
+                                                        'lo', 'c'])
             if v[1] in [0, 1, 3, 6]:
-                self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['volume'])
+                self.adjust(bdd, stxcal.prev_busday(k), 1 / r, ['v'])
             self.adj_splits.append(k)
 
     def adjust(self, s_idx, e_idx, ratio, col_names):
