@@ -145,4 +145,4 @@ def db_insert_eods(record_list):
                 crs.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s)', rec) +
                 'on conflict on constraint eods_pkey do update set '
                 'o=excluded.o, hi=excluded.hi, lo=excluded.lo, c=excluded.c, '
-                'volume=excluded.volume, open_interest=excluded.open_interest')
+                'v=excluded.v, oi=excluded.oi')
