@@ -209,3 +209,16 @@ and save it in the database.  To change the default values for the
 def gen_cal(start_date='1984-12-31', end_date='2025-12-31'):
 ```
 
+### Curlib and cJSON (to retrieve quotes and parse them)
+`curlib` is already installed on Mac.
+To install `cJSON`, clone the repository, and follow the instructions:
+```
+git clone git@github.com:DaveGamble/cJSON.git
+cd cJSON/
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
