@@ -65,6 +65,8 @@ class StxEOD:
             for fname in fnames:
                 fname_dt = fname.format(dtc)
                 self.load_eoddata_file(fname_dt, dt, dtc, stks, batch=batch)
+            stxdb.db_write_cmd("update analyses set dt='{0:s}' where "
+                               "analysis='eod_datafeed'".format(dt))
             dt = stxcal.next_busday(dt)
         print('Loaded eoddata files')
 
@@ -230,9 +232,13 @@ class StxEOD:
 import os
 from stx_eod import StxEOD
 data_dir = os.getenv('DOWNLOAD_DIR')
-splits_file = os.path.join(data_dir, 'splits_20190315_ana.txt')
+splits_files = ['splits_20181130_ana.txt', 'splits_20190315_ana.txt', 
+                'splits_20190222_ana.txt', 'splits_20190329_ana.txt',
+                'splits_20190517_ana.txt']
 seod = StxEOD(data_dir)
-seod.upload_splits(splits_file)
+for split_file in splits_files:
+    splits_file = os.path.join(data_dir, split_file)
+    seod.upload_splits(splits_file)
     '''
     def upload_splits(self, splits_file):
         print('Uploading stocks from file {0:s}'.format(splits_file))
@@ -342,7 +348,9 @@ if __name__ == '__main__':
 
     # Handle default EODData stream
     # 1. Get the last date for which eod data is available in the database
-    res = stxdb.db_read_cmd("select max(dt) from eods where oi=0")
+    # res = stxdb.db_read_cmd("select max(dt) from eods where oi=0")
+    res = stxdb.db_read_cmd("select dt from analyses where "
+                            "analysis='eod_datafeed'")
     start_date = stxcal.next_busday(str(res[0][0]))
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
