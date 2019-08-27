@@ -1,5 +1,5 @@
 import argparse
-import datetime
+from psycopg2 import sqlimport datetime
 from email.mime.text import MIMEText
 import json
 import os
@@ -29,23 +29,32 @@ class StxMail:
 
     def mail_analysis(self, analysis_type):
         crt_date = stxcal.current_busdate(hr=9)
+        exp_date = stxcal.next_expiry(crt_date)
         smtp_server = os.getenv('EMAIL_SERVER')
         smtp_user = os.getenv('EMAIL_USER')
         smtp_passwd = os.getenv('EMAIL_PASSWD')
         smtp_email = os.getenv('EMAIL_USER')
         smtp_port = os.getenv('EMAIL_PORT')
-        res = ''
+        res = '{0:6s} {1:9s} {2:6s}'.format(
+            'stock', 'direction', 'spread')
         #      dt     |  stk  |  setup   | direction | triggered 
         # ------------+-------+----------+-----------+-----------
         #  2019-08-21 | MSM   | JC_1234  | D         | t
-        q = sql.Composed([sql.SQL('select * from setups where dt='),
+        q1 = sql.Composed([sql.SQL('select * from setups where dt='),
                           sql.Literal(crt_date)])
-        cnx = stxdb.db_get_cnx()
+        df = pd.read_sql(q1, stxdb.db_get_cnx())
+        q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
+                                   'where expiry='), sql.Literal(exp_date)])
+        cnx = stxdb.db_get_cnx())
         with cnx.cursor() as crs:
-            crs.execute(q.as_string(cnx))
-            for x in crs:
-                res = '{0:s}\r\n{1:s} {2:6s} {3:12s} {4:s}'.format(
-                    res, str(x[0]), x[1], x[2], x[3])
+            crs.execute(q2.as_string(cnx))
+            spread_dict = {x[0]: x[1] for x in crs}
+        df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']))
+        df.drop_duplicates(['stk', 'direction'], inplace=True)
+        df.sort_values(by=['direction', 'spread'], inplace=True)
+        for _, row in df.iterrows():
+            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d}'.format(
+                    res, row['stk'], row['direction'], row['spread'])
 #         for _, row in analysis.iterrows():
 #             res = '{0:s}\r\n{1:s} {2:6s} {3:12s} {4:6.2f} {5:11d}'.format(
 #                 res, str(row['date']), row['stk'], row['setup'], row['rg'],
