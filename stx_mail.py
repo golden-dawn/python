@@ -1,5 +1,5 @@
 import argparse
-from psycopg2 import sqlimport datetime
+import datetime
 from email.mime.text import MIMEText
 import json
 import os
@@ -45,11 +45,11 @@ class StxMail:
         df = pd.read_sql(q1, stxdb.db_get_cnx())
         q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
                                    'where expiry='), sql.Literal(exp_date)])
-        cnx = stxdb.db_get_cnx())
+        cnx = stxdb.db_get_cnx()
         with cnx.cursor() as crs:
             crs.execute(q2.as_string(cnx))
             spread_dict = {x[0]: x[1] for x in crs}
-        df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']))
+        df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
         df.drop_duplicates(['stk', 'direction'], inplace=True)
         df.sort_values(by=['direction', 'spread'], inplace=True)
         for _, row in df.iterrows():
