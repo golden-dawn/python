@@ -2,6 +2,7 @@ import argparse
 import datetime
 from email.mime.text import MIMEText
 import json
+import numpy as np
 import os
 import pandas as pd
 from psycopg2 import sql
@@ -35,8 +36,8 @@ class StxMail:
         smtp_passwd = os.getenv('EMAIL_PASSWD')
         smtp_email = os.getenv('EMAIL_USER')
         smtp_port = os.getenv('EMAIL_PORT')
-        res = '{0:6s} {1:9s} {2:6s}'.format(
-            'stock', 'direction', 'spread')
+        res = '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s}'.format(
+            'name', 'direction', 'spread', 'avg_volume', 'avg_rg')
         #      dt     |  stk  |  setup   | direction | triggered 
         # ------------+-------+----------+-----------+-----------
         #  2019-08-21 | MSM   | JC_1234  | D         | t
@@ -52,13 +53,19 @@ class StxMail:
         df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
         df.drop_duplicates(['stk', 'direction'], inplace=True)
         df.sort_values(by=['direction', 'spread'], inplace=True)
+        s_date = stxcal.move_busdays(crt_date, -49)
         for _, row in df.iterrows():
-            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d}'.format(
-                    res, row['stk'], row['direction'], row['spread'])
-#         for _, row in analysis.iterrows():
-#             res = '{0:s}\r\n{1:s} {2:6s} {3:12s} {4:6.2f} {5:11d}'.format(
-#                 res, str(row['date']), row['stk'], row['setup'], row['rg'],
-#                 int(row['v_50']))
+            stk = row['stk']
+            ts = StxTS(stk, s_date, crt_date)
+            avg_volume = np.average(ts.df['v'].values[:])
+            rgs = [max(h, c_1) - min(l, c_1) 
+                   for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
+                                        ts.df['lo'].values[-20:], 
+                                        ts.df['c'].values[-21:-1])]
+            avg_rg = np.average(rgs)
+            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f}'.format(
+                    res, stk, row['direction'], row['spread'],
+                    int(1000 * avg_volume), avg_rg / 100)
         try:
             try:
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
