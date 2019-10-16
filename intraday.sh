@@ -8,5 +8,5 @@ cd ${HOME}/c
 ./stx_ana.exe -intraday
 cd ${HOME}/python
 source .env
-python stx_mail.py --intraday
+python stx_247.py -i -m -s 15 
 cd ${CRT_DIR}
