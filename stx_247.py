@@ -59,46 +59,62 @@ class StxAnalyzer:
                 crs.execute(qha.as_string(cnx))
                 rows = crs.fetchall()
             return len(rows) if rows else 0
-        df['ha'] = df.apply(hiactfun, axis=1)
+        df['hi_act'] = df.apply(hiactfun, axis=1)
 
-
-    def do_analysis(self, crt_date, max_spread, eod):
-        res = '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}'.format(
-            'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
-        df_1 = self.get_triggered_setups(crt_date)
-        self.get_high_activity(crt_date, df_1)
-        if eod:
-            df_2 = self.get_setups_for_tomorrow(crt_date)
-            self.get_high_activity(crt_date, df_2)
-        #      dt     |  stk  |  setup   | direction | triggered 
-        # ------------+-------+----------+-----------+-----------
-        #  2019-08-21 | MSM   | JC_1234  | D         | t
-
+    def get_opt_spreads(self, crt_date):
         exp_date = stxcal.next_expiry(crt_date)
-        q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
-                                   'where expiry='), sql.Literal(exp_date)])
+        q = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
+                                  'where expiry='), sql.Literal(exp_date)])
         cnx = stxdb.db_get_cnx()
         with cnx.cursor() as crs:
-            crs.execute(q2.as_string(cnx))
+            crs.execute(q.as_string(cnx))
             spread_dict = {x[0]: x[1] for x in crs}
-        df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
+        return spread_dict
+
+    def filter_spreads(self, df, spreads, max_spread):
+        df['spread'] = df.apply(lambda r: spreads.get(r['stk']), axis=1)
         df.drop_duplicates(['stk', 'direction'], inplace=True)
         df = df[df.spread < max_spread]
-        df.sort_values(by=['direction', 'spread'], inplace=True)
-        s_date = stxcal.move_busdays(crt_date, -49)
+        df.sort_values(by=['direction', 'hi_act'], ascending=False, 
+                       inplace=True)
+        return df
+
+    def get_report(self, crt_date, df):
+        s_date = stxcal.move_busdays(crt_date, -22)
+        res = ''
         for _, row in df.iterrows():
             stk = row['stk']
             ts = StxTS(stk, s_date, crt_date)
+            day_ix = ts.set_day(crt_date)
+            if day_ix == -1:
+                continue
             avg_volume = np.average(ts.df['v'].values[-20:])
             rgs = [max(h, c_1) - min(l, c_1) 
                    for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
                                         ts.df['lo'].values[-20:], 
                                         ts.df['c'].values[-21:-1])]
             avg_rg = np.average(rgs)
-
             res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
                 '{6:d}'.format(res, stk, row['direction'], row['spread'],
-                               int(1000 * avg_volume), avg_rg / 100, row['ha'])
+                               int(1000 * avg_volume), avg_rg / 100, 
+                               row['hi_act'])
+        return res
+
+    def do_analysis(self, crt_date, max_spread, eod):
+        spreads = self.get_opt_spreads(crt_date)
+        df_1 = self.get_triggered_setups(crt_date)
+        self.get_high_activity(crt_date, df_1)
+        df_1 = self.filter_spreads(df_1, spreads, max_spread)
+        res = 'TODAY\n=====\n'
+        res += '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}\n'.format(
+            'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
+        res += self.get_report(crt_date, df_1)
+        if eod:
+            df_2 = self.get_setups_for_tomorrow(crt_date)
+            self.get_high_activity(crt_date, df_2)
+            df_2 = self.filter_spreads(df_2, spreads, max_spread)
+            res += '\n\nTOMORROW\n========\n'
+            res += self.get_report(crt_date, df_2)            
         print('{0:s}:'.format(crt_date))
         print('===========')
         print(res)
@@ -142,12 +158,13 @@ if __name__ == '__main__':
                         help="Email analysis results")    
     args = parser.parse_args()
     analysis_type = 'Analysis'
+    eod = False
     if args.eod:
         analysis_type = 'EOD'
+        eod = True
     if args.intraday:
         analysis_type = 'Intraday'
     stx_ana = StxAnalyzer()
-    analysis_results = stx_ana.do_analysis(args.date, args.max_spread, 
-                                           analysis_type)
+    analysis_results = stx_ana.do_analysis(args.date, args.max_spread, eod)
     if args.mail:
         stx_ana.mail_analysis(analysis_results, analysis_type)
