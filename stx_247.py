@@ -118,6 +118,7 @@ class StxAnalyzer:
         print('{0:s}:'.format(crt_date))
         print('===========')
         print(res)
+        return res
 
     def mail_analysis(self, analysis_results, analysis_type):
         smtp_server = os.getenv('EMAIL_SERVER')
