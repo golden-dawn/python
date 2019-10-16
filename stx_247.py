@@ -159,12 +159,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     analysis_type = 'Analysis'
     eod = False
+    crt_date = stxcal.current_busdate(hr=9)
     if args.eod:
         analysis_type = 'EOD'
         eod = True
     if args.intraday:
         analysis_type = 'Intraday'
+    if args.date:
+        crt_date = args.date
     stx_ana = StxAnalyzer()
-    analysis_results = stx_ana.do_analysis(args.date, args.max_spread, eod)
+    analysis_results = stx_ana.do_analysis(crt_date, args.max_spread, eod)
     if args.mail:
         stx_ana.mail_analysis(analysis_results, analysis_type)
