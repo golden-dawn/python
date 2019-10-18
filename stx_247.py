@@ -149,7 +149,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--max_spread', type=int, default=33,
                         help='Maximum spread for leaders')
     parser.add_argument('-d', '--date', type=str, 
-                        default=stxcal.current_busdate(),
+                        default=stxcal.current_busdate(hr=9),
                         help='Date to retrieve setups')
     parser.add_argument('-e', '--eod', action='store_true',
                         help="Run EOD analysis")
@@ -160,7 +160,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     analysis_type = 'Analysis'
     eod = False
-    crt_date = stxcal.current_busdate(hr=9)
     if args.eod:
         analysis_type = 'EOD'
         eod = True
