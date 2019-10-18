@@ -62,7 +62,7 @@ class StxAnalyzer:
         df['hi_act'] = df.apply(hiactfun, axis=1)
 
     def get_opt_spreads(self, crt_date):
-        exp_date = stxcal.next_expiry(crt_date)
+        exp_date = stxcal.next_expiry(crt_date, min_days=0)
         q = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
                                   'where expiry='), sql.Literal(exp_date)])
         cnx = stxdb.db_get_cnx()
