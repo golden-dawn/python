@@ -61,8 +61,8 @@ class StxAnalyzer:
             return len(rows) if rows else 0
         df['hi_act'] = df.apply(hiactfun, axis=1)
 
-    def get_opt_spreads(self, crt_date):
-        exp_date = stxcal.next_expiry(crt_date, min_days=0)
+    def get_opt_spreads(self, crt_date, eod):
+        exp_date = stxcal.next_expiry(crt_date, min_days=(1 if eod else 0))
         q = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
                                   'where expiry='), sql.Literal(exp_date)])
         cnx = stxdb.db_get_cnx()
@@ -94,14 +94,18 @@ class StxAnalyzer:
                                         ts.df['lo'].values[-20:], 
                                         ts.df['c'].values[-21:-1])]
             avg_rg = np.average(rgs)
-            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
-                '{6:d}'.format(res, stk, row['direction'], row['spread'],
+            res = '{}\r\n{} {} {} {} {} '\
+                '{}'.format(res, stk, row['direction'], row['spread'],
                                int(1000 * avg_volume), avg_rg / 100, 
                                row['hi_act'])
+#             res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
+#                 '{6:d}'.format(res, stk, row['direction'], row['spread'],
+#                                int(1000 * avg_volume), avg_rg / 100, 
+#                                row['hi_act'])
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
-        spreads = self.get_opt_spreads(crt_date)
+        spreads = self.get_opt_spreads(crt_date, eod)
         df_1 = self.get_triggered_setups(crt_date)
         self.get_high_activity(crt_date, df_1)
         df_1 = self.filter_spreads(df_1, spreads, max_spread)
