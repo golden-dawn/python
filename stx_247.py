@@ -94,14 +94,10 @@ class StxAnalyzer:
                                         ts.df['lo'].values[-20:], 
                                         ts.df['c'].values[-21:-1])]
             avg_rg = np.average(rgs)
-            res = '{}\r\n{} {} {} {} {} '\
-                '{}'.format(res, stk, row['direction'], row['spread'],
+            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
+                '{6:d}'.format(res, stk, row['direction'], int(row['spread']),
                                int(1000 * avg_volume), avg_rg / 100, 
                                row['hi_act'])
-#             res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
-#                 '{6:d}'.format(res, stk, row['direction'], row['spread'],
-#                                int(1000 * avg_volume), avg_rg / 100, 
-#                                row['hi_act'])
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
