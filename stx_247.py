@@ -39,12 +39,12 @@ class StxAnalyzer:
         return df
 
     def get_high_activity(self, dt, df):
-        five_days_ago = stxcal.move_busdays(dt, -5)
-        df['d_5'] = five_days_ago
+        eight_days_ago = stxcal.move_busdays(dt, -8)
+        df['d_8'] = eight_days_ago
         def hiactfun(r):
             qha = sql.Composed(
                 [sql.SQL('select * from setups where dt between '),
-                 sql.Literal(r['d_5']), 
+                 sql.Literal(r['d_8']), 
                  sql.SQL(' and '),
                  sql.Literal(r['dt']),
                  sql.SQL(' and stk='),
@@ -71,10 +71,11 @@ class StxAnalyzer:
             spread_dict = {x[0]: x[1] for x in crs}
         return spread_dict
 
-    def filter_spreads(self, df, spreads, max_spread):
+    def filter_spreads_hiact(self, df, spreads, max_spread):
         df['spread'] = df.apply(lambda r: spreads.get(r['stk']), axis=1)
         df.drop_duplicates(['stk', 'direction'], inplace=True)
         df = df[df.spread < max_spread]
+        df = df[df.hi_act >= 3]
         df.sort_values(by=['direction', 'hi_act'], ascending=False, 
                        inplace=True)
         return df
@@ -104,7 +105,7 @@ class StxAnalyzer:
         spreads = self.get_opt_spreads(crt_date, eod)
         df_1 = self.get_triggered_setups(crt_date)
         self.get_high_activity(crt_date, df_1)
-        df_1 = self.filter_spreads(df_1, spreads, max_spread)
+        df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
         res = 'TODAY\n=====\n'
         res += '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}\n'.format(
             'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
@@ -112,7 +113,7 @@ class StxAnalyzer:
         if eod:
             df_2 = self.get_setups_for_tomorrow(crt_date)
             self.get_high_activity(crt_date, df_2)
-            df_2 = self.filter_spreads(df_2, spreads, max_spread)
+            df_2 = self.filter_spreads_hiact(df_2, spreads, max_spread)
             res += '\n\nTOMORROW\n========\n'
             res += self.get_report(crt_date, df_2)            
         print('{0:s}:'.format(crt_date))
