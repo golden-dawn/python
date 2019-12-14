@@ -222,3 +222,11 @@ make
 sudo make install
 ```
 
+### Restart Postgresql Server 
+
+If, after a machine restart, the postgresql server does not come back
+up automatically, remove the dangling process id with the following:
+
+```
+rm -f /usr/local/var/postgres/postmaster.pid
+```
