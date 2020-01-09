@@ -39,9 +39,8 @@ class StxJL:
         self.jl_ix = 0  # current index in the jlix table
         self.last = {'prim_px': 0, 'prim_state': StxJL.Nil, 'px': 0,
                      'state': StxJL.Nil}
-        self.ts.df['hb4l'] = self.ts.df.apply(lambda r: 1 if
-                                              2*r['c'] < r['hi']+r['lo'] else 0,
-                                              axis=1)
+        self.ts.df['hb4l'] = self.ts.df.apply(
+            lambda r: 1 if 2*r['c'] < r['hi']+r['lo'] else 0, axis=1)
 
     def jl(self, dt):
         self.ts.set_day(dt, -1)
