@@ -1,5 +1,6 @@
 import argparse
 import datetime
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import json
 import numpy as np
@@ -8,7 +9,7 @@ import pandas as pd
 from psycopg2 import sql
 import re
 import smtplib
-import stxcal
+# import stxcal
 import stxdb
 from stxjl import StxJL
 from stxts import StxTS
@@ -28,51 +29,131 @@ class StxMail:
 #                 ts.df['lo_{0:d}'.format(ixx)] = ts.df['lo'].shift(ixx)
 #             ts.df['v_50'] = ts.df['volume'].rolling(50).mean()
 
-    def mail_analysis(self, analysis_type):
-        crt_date = stxcal.current_busdate(hr=9)
-        exp_date = stxcal.next_expiry(crt_date)
+#     def mail_analysis(self, analysis_type):
+# #         crt_date = stxcal.current_busdate(hr=9)
+# #         exp_date = stxcal.next_expiry(crt_date)
+#         smtp_server = os.getenv('EMAIL_SERVER')
+#         smtp_user = os.getenv('EMAIL_USER')
+#         smtp_passwd = os.getenv('EMAIL_PASSWD')
+#         smtp_email = os.getenv('EMAIL_USER')
+#         smtp_port = os.getenv('EMAIL_PORT')
+#         res = '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s}'.format(
+#             'name', 'direction', 'spread', 'avg_volume', 'avg_rg')
+#         #      dt     |  stk  |  setup   | direction | triggered 
+#         # ------------+-------+----------+-----------+-----------
+#         #  2019-08-21 | MSM   | JC_1234  | D         | t
+#         q1 = sql.Composed([sql.SQL('select * from setups where dt='),
+#                           sql.Literal(crt_date)])
+#         df = pd.read_sql(q1, stxdb.db_get_cnx())
+#         q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
+#                                    'where expiry='), sql.Literal(exp_date)])
+#         cnx = stxdb.db_get_cnx()
+#         with cnx.cursor() as crs:
+#             crs.execute(q2.as_string(cnx))
+#             spread_dict = {x[0]: x[1] for x in crs}
+#         df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
+#         df.drop_duplicates(['stk', 'direction'], inplace=True)
+#         df.sort_values(by=['direction', 'spread'], inplace=True)
+#         s_date = stxcal.move_busdays(crt_date, -49)
+#         for _, row in df.iterrows():
+#             stk = row['stk']
+#             ts = StxTS(stk, s_date, crt_date)
+#             avg_volume = np.average(ts.df['v'].values[:])
+#             rgs = [max(h, c_1) - min(l, c_1) 
+#                    for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
+#                                         ts.df['lo'].values[-20:], 
+#                                         ts.df['c'].values[-21:-1])]
+#             avg_rg = np.average(rgs)
+#             res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f}'.format(
+#                     res, stk, row['direction'], row['spread'],
+#                     int(1000 * avg_volume), avg_rg / 100)
+#         try:
+#             try:
+#                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
+#                 s.starttls()
+#                 s.login(smtp_user, smtp_passwd)
+#                 msg = MIMEText(res, 'plain')
+#                 msg['Subject'] = '{0:s} {1:s}'.format(analysis_type, crt_date)
+#                 msg['From'] = smtp_email
+#                 msg['To'] = smtp_email
+#                 s.sendmail(smtp_email, smtp_email, msg.as_string())
+#             except:
+#                 print('Something failed: {0:s}'.format(traceback.print_exc()))
+#             finally:
+#                 s.quit()
+#         except:
+#             print('Failed to send email: {0:s}'.format(traceback.print_exc()))
+
+    def mail_test(self):
+#         crt_date = stxcal.current_busdate(hr=9)
+#         exp_date = stxcal.next_expiry(crt_date)
         smtp_server = os.getenv('EMAIL_SERVER')
         smtp_user = os.getenv('EMAIL_USER')
         smtp_passwd = os.getenv('EMAIL_PASSWD')
         smtp_email = os.getenv('EMAIL_USER')
         smtp_port = os.getenv('EMAIL_PORT')
-        res = '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s}'.format(
-            'name', 'direction', 'spread', 'avg_volume', 'avg_rg')
-        #      dt     |  stk  |  setup   | direction | triggered 
-        # ------------+-------+----------+-----------+-----------
-        #  2019-08-21 | MSM   | JC_1234  | D         | t
-        q1 = sql.Composed([sql.SQL('select * from setups where dt='),
-                          sql.Literal(crt_date)])
-        df = pd.read_sql(q1, stxdb.db_get_cnx())
-        q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
-                                   'where expiry='), sql.Literal(exp_date)])
-        cnx = stxdb.db_get_cnx()
-        with cnx.cursor() as crs:
-            crs.execute(q2.as_string(cnx))
-            spread_dict = {x[0]: x[1] for x in crs}
-        df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
-        df.drop_duplicates(['stk', 'direction'], inplace=True)
-        df.sort_values(by=['direction', 'spread'], inplace=True)
-        s_date = stxcal.move_busdays(crt_date, -49)
-        for _, row in df.iterrows():
-            stk = row['stk']
-            ts = StxTS(stk, s_date, crt_date)
-            avg_volume = np.average(ts.df['v'].values[:])
-            rgs = [max(h, c_1) - min(l, c_1) 
-                   for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
-                                        ts.df['lo'].values[-20:], 
-                                        ts.df['c'].values[-21:-1])]
-            avg_rg = np.average(rgs)
-            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f}'.format(
-                    res, stk, row['direction'], row['spread'],
-                    int(1000 * avg_volume), avg_rg / 100)
+
+        # Create the body of the message (a plain-text and an HTML version).
+        html = """\
+<html>
+<style scoped>
+.whiteText {background-color:black;color:white;}
+</style>
+
+  <head></head>
+  <body>
+    <p class="whiteText">Hi!<br>
+       <span style="color:#FF0000"><u>How</u></span> are you?<br>
+       Here is the <a href="http://www.python.org">link</a> you wanted.
+    </p>
+  </body>
+</html>
+"""
+
+        # Record the MIME types of both parts - text/plain and text/html.
+#         part1 = MIMEText(text, 'plain')
+#         part2 = MIMEText(html, 'html')
+
+#         res = '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s}'.format(
+#             'name', 'direction', 'spread', 'avg_volume', 'avg_rg')
+#         #      dt     |  stk  |  setup   | direction | triggered 
+#         # ------------+-------+----------+-----------+-----------
+#         #  2019-08-21 | MSM   | JC_1234  | D         | t
+#         q1 = sql.Composed([sql.SQL('select * from setups where dt='),
+#                           sql.Literal(crt_date)])
+#         df = pd.read_sql(q1, stxdb.db_get_cnx())
+#         q2 = sql.Composed([sql.SQL('select stk, opt_spread from leaders '
+#                                    'where expiry='), sql.Literal(exp_date)])
+#         cnx = stxdb.db_get_cnx()
+#         with cnx.cursor() as crs:
+#             crs.execute(q2.as_string(cnx))
+#             spread_dict = {x[0]: x[1] for x in crs}
+#         df['spread'] = df.apply(lambda r: spread_dict.get(r['stk']), axis=1)
+#         df.drop_duplicates(['stk', 'direction'], inplace=True)
+#         df.sort_values(by=['direction', 'spread'], inplace=True)
+#         s_date = stxcal.move_busdays(crt_date, -49)
+#         for _, row in df.iterrows():
+#             stk = row['stk']
+#             ts = StxTS(stk, s_date, crt_date)
+#             avg_volume = np.average(ts.df['v'].values[:])
+#             rgs = [max(h, c_1) - min(l, c_1) 
+#                    for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
+#                                         ts.df['lo'].values[-20:], 
+#                                         ts.df['c'].values[-21:-1])]
+#             avg_rg = np.average(rgs)
+#             res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f}'.format(
+#                     res, stk, row['direction'], row['spread'],
+#                     int(1000 * avg_volume), avg_rg / 100)
         try:
             try:
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
                 s.starttls()
                 s.login(smtp_user, smtp_passwd)
-                msg = MIMEText(res, 'plain')
-                msg['Subject'] = '{0:s} {1:s}'.format(analysis_type, crt_date)
+                msg = MIMEText(html, 'html')
+#                 msg.attach(part1)
+#                 msg.attach(part2)
+#                 msg['Subject'] = '{0:s} {1:s}'.format(analysis_type, crt_date)
+                msg['Subject'] = 'This is a multicolor test'
                 msg['From'] = smtp_email
                 msg['To'] = smtp_email
                 s.sendmail(smtp_email, smtp_email, msg.as_string())
@@ -82,6 +163,7 @@ class StxMail:
                 s.quit()
         except:
             print('Failed to send email: {0:s}'.format(traceback.print_exc()))
+
         
 
 if __name__ == '__main__':
@@ -107,4 +189,5 @@ if __name__ == '__main__':
     if args.intraday:
         analysis_type = 'Intraday'
     stx_mail = StxMail()
-    stx_mail.mail_analysis(analysis_type)
+    stx_mail.mail_test()
+#     stx_mail.mail_analysis(analysis_type)
