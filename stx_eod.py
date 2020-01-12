@@ -232,7 +232,7 @@ class StxEOD:
 import os
 from stx_eod import StxEOD
 data_dir = os.getenv('DOWNLOAD_DIR')
-splits_files = ['splits_20191108_ana.txt', 'splits_20190315_ana.txt', 
+splits_files = ['splits_20200110_ana.txt', 'splits_20190315_ana.txt', 
                 'splits_20190222_ana.txt', 'splits_20190329_ana.txt',
                 'splits_20190517_ana.txt']
 seod = StxEOD(data_dir)
