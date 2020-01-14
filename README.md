@@ -230,3 +230,17 @@ up automatically, remove the dangling process id with the following:
 ```
 rm -f /usr/local/var/postgres/postmaster.pid
 ```
+
+### Install WeasyPrint
+
+First, might need to install these packages:
+```
+brew install python3 cairo pango gdk-pixbuf libffi
+```
+
+Then install WeasyPrint, as usual (cannot run with Python2; need
+Python3 and Pip3).
+
+```
+pip3 install WeasyPrint
+```
