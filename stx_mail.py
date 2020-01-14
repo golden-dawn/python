@@ -1,5 +1,6 @@
 import argparse
 import datetime
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
@@ -150,23 +151,28 @@ class StxMail:
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
                 s.starttls()
                 s.login(smtp_user, smtp_passwd)
-                msg = MIMEMultipart('alternative')
-                with open('aapl1.png', 'rb') as fimg:
-                    msg_image = MIMEImage(fimg.read(), name='aapl1.png')
-                    msg_image.add_header('Content-ID', '0')
-                    msg_image.add_header("Content-Disposition", "in-line", 
-                                         filename='aapl1.png')
-                    msg_image.add_header('X-Attachment-Id', '0')  
-                    msg.attach(msg_image)
-                msg_html = MIMEText(html, 'html')
-                msg.attach(msg_html)
-                with open('aapl.png', 'rb') as fimg:
-                    msg_image_1 = MIMEImage(fimg.read())
-                    msg_image_1.add_header('Content-ID', '1')
-                    msg_image_1.add_header("Content-Disposition", "in-line", 
-                                           filename='aapl.png')
-                    msg_image_1.add_header('X-Attachment-Id', '1')  
-                    msg.attach(msg_image_1)
+                msg = MIMEMultipart()
+                with open('test.pdf', 'rb') as fpdf:
+                    pdf = MIMEApplication(fpdf.read(), Name='test.pdf')
+                pdf['Content-Disposition'] = 'attachment; filename="test.pdf"'
+                msg.attach(pdf)
+
+#                 with open('aapl1.png', 'rb') as fimg:
+#                     msg_image = MIMEImage(fimg.read(), name='aapl1.png')
+#                     msg_image.add_header('Content-ID', '0')
+#                     msg_image.add_header("Content-Disposition", "in-line", 
+#                                          filename='aapl1.png')
+#                     msg_image.add_header('X-Attachment-Id', '0')  
+#                     msg.attach(msg_image)
+#                 msg_html = MIMEText(html, 'html')
+#                 msg.attach(msg_html)
+#                 with open('aapl.png', 'rb') as fimg:
+#                     msg_image_1 = MIMEImage(fimg.read())
+#                     msg_image_1.add_header('Content-ID', '1')
+#                     msg_image_1.add_header("Content-Disposition", "in-line", 
+#                                            filename='aapl.png')
+#                     msg_image_1.add_header('X-Attachment-Id', '1')  
+#                     msg.attach(msg_image_1)
 #                 msg = MIMEText(html, 'html')
 #                 msg.attach(part1)
 #                 msg.attach(part2)
