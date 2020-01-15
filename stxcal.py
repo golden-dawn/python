@@ -17,10 +17,9 @@ def get_cal(start=None, end=None):
             start = '1901-01-01'
         start = pd.Timestamp(start, tz='UTC')
         if end is None:
-            end = pd.Timestamp('today', tz='UTC') + \
-                pd.datetools.Timedelta(weeks=52)
-        else:
-            end = pd.Timestamp(end, tz='UTC')
+            end = datetime.now().date()
+            end += timedelta(weeks=52)
+        end = pd.Timestamp(end, tz='UTC')
         print('Initializing calendar between {0:s} and {1:s}'.
               format(str(start.date()), str(end.date())))
         non_trading_rules = []
