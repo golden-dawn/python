@@ -18,6 +18,7 @@ from stxts import StxTS
 import sys
 import time
 import traceback
+from weasyprint import HTML
 
 class StxMail:
 
@@ -101,7 +102,6 @@ class StxMail:
 <style scoped>
 .whiteText {background-color:black;color:white;}
 </style>
-
   <head></head>
   <body>
     <p class="whiteText">Hi!<br>
@@ -111,7 +111,56 @@ class StxMail:
   </body>
 </html>
 """
-
+        report_style = '''
+<style>
+h3 {
+  font-family: sans-serif;
+}
+h4 {
+  font-family: sans-serif;
+}
+table {
+  border-collapse: collapse;
+  border: 1px solid black;
+  width: 100%;
+  word-wrap: normal;
+  font-family: sans-serif;
+}
+table.a {
+  table-layout: auto;
+}
+table.b {
+  table-layout: fixed;
+}
+</style>
+'''
+        x = [report_style]
+        x.append('<table class="b" border="1">')
+        x.append('<tr><th>Date</th><th>NRa</th><th>UT</th><th>DT</th>'
+                 '<th>NRe</th><th>OBV</th><th>RG</th></tr>')
+        x.append("<tr><td>2019-09-13</td>"
+                 "<td><span style='color:#FF0000'><u>65.00</u></span></td>"
+                 "<td></td><td></td><td></td><th>2.3</td><td>1.23</td></tr>")
+        x.append("<tr><td>2019-09-20</td><td></td><td></td>"
+                 "<td><span style='color:#FF0000'><u>45.00</u></span></td>"
+                 "<td></td><th>12.3</td><td>2.33</td></tr>")
+        x.append('</table>')
+        x.append('<img src="aapl.png" alt="img1">')
+        x.append('<table class="b" border="1">')
+        x.append('<tr><th>Date</th><th>NRa</th><th>UT</th><th>DT</th>'
+                 '<th>NRe</th><th>OBV</th><th>RG</th></tr>')
+        x.append("<tr><td>2019-09-13</td>"
+                 "<td><span style='color:#FF0000'><u>65.00</u></span></td>"
+                 "<td></td><td></td><td></td><th>2.3</td><td>1.23</td></tr>")
+        x.append("<tr><td>2019-09-20</td><td></td><td></td>"
+                 "<td><span style='color:#FF0000'><u>45.00</u></span></td>"
+                 "<td></td><th>12.3</td><td>2.33</td></tr>")
+        x.append('</table>')
+        x.append('<img src="aapl1.png" alt="img2">')
+        html = '\n'.join(x)
+        with open('x.html', 'w') as f:
+            f.write(html)
+        HTML(filename='x.html').write_pdf('x.pdf')
         # Record the MIME types of both parts - text/plain and text/html.
 #         part1 = MIMEText(text, 'plain')
 #         part2 = MIMEText(html, 'html')
@@ -152,9 +201,9 @@ class StxMail:
                 s.starttls()
                 s.login(smtp_user, smtp_passwd)
                 msg = MIMEMultipart()
-                with open('test.pdf', 'rb') as fpdf:
-                    pdf = MIMEApplication(fpdf.read(), Name='test.pdf')
-                pdf['Content-Disposition'] = 'attachment; filename="test.pdf"'
+                with open('x.pdf', 'rb') as fpdf:
+                    pdf = MIMEApplication(fpdf.read(), Name='x.pdf')
+                pdf['Content-Disposition'] = 'attachment; filename="x.pdf"'
                 msg.attach(pdf)
 
 #                 with open('aapl1.png', 'rb') as fimg:
