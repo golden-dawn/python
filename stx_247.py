@@ -15,8 +15,32 @@ from stxts import StxTS
 import sys
 import time
 import traceback
+from weasyprint import HTML
 
 class StxAnalyzer:
+    def __init__(self):
+        self.report_style = '''
+<style>
+body {
+  font-family: sans-serif;
+  background-color: black;
+  color: white;
+}
+table {
+  border-collapse: collapse;
+  border: 1px solid black;
+  width: 100%;
+  word-wrap: normal;
+  table-layout: auto;
+}
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 99%;
+}
+</style>
+'''
 
     def get_triggered_setups(self, dt):
         q = sql.Composed([
@@ -106,20 +130,25 @@ class StxAnalyzer:
         df_1 = self.get_triggered_setups(crt_date)
         self.get_high_activity(crt_date, df_1)
         df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
-        res = 'TODAY\n=====\n'
-        res += '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}\n'.format(
-            'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
-        res += self.get_report(crt_date, df_1)
+        res = ['<html>', self.report_style, '<body>']
+        res.append('<h3>TODAY - {0:s}</h3>'.format(crt_date))
+        res.extend(self.get_report(crt_date, df_1))
+#         res += '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}\n'.format(
+#             'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
+#         res += self.get_report(crt_date, df_1)
         if eod:
             df_2 = self.get_setups_for_tomorrow(crt_date)
+            next_date = stxcal.next_busday(crt_date)
             self.get_high_activity(crt_date, df_2)
             df_2 = self.filter_spreads_hiact(df_2, spreads, max_spread)
-            res += '\n\nTOMORROW\n========\n'
-            res += self.get_report(crt_date, df_2)            
-        print('{0:s}:'.format(crt_date))
-        print('===========')
-        print(res)
-        return res
+            res.append('<h3>TOMMORROW - {0:s}</h3>'.format(next_date))
+            res.extend(self.get_report(crt_date, df_2))
+        res.append('</body>')
+        res.append('</html>')
+        with open('/tmp/x.html', 'w') as html_file:
+            html_file.write('/n'.join(res))
+        # TODO: generate correct pdf file name here
+        HTML(filename='/tmp/x.html').write_pdf('x.pdf')
 
     def mail_analysis(self, analysis_results, analysis_type):
         smtp_server = os.getenv('EMAIL_SERVER')
