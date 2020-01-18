@@ -15,5 +15,5 @@ recordclass
 cython
 schedule
 tensorflow
-mpl_finance
+mplfinance
 WeasyPrint
