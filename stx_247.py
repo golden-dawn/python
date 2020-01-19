@@ -1,6 +1,7 @@
 import argparse
 import datetime
-from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
 import json
 import numpy as np
 import os
@@ -12,6 +13,7 @@ import stxcal
 import stxdb
 from stxjl import StxJL
 from stxts import StxTS
+from stx_plot import StxPlot
 import sys
 import time
 import traceback
@@ -105,10 +107,15 @@ img {
         return df
 
     def get_report(self, crt_date, df):
-        s_date = stxcal.move_busdays(crt_date, -22)
-        res = ''
+        s_date = stxcal.move_busdays(crt_date, -50)
+        res = []
         for _, row in df.iterrows():
             stk = row['stk']
+            stk_plot = StxPlot(stk, s_date, crt_date)
+            stk_plot.plot_to_file()
+            res.append('<h4>{0:s}</h4>'.format(stk))
+            res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                       format(stk, stk))
             ts = StxTS(stk, s_date, crt_date)
             day_ix = ts.set_day(crt_date)
             if day_ix == -1:
@@ -119,10 +126,16 @@ img {
                                         ts.df['lo'].values[-20:], 
                                         ts.df['c'].values[-21:-1])]
             avg_rg = np.average(rgs)
-            res = '{0:s}\r\n{1:6s} {2:9s} {3:6d} {4:12,d} {5:6.2f} '\
-                '{6:d}'.format(res, stk, row['direction'], int(row['spread']),
-                               int(1000 * avg_volume), avg_rg / 100, 
-                               row['hi_act'])
+            res.append('<table border="1">')
+            res.append('<tr><th>name</th><th>direction</th><th>spread'
+                       '</th><th>avg_volume</th><th>avg_rg</th><th>hi_act'
+                       '</th></tr>')
+            res.append('<tr><td>{0:s}</td><td>{1:s}</td><td>{2:d}</td><td>'
+                       '{3:,d}</td><td>{4:.2f}</td><td>{5:d}</td></tr>'.
+                       format(stk, row['direction'], int(row['spread']),
+                              int(1000 * avg_volume), avg_rg / 100, 
+                              row['hi_act']))
+            res.append('</table>')
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
@@ -163,8 +176,9 @@ img {
         pdf_fname = '{0:s}_{1:s}.pdf'.format(crt_date, suffix)
         pdf_filename = os.path.join(os.getenv('HOME'), 'market', pdf_fname)
         HTML(filename='/tmp/x.html').write_pdf(pdf_filename)
+        return pdf_filename
 
-    def mail_analysis(self, analysis_results, analysis_type):
+    def mail_analysis(self, pdf_report, analysis_type):
         smtp_server = os.getenv('EMAIL_SERVER')
         smtp_user = os.getenv('EMAIL_USER')
         smtp_passwd = os.getenv('EMAIL_PASSWD')
@@ -175,7 +189,13 @@ img {
                 s = smtplib.SMTP(host=smtp_server, port=smtp_port)
                 s.starttls()
                 s.login(smtp_user, smtp_passwd)
-                msg = MIMEText(analysis_results, 'plain')
+                msg = MIMEMultipart()
+                pdf_name = os.path.basename(pdf_report)
+                with open(pdf_report, 'rb') as fpdf:
+                    pdf = MIMEApplication(fpdf.read(), Name=pdf_name)
+                pdf['Content-Disposition'] = 'attachment; filename="{0:s}"'\
+                    ''.format(pdf_name)
+                msg.attach(pdf)
                 msg['Subject'] = '{0:s} {1:s}'.format(analysis_type, crt_date)
                 msg['From'] = smtp_email
                 msg['To'] = smtp_email
@@ -212,6 +232,6 @@ if __name__ == '__main__':
     if args.date:
         crt_date = args.date
     stx_ana = StxAnalyzer()
-    analysis_results = stx_ana.do_analysis(crt_date, args.max_spread, eod)
+    pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
     if args.mail:
-        stx_ana.mail_analysis(analysis_results, analysis_type)
+        stx_ana.mail_analysis(pdf_report, analysis_type)
