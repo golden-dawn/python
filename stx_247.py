@@ -147,8 +147,22 @@ img {
         res.append('</html>')
         with open('/tmp/x.html', 'w') as html_file:
             html_file.write('/n'.join(res))
-        # TODO: generate correct pdf file name here
-        HTML(filename='/tmp/x.html').write_pdf('x.pdf')
+        time_now = datetime.datetime.now()
+        time_now_date = '{0:d}-{1:02d}-{2:02d}'.format(time_now.year, 
+                                                       time_now.month, 
+                                                       time_now.day)
+        suffix = 'EOD'
+        if time_now_date == crt_date:
+            if time_now.hour >= 10 and time_now.hour < 16:
+                suffix = '{0:02d}{1:02d}'.format(time_now.hour,
+                                                 time_now.minute)
+            else:
+                suffix = 'EOD'
+        else:
+            suffix = 'EOD' if eod else 'ID'
+        pdf_fname = '{0:s}_{1:s}.pdf'.format(crt_date, suffix)
+        pdf_filename = os.path.join(os.getenv('HOME'), 'market', pdf_fname)
+        HTML(filename='/tmp/x.html').write_pdf(pdf_filename)
 
     def mail_analysis(self, analysis_results, analysis_type):
         smtp_server = os.getenv('EMAIL_SERVER')
