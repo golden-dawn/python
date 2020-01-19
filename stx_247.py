@@ -159,7 +159,7 @@ img {
         res.append('</body>')
         res.append('</html>')
         with open('/tmp/x.html', 'w') as html_file:
-            html_file.write('/n'.join(res))
+            html_file.write('\n'.join(res))
         time_now = datetime.datetime.now()
         time_now_date = '{0:d}-{1:02d}-{2:02d}'.format(time_now.year, 
                                                        time_now.month, 
