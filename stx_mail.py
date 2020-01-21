@@ -113,6 +113,7 @@ class StxMail:
 """
         report_style = '''
 <style>
+scoped.whiteText {background-color:black;color:white;}
 h3 {
   font-family: sans-serif;
 }
@@ -125,38 +126,40 @@ table {
   width: 100%;
   word-wrap: normal;
   font-family: sans-serif;
-}
-table.a {
   table-layout: auto;
+  background-color:black;
+  color:white;
 }
-table.b {
-  table-layout: fixed;
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 '''
         x = [report_style]
-        x.append('<table class="b" border="1">')
+        x.append('<table border="1">')
         x.append('<tr><th>Date</th><th>NRa</th><th>UT</th><th>DT</th>'
                  '<th>NRe</th><th>OBV</th><th>RG</th></tr>')
         x.append("<tr><td>2019-09-13</td>"
-                 "<td><span style='color:#FF0000'><u>65.00</u></span></td>"
+                 "<td><span style='color:#FFAAAA'><u>65.00</u></span></td>"
                  "<td></td><td></td><td></td><th>2.3</td><td>1.23</td></tr>")
         x.append("<tr><td>2019-09-20</td><td></td><td></td>"
-                 "<td><span style='color:#FF0000'><u>45.00</u></span></td>"
+                 "<td><span style='color:#FFCCCC'><u>45.00</u></span></td>"
                  "<td></td><th>12.3</td><td>2.33</td></tr>")
         x.append('</table>')
-        x.append('<img src="aapl.png" alt="img1">')
-        x.append('<table class="b" border="1">')
+        x.append('<img src="/tmp/aapl.png" alt="img1">')
+        x.append('<table border="1">')
         x.append('<tr><th>Date</th><th>NRa</th><th>UT</th><th>DT</th>'
                  '<th>NRe</th><th>OBV</th><th>RG</th></tr>')
         x.append("<tr><td>2019-09-13</td>"
-                 "<td><span style='color:#FF0000'><u>65.00</u></span></td>"
+                 "<td><span style='color:#FF7777'><u>65.00</u></span></td>"
                  "<td></td><td></td><td></td><th>2.3</td><td>1.23</td></tr>")
         x.append("<tr><td>2019-09-20</td><td></td><td></td>"
-                 "<td><span style='color:#FF0000'><u>45.00</u></span></td>"
+                 "<td><span style='color:#FF4444'><u>45.00</u></span></td>"
                  "<td></td><th>12.3</td><td>2.33</td></tr>")
         x.append('</table>')
-        x.append('<img src="aapl1.png" alt="img2">')
+        x.append('<img src="/tmp/aapl.png" alt="img2"> style="width:95%;"')
         html = '\n'.join(x)
         with open('x.html', 'w') as f:
             f.write(html)
