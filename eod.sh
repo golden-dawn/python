@@ -8,5 +8,6 @@ cd ${HOME}/c
 ./stx_ana.exe -eod
 cd ${HOME}/python
 source .env
+export LANG=en_US.UTF-8
 python3 stx_247.py -e -m -s 15
 cd ${CRT_DIR}
