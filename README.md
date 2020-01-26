@@ -231,6 +231,14 @@ up automatically, remove the dangling process id with the following:
 rm -f /usr/local/var/postgres/postmaster.pid
 ```
 
+### Upgrading the Postgres Server 
+
+After upgrading the Postgres server, the following command must run,
+for the database files to become compatible again with the server:
+```
+brew postgresql-upgrade-database
+```
+
 ### Install WeasyPrint
 
 First, might need to install these packages:
