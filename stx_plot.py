@@ -18,13 +18,19 @@ class StxPlot:
                               'v': 'Volume'}, 
                      inplace=True)
         self.ts = ts
+        # Create my own `marketcolors` to use with the `nightclouds` style:
+        mc = mpf.make_marketcolors(up='#00ff00',down='#ff0000',inherit=True)
+        # Create new style based on `nightclouds` but w/ my own `marketcolors`:
+        self.s  = mpf.make_mpf_style(base_mpf_style='nightclouds',
+                                     marketcolors=mc)
 
     def plot_to_file(self):
-        mpf.plot(self.ts.df, type='candle', volume=True, no_xgaps=True, 
-                 savefig='/tmp/{0:s}.png'.format(self.ts.stk))
+        mpf.plot(self.ts.df, type='candle', style=self.s, title=self.ts.stk, 
+                 volume=True, savefig='/tmp/{0:s}.png'.format(self.ts.stk))
 
     def plot(self):
-        mpf.plot(self.ts.df, type='candle', volume=True, no_xgaps=True)
+        mpf.plot(self.ts.df, type='candle', style=self.s, title=self.ts.stk, 
+                 volume=True)
 
 if __name__ == '__main__':
     # TODO: use argparser and all that stuff
@@ -38,4 +44,4 @@ if __name__ == '__main__':
     elif sorp.startswith('p'):
         sp.plot()
     else:
-        printf('Dont know what to do with {}'.format(sorp))
+        print('Dont know what to do with {}'.format(sorp))
