@@ -8,12 +8,13 @@ else
     DB_NAME=$1
 fi
 
-if [ -z "$DB_BACKUP_DIR" ]
+if [ -z "$2" ]
 then
-    echo "Prior to running this script, define the DB_BACKUP_DIR variable"
+    echo "Define the DB_BACKUP_DIR variable as the second parameter of this script"
     echo "No database backup directory defined, exiting ..."
     exit 0
 else
+    DB_BACKUP_DIR=$2
     echo -e 'Creating backup directory for database'
     mkdir -p $DB_BACKUP_DIR/$DB_NAME
 fi
