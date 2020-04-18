@@ -1,0 +1,9 @@
+select in_dt, out_dt, stk, cp, exp_dt, in_ask, out_bid, opt_pnl, opt_pct_pnl, in_spot, out_spot, in_range  from trades where tag='JLP3' order by in_dt;
+select tag, cp, sum(opt_pnl), count(*) from trades group by tag, cp order by cp, tag;
+select tag, sum(opt_pct_pnl), count(*) from trades group by tag;
+select tag, sum(opt_pnl), count(*) from trades group by tag;
+select cp, sum(opt_pnl)/count(*), count(*) from trades where tag='JLP3' and opt_pnl>0 group by cp;
+select cp, sum(opt_pnl)/count(*), count(*) from trades where tag='JLP3' and opt_pnl<0 group by cp;
+select tag, sum(opt_pnl), count(*), sum(opt_pnl)/count(*) from trades group by tag, (opt_pnl > 0) order by tag;
+select * from jl_setups where setup ='JL_P' and stk='ABT' and dt < '1990-07-14' and (info->>'ls')::NUMERIC=2;
+select * from jl_setups where setup ='JL_P' and stk='ABT' and dt < '1990-07-14' and (info->>'obv')::NUMERIC>102;
