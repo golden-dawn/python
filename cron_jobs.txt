@@ -1,3 +1,5 @@
-30 15 * * 1-5 ${HOME}/python/intraday.sh
+15 15 * * 1-5 ${HOME}/python/intraday.sh
 45 19 * * 1-4 ${HOME}/python/eod.sh
-30 23 * * 5 ${HOME}/python/eod.sh
+47 22 * * 5 ${HOME}/python/eod.sh
+59 13 * * 1-5 ${HOME}/python/intraday.sh
+30 10 * * 1-5 ${HOME}/python/intraday.sh
