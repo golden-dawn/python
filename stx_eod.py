@@ -248,6 +248,7 @@ for split_file in splits_files:
         for line in lines:
             tokens = line.split()
             if len(tokens) < 3:
+                print('Skipping line {0:s}'.format(line))
                 continue
             stk = tokens[0].strip()
             dt = stxcal.prev_busday(tokens[1].strip())
