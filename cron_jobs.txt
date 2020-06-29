@@ -1,6 +1,6 @@
-15 15 * * 1-5 ${HOME}/python/intraday.sh
-45 19 * * 1-4 ${HOME}/python/eod.sh
+15 15 * * 1-5 ${HOME}/python/intraday_cron.sh
+45 19 * * 1-4 ${HOME}/python/eod_cron.sh
 47 22 * * 5 ${HOME}/python/eod.sh
-59 13 * * 1-5 ${HOME}/python/intraday.sh
-30 10 * * 1-5 ${HOME}/python/intraday.sh
+59 13 * * 1-5 ${HOME}/python/intraday_cron.sh
+30 10 * * 1-5 ${HOME}/python/intraday_cron.sh
 55 15 * * 5 ${HOME}/python/intraday-expiry.sh
