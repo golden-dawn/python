@@ -560,6 +560,10 @@ def get_seconds(dt):
     return int((datetime.strptime(dt, '%Y-%m-%d') - epoch).total_seconds())
 
 
+def today_date():
+    return datetime.strftime(datetime.now(), '%Y-%m-%d')
+
+
 def current_date():
     return move_busdays(datetime.strftime(datetime.now(), '%Y-%m-%d'), 0)
 
