@@ -221,9 +221,16 @@ if __name__ == '__main__':
                         help="Run Intraday analysis")    
     parser.add_argument('-m', '--mail', action='store_true',
                         help="Email analysis results")    
+    parser.add_argument('-c', '--cron', action='store_true',
+                        help="Flag invocation from cron job")
     args = parser.parse_args()
     analysis_type = 'Analysis'
     eod = False
+    if args.cron:
+        today_date = stxcal.today_date()
+        if not stxcal.is_busday(today_date):
+            print("stx_247 dont run on holidays ({0:s})".format(today_date))
+            sys.exit(0)
     if args.eod:
         analysis_type = 'EOD'
         eod = True
