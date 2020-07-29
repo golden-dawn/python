@@ -227,19 +227,6 @@ class StxEOD:
             for dt, ratio in stk_splits.items():
                 print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
 
-    # To upload splits, do something like this:
-    '''
-import os
-from stx_eod import StxEOD
-data_dir = os.getenv('DOWNLOAD_DIR')
-splits_files = ['splits_20200110_ana.txt', 'splits_20190315_ana.txt', 
-                'splits_20190222_ana.txt', 'splits_20190329_ana.txt',
-                'splits_20190517_ana.txt']
-seod = StxEOD(data_dir)
-for split_file in splits_files:
-    splits_file = os.path.join(data_dir, split_file)
-    seod.upload_splits(splits_file)
-    '''
     def upload_splits(self, splits_file):
         print('Uploading stocks from file {0:s}'.format(splits_file))
         with open(splits_file, 'r') as f:
