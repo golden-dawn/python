@@ -1,0 +1,9 @@
+15 15 * * 1-5 ${HOME}/python/intraday.sh
+45 19 * * 1-4 ${HOME}/python/eod.sh
+47 22 * * 5 ${HOME}/python/eod.sh
+59 13 * * 1-5 ${HOME}/python/intraday.sh
+30 10 * * 1-5 ${HOME}/python/intraday.sh
+13 13 * * 1-5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --intraday --cron
+14 14 * * 1-5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --intraday --cron
+44 15 * * 5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --intraday-expiry --cron
+44 16 * * 1-5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --eod --cron
