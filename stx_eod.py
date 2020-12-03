@@ -170,7 +170,7 @@ class StxEOD:
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
         num_days = stxcal.num_busdays(s_date, e_date)
-        print('Uploading EOD data for {0:d} days'.format(num_days))
+        print('Stooq: uploading EOD data for {0:d} days'.format(num_days))
         day_num = 0
         while dt <= e_date:
             print('stooq: {0:s}'.format(dt))
@@ -326,7 +326,12 @@ if __name__ == '__main__':
                         help='Batch upload of data using file copy')
     args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
-    logging.basicConfig(filename='stxeod.log', level=logging.INFO)
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
+    logging.info('Hello')
     seod = StxEOD(data_dir)
     if args.stooq:
         s_date_sq = '2018-03-12'
