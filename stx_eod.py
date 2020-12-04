@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import glob
 import json
 import logging
 import os
@@ -331,7 +332,6 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
-    logging.info('Hello')
     seod = StxEOD(data_dir)
     if args.stooq:
         s_date_sq = '2018-03-12'
@@ -339,12 +339,34 @@ if __name__ == '__main__':
         seod.parseeodfiles(s_date_sq, e_date_sq)
         sys.exit(0)
 
+    # We have now data from both EODData and Stooq.  I prefer Stooq.
+    # 1. Get the last date for which eod data is available in the database
+    #    from EODData and Sttoq
+    res = stxdb.db_read_cmd("select dt from analyses where "
+                            "analysis='stooq_datafeed'")
+    stooq_last_date = str(res[0][0]) if res else ''
+    res = stxdb.db_read_cmd("select dt from analyses where "
+                            "analysis='eod_datafeed'")
+    eod_last_date = str(res[0][0]) if res else ''
+
+    # 2. Get the most recent date of a contingent block of dates for
+    #    which data is available from EODData and from stooq
+    stooq_file_list = glob.glob(os.path.join(os.getenv('HOME'), 
+                                             'Downloads', '*_d.txt'))
+    stooq_file_list.sort(reverse=True)
+
+
     # Handle default EODData stream
     # 1. Get the last date for which eod data is available in the database
     # res = stxdb.db_read_cmd("select max(dt) from eods where oi=0")
     res = stxdb.db_read_cmd("select dt from analyses where "
+                            "analysis='stooq_datafeed'")
+    stooq_last_date = stxcal.next_busday(str(res[0][0])) if res else ''
+    res = stxdb.db_read_cmd("select dt from analyses where "
                             "analysis='eod_datafeed'")
-    start_date = stxcal.next_busday(str(res[0][0]))
+    eod_last_date = stxcal.next_busday(str(res[0][0])) if res else ''
+
+    
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
