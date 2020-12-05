@@ -306,7 +306,24 @@ class StxEOD:
             cp = 'P'
             exp = put['expiration']['fmt']
             print('  {0:s} {1:s} {2:.2f} {3:.2f} {4:.2f}'
-                  .format(cp, exp, strike, bid, ask)) 
+                  .format(cp, exp, strike, bid, ask))
+
+
+    def get_available_dates(self, file_pattern, last_date):
+        file_list = glob.glob(os.path.join(self.in_dir, file_pattern))
+        file_list.sort(reverse=True)
+        available_dates = []
+        for data_file in file_list:
+            tokens = data_file.split('/')
+            file_dt = tokens[-1][:8]
+            file_date = '{0:s}-{1:s}-{2:s}'.format(
+                file_dt[:4], file_dt[4:6], file_dt[6:])
+            if not stxcal.is_busday(file_date):
+                continue
+            if file_date <= last_date:
+                break
+            available_dates.append(file_date)
+        return available_dates
 
 
 # Wake up every day at 10:00PM
@@ -325,10 +342,16 @@ if __name__ == '__main__':
                         help='Use data from stooq')
     parser.add_argument('-b', '--batch', action='store_true',
                         help='Batch upload of data using file copy')
+    parser.add_argument('-d', '--data_dir',
+                        help='download directory for EOD files',
+                        type=str,
+                        default=os.path.join(os.getenv('HOME'), 'Downloads'),
+                        required=True)
     args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
     logging.basicConfig(
-        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - %(message)s',
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
+        '%(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
@@ -351,21 +374,10 @@ if __name__ == '__main__':
 
     # 2. Get the most recent date of a contingent block of dates for
     #    which data is available from EODData and from stooq
-    stooq_file_list = glob.glob(os.path.join(os.getenv('HOME'), 
-                                             'Downloads', '*_d.txt'))
-    stooq_file_list.sort(reverse=True)
-    stooq_files_to_parse = []
-    for stooq_file in stooq_file_list:
-        tokens = stooq_file.split('/')
-        file_dt = tokens[-1][:8]
-        file_date = '{0:s}-{1:s}-{2:s}'.format(
-            file_dt[:4], file_dt[4:6], file_dt[6:])
-        if not stxcal.is_busday(file_date):
-            continue
-        if file_date <= stooq_last_date:
-            break
-        stooq_files_to_parse.append(stooq_file)
-    stooq_files_to_parse.sort()
+    stooq_dates = seod.get_available_dates('*_d.txt', stooq_last_date)
+    eod_amex_dates = seod.get_available_dates('AMEX_*.txt', eod_last_date)
+    eod_nsdq_dates = seod.get_available_dates('NASDAQ_*.txt', eod_last_date)
+    eod_nyse_dates = seod.get_available_dates('NYSE_*.txt', eod_last_date)
 
     # Handle default EODData stream
     # 1. Get the last date for which eod data is available in the database
