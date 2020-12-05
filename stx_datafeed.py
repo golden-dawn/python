@@ -344,17 +344,28 @@ if __name__ == '__main__':
     #    from EODData and Sttoq
     res = stxdb.db_read_cmd("select dt from analyses where "
                             "analysis='stooq_datafeed'")
-    stooq_last_date = str(res[0][0]) if res else ''
+    stooq_last_date = str(res[0][0]) if res else '2000-01-01'
     res = stxdb.db_read_cmd("select dt from analyses where "
                             "analysis='eod_datafeed'")
-    eod_last_date = str(res[0][0]) if res else ''
+    eod_last_date = str(res[0][0]) if res else '2000-01-01'
 
     # 2. Get the most recent date of a contingent block of dates for
     #    which data is available from EODData and from stooq
     stooq_file_list = glob.glob(os.path.join(os.getenv('HOME'), 
                                              'Downloads', '*_d.txt'))
     stooq_file_list.sort(reverse=True)
-
+    stooq_files_to_parse = []
+    for stooq_file in stooq_file_list:
+        tokens = stooq_file.split('/')
+        file_dt = tokens[-1][:8]
+        file_date = '{0:s}-{1:s}-{2:s}'.format(
+            file_dt[:4], file_dt[4:6], file_dt[6:])
+        if not stxcal.is_busday(file_date):
+            continue
+        if file_date <= stooq_last_date:
+            break
+        stooq_files_to_parse.append(stooq_file)
+    stooq_files_to_parse.sort()
 
     # Handle default EODData stream
     # 1. Get the last date for which eod data is available in the database
