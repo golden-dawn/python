@@ -44,23 +44,24 @@ class StxEOD:
     # overlap of 5 days with the previous reconciliation interval
     # (covering up to 2012-12-31)
     def load_eoddata_files(self, sd, ed, stks='', batch=False):
-        print('Loading eoddata files...')
+        logging.info('Loading eoddata files...')
         dt = sd
         # dt = stxcal.move_busdays(sd, -25)
         fnames = [os.path.join(self.in_dir, 'AMEX_{0:s}.txt'),
                   os.path.join(self.in_dir, 'NASDAQ_{0:s}.txt'),
                   os.path.join(self.in_dir, 'NYSE_{0:s}.txt')]
         while dt <= ed:
-            print('eoddata: {0:s}'.format(dt))
+            logging.info('eoddata: {0:s}'.format(dt))
             data_available = True
             dtc = dt.replace('-', '')
             for fname in fnames:
                 fname_dt = fname.format(dtc)
                 if not os.path.isfile(fname_dt):
-                    print('Could not find file {0:s}'.format(fname_dt))
+                    logging.error('Could not find file {0:s}'.format(fname_dt))
                     data_available = False
             if not data_available:
-                print('Data is missing for date {0:s}. Exiting.'.format(dt))
+                logging.error('Data is missing for date {0:s}. Exiting.'.
+                              format(dt))
                 return
             for fname in fnames:
                 fname_dt = fname.format(dtc)
@@ -68,7 +69,7 @@ class StxEOD:
             stxdb.db_write_cmd("update analyses set dt='{0:s}' where "
                                "analysis='eod_datafeed'".format(dt))
             dt = stxcal.next_busday(dt)
-        print('Loaded eoddata files')
+        logging.info('Loaded eoddata files')
 
     # Load data from a single EODData file in the database Perform
     # some quality checks on the data: do not upload days where volume
@@ -170,18 +171,19 @@ class StxEOD:
     def parseeodfiles(self, s_date, e_date):
         dt = s_date
         num_days = stxcal.num_busdays(s_date, e_date)
-        print('Stooq: uploading EOD data for {0:d} days'.format(num_days))
+        logging.info('Stooq: uploading EOD data for {0:d} days'.
+                     format(num_days))
         day_num = 0
         while dt <= e_date:
-            print('stooq: {0:s}'.format(dt))
+            logging.info('stooq: {0:s}'.format(dt))
             # db_stx, _ = self.create_exchange()
             try:
                 with open('{0:s}/{1:s}_d.prn'.format
                           (self.in_dir, dt.replace('-', ''))) as ifile:
                     lines = ifile.readlines()
             except IOError as ioe:
-                print('{0:s} failed to read EOD file: {1:s}'.
-                      format(dt, str(ioe)))
+                logging.error('{0:s} failed to read EOD file: {1:s}'.
+                              format(dt, str(ioe)))
                 dt = stxcal.next_busday(dt)
                 continue
             for line in lines:
@@ -193,7 +195,8 @@ class StxEOD:
             dt = stxcal.next_busday(dt)
             day_num += 1
             if day_num % 20 == 0 or day_num == num_days:
-                print(' Uploaded EOD data for {0:d} days'.format(day_num))
+                logging.info(' Uploaded EOD data for {0:d} days'.
+                             format(day_num))
 
     def handle_splits(self, start_date):
         split_files = [x for x in os.listdir(self.in_dir)
@@ -228,14 +231,14 @@ class StxEOD:
                 print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
 
     def upload_splits(self, splits_file):
-        print('Uploading stocks from file {0:s}'.format(splits_file))
+        logging.info('Uploading stocks from file {0:s}'.format(splits_file))
         with open(splits_file, 'r') as f:
             lines = f.readlines()
         num = 0
         for line in lines:
             tokens = line.split()
             if len(tokens) < 3:
-                print('Skipping line {0:s}'.format(line))
+                logging.warn('Skipping line {0:s}'.format(line))
                 continue
             stk = tokens[0].strip()
             dt = stxcal.prev_busday(tokens[1].strip())
@@ -247,10 +250,10 @@ class StxEOD:
                 stxdb.db_write_cmd(db_cmd)
                 num += 1
             except Exception as ex:
-                print('Failed to upload split {0:s}, {1:s}, '
-                      'error {2:s}'.format(stk, dt, str(ex)))
-        print('Successfully uploaded {0:d} out of {1:d} stock splits'.
-              format(num, len(lines)))
+                logging.error('Failed to upload split {0:s}, {1:s}, '
+                              'error {2:s}'.format(stk, dt, str(ex)))
+        logging.info('Successfully uploaded {0:d} out of {1:d} stock splits'.
+                     format(num, len(lines)))
 
     def get_indices(self):
         indices = {'^DJI': '^DJI', '^SPX': '^SPX', '^NDQ': '^COMP'}
@@ -270,13 +273,13 @@ class StxEOD:
                 tokens = line.split(',')
             with open('{0:s}.csv'.format(db_name), 'w') as f:
                 f.write(res.text)
-            print('{0:s}: {1:d}'.format(stooq_name, res.status_code))
+            logging.info('{0:s}: {1:d}'.format(stooq_name, res.status_code))
 
     def get_data(self, stk):
         expiries = stxcal.long_expiries()
         res = requests.get(self.yhoo_url.format(stk, expiries[0]))
-        print('Got data for {0:s}, status code: {1:d}'.
-              format(stk, res.status_code))
+        logging.info('Got data for {0:s}, status code: {1:d}'.
+                     format(stk, res.status_code))
         res_json = json.loads(res.text)
         res_0 = res_json['optionChain']['result'][0]
         quote = res_0['quote']
@@ -327,7 +330,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
     logging.basicConfig(
-        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - %(message)s',
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
+        '%(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
