@@ -1,5 +1,6 @@
 import argparse
 import datetime
+from enum import Enum
 import glob
 import json
 import logging
@@ -8,6 +9,14 @@ import requests
 import stxcal
 import stxdb
 import sys
+
+
+class Datafeed(Enum):
+    stooq = 'stooq'
+    eoddata = 'eoddata'
+
+    def __str__(self):
+        return self.value
 
 
 class StxEOD:
@@ -338,6 +347,8 @@ class StxEOD:
 # - options_cache
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--datafeed', type=Datafeed,
+                        choices=list(Datafeed), default=Datafeed.stooq)
     parser.add_argument('-s', '--stooq', action='store_true',
                         help='Use data from stooq')
     parser.add_argument('-b', '--batch', action='store_true',
@@ -378,17 +389,6 @@ if __name__ == '__main__':
     eod_amex_dates = seod.get_available_dates('AMEX_*.txt', eod_last_date)
     eod_nsdq_dates = seod.get_available_dates('NASDAQ_*.txt', eod_last_date)
     eod_nyse_dates = seod.get_available_dates('NYSE_*.txt', eod_last_date)
-
-    # Handle default EODData stream
-    # 1. Get the last date for which eod data is available in the database
-    # res = stxdb.db_read_cmd("select max(dt) from eods where oi=0")
-    res = stxdb.db_read_cmd("select dt from analyses where "
-                            "analysis='stooq_datafeed'")
-    stooq_last_date = stxcal.next_busday(str(res[0][0])) if res else ''
-    res = stxdb.db_read_cmd("select dt from analyses where "
-                            "analysis='eod_datafeed'")
-    eod_last_date = stxcal.next_busday(str(res[0][0])) if res else ''
-
     
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
