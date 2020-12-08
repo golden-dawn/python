@@ -347,17 +347,16 @@ class StxEOD:
 # - options_cache
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--datafeed', type=Datafeed,
+    parser.add_argument('-s', '--source', type=Datafeed,
                         choices=list(Datafeed), default=Datafeed.stooq)
-    parser.add_argument('-s', '--stooq', action='store_true',
-                        help='Use data from stooq')
+#     parser.add_argument('-s', '--stooq', action='store_true',
+#                         help='Use data from stooq')
     parser.add_argument('-b', '--batch', action='store_true',
                         help='Batch upload of data using file copy')
     parser.add_argument('-d', '--data_dir',
                         help='download directory for EOD files',
                         type=str,
-                        default=os.path.join(os.getenv('HOME'), 'Downloads'),
-                        required=True)
+                        default=os.path.join(os.getenv('HOME'), 'Downloads'))
     args = parser.parse_args()
     data_dir = os.getenv('DOWNLOAD_DIR')
     logging.basicConfig(
@@ -367,11 +366,11 @@ if __name__ == '__main__':
         level=logging.INFO
     )
     seod = StxEOD(data_dir)
-    if args.stooq:
-        s_date_sq = '2018-03-12'
-        e_date_sq = '2018-03-29'
-        seod.parseeodfiles(s_date_sq, e_date_sq)
-        sys.exit(0)
+#     if args.stooq:
+#         s_date_sq = '2018-03-12'
+#         e_date_sq = '2018-03-29'
+#         seod.parseeodfiles(s_date_sq, e_date_sq)
+#         sys.exit(0)
 
     # We have now data from both EODData and Stooq.  I prefer Stooq.
     # 1. Get the last date for which eod data is available in the database
@@ -394,8 +393,8 @@ if __name__ == '__main__':
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
     # 4. if the files are available, upload them
-    batch_load = True if args.batch else False
-    seod.load_eoddata_files(start_date, end_date, batch=batch_load)
-    res = stxdb.db_read_cmd("select max(dt) from dividends")
-    start_date = stxcal.next_busday(str(res[0][0]))
-    seod.handle_splits(start_date)
+#     batch_load = True if args.batch else False
+#     seod.load_eoddata_files(start_date, end_date, batch=batch_load)
+#     res = stxdb.db_read_cmd("select max(dt) from dividends")
+#     start_date = stxcal.next_busday(str(res[0][0]))
+#     seod.handle_splits(start_date)
