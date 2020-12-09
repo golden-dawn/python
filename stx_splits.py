@@ -15,8 +15,15 @@ if __name__ == '__main__':
                         type=str)
     args = parser.parse_args()
 
-    print('stx_splits: data dir = {0:s}, splits file = {1:s}'.
-          format(args.datadir, args.splitsfile))
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
+        '%(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
+
+    logging.info('stx_splits: data dir = {0:s}, splits file = {1:s}'.
+                 format(args.datadir, args.splitsfile))
     seod = StxEOD(args.datadir)
     splits_file = os.path.join(args.datadir, args.splitsfile)
     seod.upload_splits(splits_file)
