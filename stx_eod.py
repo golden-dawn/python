@@ -335,7 +335,6 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
-    logging.info('Hello')
     seod = StxEOD(data_dir)
     if args.stooq:
         s_date_sq = '2018-03-12'
