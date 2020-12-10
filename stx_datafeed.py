@@ -19,7 +19,7 @@ class Datafeed(Enum):
         return self.value
 
 
-class StxEOD:
+class StxDatafeed:
     upload_dir = '/tmp'
     eod_name = os.path.join(upload_dir, 'eod_upload.txt')
     status_none = 0
@@ -334,6 +334,26 @@ class StxEOD:
             available_dates.append(file_date)
         return available_dates
 
+    def backup_database(self):
+        # 1. Look in the local backup directory. If no backup was made
+        #    in the last week, automatically trigger one
+        # 2. If any USBs are connected, copy the database backup
+        # 3. Keep maximum three backups, if > 3, remove oldest.
+        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
+        try:
+            os.makedirs(db_backup_dir)
+            logging.info('Creating directory {0:s}'.format(db_backup_dir))
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                logging.error('Exception while creating {0:s}: {1:s}'.
+                              format(db_backup_dir, str(e)))
+                raise
+        db_backups = glob.glob('db_bkp_*')
+        # All the DB backup dirs are in the form db_bkp_yyyyMMdd
+        # Get the dates from the files names
+        # Calculate # of days between last backup date and current date
+        # If # days > 7, start a new backup
+
 
 # Wake up every day at 10:00PM
 # If this is an end-of-month option expiry date, generate a new cache
@@ -365,11 +385,12 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
-    seod = StxEOD(data_dir)
+    sdf = StxDatafeed(data_dir)
+    sdf.backup_database()
 #     if args.stooq:
 #         s_date_sq = '2018-03-12'
 #         e_date_sq = '2018-03-29'
-#         seod.parseeodfiles(s_date_sq, e_date_sq)
+#         sdf.parseeodfiles(s_date_sq, e_date_sq)
 #         sys.exit(0)
 
     # We have now data from both EODData and Stooq.  I prefer Stooq.
@@ -384,17 +405,17 @@ if __name__ == '__main__':
 
     # 2. Get the most recent date of a contingent block of dates for
     #    which data is available from EODData and from stooq
-    stooq_dates = seod.get_available_dates('*_d.txt', stooq_last_date)
-    eod_amex_dates = seod.get_available_dates('AMEX_*.txt', eod_last_date)
-    eod_nsdq_dates = seod.get_available_dates('NASDAQ_*.txt', eod_last_date)
-    eod_nyse_dates = seod.get_available_dates('NYSE_*.txt', eod_last_date)
+    stooq_dates = sdf.get_available_dates('*_d.txt', stooq_last_date)
+    eod_amex_dates = sdf.get_available_dates('AMEX_*.txt', eod_last_date)
+    eod_nsdq_dates = sdf.get_available_dates('NASDAQ_*.txt', eod_last_date)
+    eod_nyse_dates = sdf.get_available_dates('NYSE_*.txt', eod_last_date)
     
     # 2. get the last trading date
     end_date = stxcal.move_busdays(str(datetime.datetime.now().date()), 0)
     # 3. Find out if files are available for the dates
     # 4. if the files are available, upload them
 #     batch_load = True if args.batch else False
-#     seod.load_eoddata_files(start_date, end_date, batch=batch_load)
+#     sdf.load_eoddata_files(start_date, end_date, batch=batch_load)
 #     res = stxdb.db_read_cmd("select max(dt) from dividends")
 #     start_date = stxcal.next_busday(str(res[0][0]))
-#     seod.handle_splits(start_date)
+#     sdf.handle_splits(start_date)
