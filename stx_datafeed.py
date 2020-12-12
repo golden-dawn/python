@@ -6,8 +6,11 @@ import json
 import logging
 import os
 import requests
+import shlex
+import shutil
 import stxcal
 import stxdb
+import subprocess
 import sys
 
 
@@ -339,6 +342,8 @@ class StxDatafeed:
         #    in the last week, automatically trigger one
         # 2. If any USBs are connected, copy the database backup
         # 3. Keep maximum three backups, if > 3, remove oldest.
+
+        # Ensure that the root backup directory is created
         db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
         try:
             os.makedirs(db_backup_dir)
@@ -348,7 +353,44 @@ class StxDatafeed:
                 logging.error('Exception while creating {0:s}: {1:s}'.
                               format(db_backup_dir, str(e)))
                 raise
-        db_backups = glob.glob('db_bkp_*')
+        db_bkp_dirs = sorted(os.listdir(db_backup_dir))
+        # If there are less than 2 database backups, or the last
+        # backup is more than a week old, create a new backup
+        crt_date = datetime.datetime.now()
+        backup_needed = False
+        if len(db_bkp_dirs) < 2:
+            backup_needed = True
+        else:
+            last_bkp_date = datetime.datetime.strptime(db_bkp_dirs[-1],
+                                                       '%Y-%m-%d_%H%M%S')
+            if (crt_date - last_bkp_date).seconds > (24 * 7 - 1) * 3600:
+                backup_needed = True
+        if not backup_needed:
+            logging.info('Found {0:d} DB backups, most recent is {1:d} days '
+                         'old, no new backup needed'.
+                         format(len(db_bkp_dirs),
+                                (crt_date - last_bkp_date).days))
+        else:
+            # Create directory to store current database backup 
+            db_bkp_dir = os.path.join(db_backup_dir,
+                                      crt_date.strftime('%Y-%m-%d_%H%M%S'))
+
+# Get directory name
+mydir= raw_input("Enter directory name: ")
+
+## Try to remove tree; if failed show an error using try...except on screen
+try:
+    shutil.rmtree(mydir)
+except OSError as e:
+    print ("Error: %s - %s." % (e.filename, e.strerror))
+
+            
+
+            self.db_usb_backup()
+                                     
+
+        db_backup_dir_names = os.path.join(db_backup_dir, 'db_bkp_*')
+        db_backups = glob.glob(db_backup_dir_names))
         # All the DB backup dirs are in the form db_bkp_yyyyMMdd
         # Get the dates from the files names
         # Calculate # of days between last backup date and current date
