@@ -374,19 +374,36 @@ class StxDatafeed:
             # Create directory to store current database backup 
             db_bkp_dir = os.path.join(db_backup_dir,
                                       crt_date.strftime('%Y-%m-%d_%H%M%S'))
-
-# Get directory name
-mydir= raw_input("Enter directory name: ")
-
-## Try to remove tree; if failed show an error using try...except on screen
-try:
-    shutil.rmtree(mydir)
-except OSError as e:
-    print ("Error: %s - %s." % (e.filename, e.strerror))
+            try:
+                os.makedirs(db_bkp_dir)
+                logging.info('Creating directory {0:s}'.format(db_bkp_dir))
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    logging.error('Exception while creating {0:s}: {1:s}'.
+                                  format(db_bkp_dir, str(e)))
+                    raise
+            # launch a subprocess that backs up the database
+            try:
+                res = subprocess.run(shlex.split(
+                        '/usr/local/bin/pg_dump -Fc {0:s} | split -b 1000m - '
+                        '{1:s}'.format(os.getenv('POSTGRES_DB'), db_bkp_dir)),
+                                     check=True,
+                                     shell=True
+                                     )
+            except subprocess.CalledProcessError as cpe:
+                logging.error('Database backup failed: {}'.format(cpe))
+                # if backup failed, remove the backup directory
+                # Get directory name
+                mydir= raw_input("Enter directory name: ")
+# Try to remove tree; if failed show an error using try...except on screen
+                try:
+                    shutil.rmtree(mydir)
+                except OSError as e:
+                    print ("Error: %s - %s." % (e.filename, e.strerror))
 
             
 
-            self.db_usb_backup()
+        self.db_usb_backup()
                                      
 
         db_backup_dir_names = os.path.join(db_backup_dir, 'db_bkp_*')
