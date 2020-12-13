@@ -338,12 +338,7 @@ class StxDatafeed:
         return available_dates
 
     def backup_database(self):
-        # 1. Look in the local backup directory. If no backup was made
-        #    in the last week, automatically trigger one
-        # 2. If any USBs are connected, copy the database backup
-        # 3. Keep maximum three backups, if > 3, remove oldest.
-
-        # Ensure that the root backup directory is created
+        # Ensure root backup directory is created
         db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
         try:
             os.makedirs(db_backup_dir)
@@ -354,8 +349,7 @@ class StxDatafeed:
                               format(db_backup_dir, str(e)))
                 raise
         db_bkp_dirs = sorted(os.listdir(db_backup_dir))
-        # If there are less than 2 database backups, or the last
-        # backup is more than a week old, create a new backup
+        # Create backup if < 2 DB backups, or last backup older than a week
         crt_date = datetime.datetime.now()
         backup_needed = False
         if len(db_bkp_dirs) < 2:
@@ -384,35 +378,30 @@ class StxDatafeed:
                     raise
             # launch a subprocess that backs up the database
             try:
-                res = subprocess.run(shlex.split(
+                subprocess.run(shlex.split(
                         '/usr/local/bin/pg_dump -Fc {0:s} | split -b 1000m - '
                         '{1:s}'.format(os.getenv('POSTGRES_DB'), db_bkp_dir)),
-                                     check=True,
-                                     shell=True
-                                     )
+                               check=True,
+                               shell=True
+                               )
+                # if DB backup successful, remove older backups
+                for dir_to_remove in db_bkp_dirs[:-2]:
+                    try:
+                        shutil.rmtree(dir_to_remove)
+                    except OSError as e:
+                        print ("Error: %s - %s." % (e.filename, e.strerror))
             except subprocess.CalledProcessError as cpe:
                 logging.error('Database backup failed: {}'.format(cpe))
                 # if backup failed, remove the backup directory
-                # Get directory name
-                mydir= raw_input("Enter directory name: ")
-# Try to remove tree; if failed show an error using try...except on screen
                 try:
-                    shutil.rmtree(mydir)
+                    shutil.rmtree(db_bkp_dir)
                 except OSError as e:
                     print ("Error: %s - %s." % (e.filename, e.strerror))
-
-            
-
+        # Manage DB backups for any USBs are plugged in
         self.db_usb_backup()
-                                     
 
-        db_backup_dir_names = os.path.join(db_backup_dir, 'db_bkp_*')
-        db_backups = glob.glob(db_backup_dir_names))
-        # All the DB backup dirs are in the form db_bkp_yyyyMMdd
-        # Get the dates from the files names
-        # Calculate # of days between last backup date and current date
-        # If # days > 7, start a new backup
-
+    def db_usb_backup(self):
+        logging.info('Starting USB backup')
 
 # Wake up every day at 10:00PM
 # If this is an end-of-month option expiry date, generate a new cache
