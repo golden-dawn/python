@@ -402,6 +402,42 @@ class StxDatafeed:
 
     def db_usb_backup(self):
         logging.info('Starting USB backup')
+        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
+        usb_list = [os.getenv('USB_1'), os.getenv('USB_2'), os.getenv('USB_3')]
+        for usb in usb_list:
+            if not os.path.exists(usb):
+                logging.info('{0:s} not found; skipping'.format(usb))
+                continue
+            usb_backup_dir = os.path.join(usb, 'db_backup')
+            try:
+                os.makedirs(usb_backup_dir)
+                logging.info('Creating directory {0:s}'.format(usb_backup_dir))
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    logging.error('Exception while creating {0:s}: {1:s}'.
+                                  format(db_backup_dir, str(e)))
+                    raise
+            db_bkp_dirs = sorted(os.listdir(db_backup_dir))
+            for db_bkp_dir in db_bkp_dirs:
+                db_bkp_dir_path = os.path.join(usb_backup_dir, db_bkp_dir)
+                if os.path.exists(db_bkp_dir_path):
+                    logging.info('{0:s} already exists, skipping'.
+                                 format(db_bkp_dir_path))
+                    continue
+                try:
+                    shutil.copytree(os.path.join(db_backup_dir, db_bkp_dir),
+                                    db_bkp_dir_path)
+                except OSError as e:
+                    print ("Error: %s - %s." % (e.filename, e.strerror))
+            usb_db_bkp_dirs = sorted(os.listdir(usb_backup_dir))
+            # Keep on the USB only two latest DB backups, remove the rest
+            for dir_to_remove in usb_db_bkp_dirs[:-2]:
+                try:
+                    path_to_remove = os.path.join(usb_backup_dir,
+                                                  dir_to_remove)
+                    shutil.rmtree(path_to_remove)
+                except OSError as e:
+                    print ("Error: %s - %s." % (e.filename, e.strerror))
 
 # Wake up every day at 10:00PM
 # If this is an end-of-month option expiry date, generate a new cache
