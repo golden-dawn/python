@@ -338,8 +338,10 @@ class StxDatafeed:
         return available_dates
 
     def backup_database(self):
+        # Get current DB name from POSTGRES_DB env variable
+        db_name = os.getenv('POSTGRES_DB')
         # Ensure root backup directory is created
-        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
+        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup', db_name)
         try:
             os.makedirs(db_backup_dir)
             logging.info('Creating directory {0:s}'.format(db_backup_dir))
@@ -380,10 +382,8 @@ class StxDatafeed:
             try:
                 subprocess.run(shlex.split(
                         '/usr/local/bin/pg_dump -Fc {0:s} | split -b 1000m - '
-                        '{1:s}'.format(os.getenv('POSTGRES_DB'), db_bkp_dir)),
-                               check=True,
-                               shell=True
-                               )
+                        '{1:s}'.format(db_name, db_bkp_dir)),
+                               check=True, shell=True)
                 # if DB backup successful, remove older backups
                 for dir_to_remove in db_bkp_dirs[:-2]:
                     try:
@@ -398,18 +398,18 @@ class StxDatafeed:
                 except OSError as e:
                     print ("Error: %s - %s." % (e.filename, e.strerror))
         # Manage DB backups for any USBs are plugged in
-        self.db_usb_backup()
+        self.db_usb_backup(db_name)
 
-    def db_usb_backup(self):
+    def db_usb_backup(self, db_name):
         logging.info('Starting USB backup')
-        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup')
+        db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup', db_name)
         usb_list = [os.getenv('USB_1'), os.getenv('USB_2'), os.getenv('USB_3')]
         for usb in usb_list:
             if not os.path.exists(usb):
                 logging.info('{0:s} not found; skipping'.format(usb))
                 continue
             logging.info('Backing up DB to USB {0:s}'.format(usb))
-            usb_backup_dir = os.path.join(usb, 'db_backup')
+            usb_backup_dir = os.path.join(usb, 'db_backup', db_name)
             try:
                 os.makedirs(usb_backup_dir)
                 logging.info('Creating directory {0:s}'.format(usb_backup_dir))
