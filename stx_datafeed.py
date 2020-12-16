@@ -408,6 +408,7 @@ class StxDatafeed:
             if not os.path.exists(usb):
                 logging.info('{0:s} not found; skipping'.format(usb))
                 continue
+            logging.info('Backing up DB to USB {0:s}'.format(usb))
             usb_backup_dir = os.path.join(usb, 'db_backup')
             try:
                 os.makedirs(usb_backup_dir)
@@ -416,7 +417,7 @@ class StxDatafeed:
                 if e.errno != errno.EEXIST:
                     logging.error('Exception while creating {0:s}: {1:s}'.
                                   format(db_backup_dir, str(e)))
-                    raise
+                    continue
             db_bkp_dirs = sorted(os.listdir(db_backup_dir))
             for db_bkp_dir in db_bkp_dirs:
                 db_bkp_dir_path = os.path.join(usb_backup_dir, db_bkp_dir)
@@ -427,6 +428,9 @@ class StxDatafeed:
                 try:
                     shutil.copytree(os.path.join(db_backup_dir, db_bkp_dir),
                                     db_bkp_dir_path)
+                    logging.info('Copied {0:s} to {1:s}'.format(
+                            os.path.join(db_backup_dir, db_bkp_dir),
+                            db_bkp_dir_path))
                 except OSError as e:
                     print ("Error: %s - %s." % (e.filename, e.strerror))
             usb_db_bkp_dirs = sorted(os.listdir(usb_backup_dir))
@@ -436,6 +440,8 @@ class StxDatafeed:
                     path_to_remove = os.path.join(usb_backup_dir,
                                                   dir_to_remove)
                     shutil.rmtree(path_to_remove)
+                    logging.info('Removed old DB backup {0:s}'.
+                                 format(path_to_remove))
                 except OSError as e:
                     print ("Error: %s - %s." % (e.filename, e.strerror))
 
@@ -471,6 +477,7 @@ if __name__ == '__main__':
     )
     sdf = StxDatafeed(data_dir)
     sdf.backup_database()
+    return
 #     if args.stooq:
 #         s_date_sq = '2018-03-12'
 #         e_date_sq = '2018-03-29'
