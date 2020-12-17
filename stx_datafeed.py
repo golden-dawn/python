@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import errno
 from enum import Enum
 import glob
 import json
@@ -378,18 +379,27 @@ class StxDatafeed:
                     logging.error('Exception while creating {0:s}: {1:s}'.
                                   format(db_bkp_dir, str(e)))
                     raise
-            # launch a subprocess that backs up the database
+            # launch the subprocesses that back up the database
             try:
-                subprocess.run(shlex.split(
-                        '/usr/local/bin/pg_dump -Fc {0:s} | split -b 1000m - '
-                        '{1:s}'.format(db_name, db_bkp_dir)),
-                               check=True, shell=True)
+                cmd1 = '/usr/local/bin/pg_dump -Fc {0:s}'.format(db_name)
+                cmd2 = 'split -b 1000m - {0:s}/{1:s}'.format(db_bkp_dir,
+                                                             db_name)
+                p1 = subprocess.Popen(shlex.split(cmd1),
+                                      stdout=subprocess.PIPE,
+                                      cwd=db_bkp_dir)
+                output = subprocess.check_output(shlex.split(cmd2),
+                                                 stdin=p1.stdout,
+                                                 cwd=db_bkp_dir)
+                res = p1.wait()
+                logging.info('Backed up DB, return status: {0:d}'.format(res))
                 # if DB backup successful, remove older backups
-                for dir_to_remove in db_bkp_dirs[:-2]:
-                    try:
-                        shutil.rmtree(dir_to_remove)
-                    except OSError as e:
-                        print ("Error: %s - %s." % (e.filename, e.strerror))
+                if res == 0:
+                    for dir_to_remove in db_bkp_dirs[:-2]:
+                        try:
+                            shutil.rmtree(dir_to_remove)
+                        except OSError as e:
+                            logging.error('%s - %s'.format(e.filename,
+                                                           e.strerror))
             except subprocess.CalledProcessError as cpe:
                 logging.error('Database backup failed: {}'.format(cpe))
                 # if backup failed, remove the backup directory
@@ -477,7 +487,7 @@ if __name__ == '__main__':
     )
     sdf = StxDatafeed(data_dir)
     sdf.backup_database()
-    return
+    sys.exit(0)
 #     if args.stooq:
 #         s_date_sq = '2018-03-12'
 #         e_date_sq = '2018-03-29'
