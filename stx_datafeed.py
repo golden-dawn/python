@@ -6,6 +6,7 @@ import glob
 import json
 import logging
 import os
+import pandas as pd
 import requests
 import shlex
 import shutil
@@ -455,6 +456,112 @@ class StxDatafeed:
                 except OSError as e:
                     print ("Error: %s - %s." % (e.filename, e.strerror))
 
+    def parse_stooq_new(self, last_db_date):
+        logging.info('Checking if a new stooq file has been downloaded')
+        stooq_file = os.path.join(os.getenv('HOME'), 'Downloads', 'data_d.txt')
+        if not os.path.exists(stooq_file):
+            logging.info('No new stooq data file found.  Nothing to do.')
+            return
+        logging.info('Reading stooq file, renaming columns, getting daily '
+                     'US stocks data')
+        df = pd.read_csv(stooq_file)
+        df.columns = [x[1: -1].lower() for x in df.columns]
+        stx_df = df.query('ticker.str.endswith(".US") and per == "D"',
+                          engine='python').copy()
+        logging.info('Getting {0:d} daily US stocks out of {1:d} records'.
+                     format(len(stx_df), len(df)))
+        stx_df['date'] = stx_df['date'].astype(str)
+        stx_df['date'] = stx_df.apply(
+            lambda r: '{0:s}-{1:s}-{2:s}'.
+            format(r['date'][0:4], r['date'][4:6], r['date'][6:8]), axis=1)
+        logging.info('Converted stx_df dates in yyyy-mm-dd format')
+        dates = stx_df.groupby(by='date')['ticker'].count()
+        next_date = stxcal.next_busday(last_db_date)
+        ix0, num_dates = 0, len(dates)
+        logging.info('Data available for {0:d} dates, from {1:s} to {2:s}; DB '
+                     'needs data starting from {3:s}'.format(
+                len(dates), dates.index[0], dates.index[num_dates - 1],
+                next_date))
+        db_dates = []
+        while ix0 < num_dates:
+            if dates.index[ix0] == next_date:
+                break
+            ix0 += 1
+        for ixx in range(ix0, num_dates):
+            if dates.index[ixx] == next_date and dates.values[ixx] > 8000:
+                db_dates.append(dates.index[ixx])
+            else:
+                break
+            next_date = stxcal.next_busday(next_date)
+        if not db_dates:
+            logging.info('No new data available for processing. Exiting')
+            return
+        sel_stx_df = stx_df.query('date in @db_dates').copy()
+        logging.info('{0:d}/{1:d} records found for following dates: [{2:s}]'.
+                     format(len(sel_stx_df), len(stx_df), ', '.join(db_dates)))
+        
+        
+# # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
+# # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
+#         def update_row(row):
+#     def parseeodline(self, line):
+#         stk, _, dt, o, h, l, c, v, oi = line.split(',')
+#         # look only at the US stocks, for the time being
+#         if not stk.endswith('.US'):
+#             return
+#         dt = '{0:s}-{1:s}-{2:s}'.format(dt[0:4], dt[4:6], dt[6:8])
+#         if not stxcal.is_busday(dt):
+#             raise Exception('{0:s} is not a business day'.format(dt))
+#         o = int(100 * float(o))
+#         h = int(100 * float(h))
+#         l = int(100 * float(l))
+#         c = int(100 * float(c))
+#         # Make sure o and c are in the interval [l, h]
+#         o = o if o <= h and o >= l else (h if o > h else l)
+#         c = c if c <= h and c >= l else (h if c > h else l)
+#         if o >= 2147483647 or h >= 2147483647 or l >= 2147483647 or \
+#            c >= 2147483647:
+#             return
+#         v, oi = int(v), int(oi)
+#         if stk.endswith('.US'):  # proces stock tickers, volume must be > 0
+#             stk = stk[:-3].replace("-.", ".P.").replace("_", ".").replace(
+#                 '-', '.')
+#             if v == 0:
+#                 raise Exception('Zero volume for stock')
+#             if len(stk) > 8:
+#                 raise Exception('Ticker {0:s} too long'.format(stk))
+#             v = v // 1000
+#             if v == 0:
+#                 v = 1
+#         elif stk.endswith('.B'):  # multiply bond prices by 10000
+#             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+#         elif stk.endswith('6.F'):  # multiply currency future prices by 10000
+#             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+#         elif stk in ['HO.F', 'NG.F', 'RB.F']:  # express prices in cents
+#             o, h, l, c = self.multiply_prices(o, h, l, c, 100)
+#         elif stk.startswith('^'):  # divide index volumes by 1000
+#             v = 1 if v == 0 else v // 1000
+#         elif '.' not in stk and 'XAG' not in stk and 'XAU' not in stk:
+#             # multiply FX/Money Market prices by 10000
+#             o, h, l, c = self.multiply_prices(o, h, l, c, 10000)
+#         # all tickers ending in .F are futures, except the LME tickers
+#         v = 1 if v == 0 else v
+#         # if stk not in db_stx:
+#         #     insert_stx = "INSERT INTO equities VALUES "\
+#         #                  "('{0:s}', '', 'US Stocks', 'US')".format(stk)
+#         #     stxdb.db_write_cmd(insert_stx)
+#         db_cmd = "insert into {0:s} values('{1:s}','{2:s}',{3:d},{4:d},"\
+#             "{5:d},{6:d},{7:d},{8:d}) on conflict (stk, dt) do update "\
+#             "set v={9:d}, oi={10:d}".format(
+#                 self.eod_tbl, stk, dt, o, h, l, c, v, oi, v, oi)
+#         stxdb.db_write_cmd(db_cmd)
+#             stk = row['ticker']
+#     listy = [1,2,3]
+#     return pd.Series(listy)
+
+# dp_data_df[['A', 'P','Y']] = dp_data_df.apply(update_row, axis=1)
+
+
 # Wake up every day at 10:00PM
 # If this is an end-of-month option expiry date, generate a new cache
 #  - Check that the latest EOD files have been downloaded for the day.
@@ -486,7 +593,8 @@ if __name__ == '__main__':
         level=logging.INFO
     )
     sdf = StxDatafeed(data_dir)
-    sdf.backup_database()
+#     sdf.backup_database()
+    sdf.parse_stooq_new('2020-12-17')
     sys.exit(0)
 #     if args.stooq:
 #         s_date_sq = '2018-03-12'
