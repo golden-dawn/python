@@ -5,6 +5,7 @@ from enum import Enum
 import glob
 import json
 import logging
+import numpy as np
 import os
 import pandas as pd
 import requests
@@ -499,7 +500,18 @@ class StxDatafeed:
         sel_stx_df = stx_df.query('date in @db_dates').copy()
         logging.info('{0:d}/{1:d} records found for following dates: [{2:s}]'.
                      format(len(sel_stx_df), len(stx_df), ', '.join(db_dates)))
-        
+        sel_stx_df['invalid'] = sel_stx_df.apply(
+            lambda r: np.isnan(r['open']) or
+            np.isnan(r['high']) or
+            np.isnan(r['low']) or
+            np.isnan(r['close']) or
+            np.isnan(r['vol']) or r['vol'] == 0 or
+            r['open'] > r['high'] or r['open'] < r['low'] or
+            r['close'] > r['high'] or r['close'] < r['low'], 
+            axis=1)
+        valid_stx_df = sel_stx_df.query('not invalid').copy()
+        logging.info('Found {0:d} valid records out of {1:d} records'.
+                     format(len(valid_stx_df), len(sel_stx_df)))
         
 # # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
 # # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
