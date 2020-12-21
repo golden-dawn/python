@@ -529,8 +529,16 @@ class StxDatafeed:
             
         valid_stx_df[['ticker', 'open', 'high', 'low', 'close', 'vol']] = \
             valid_stx_df.apply(process_row, axis=1)
+        valid_stx_df['openint'] = 2
+        valid_stx_df.drop(columns=['per', 'time', 'invalid'], axis=1,
+                          inplace=True)
 
         print(valid_stx_df.head())
+
+#         with closing(db_get_cnx().cursor()) as crs:
+#         crs.execute(sql)
+#         res = list(crs.fetchall())
+
 
 # # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
 # # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
