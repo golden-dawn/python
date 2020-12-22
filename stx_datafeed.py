@@ -532,7 +532,7 @@ class StxDatafeed:
         valid_stx_df['openint'] = 2
         valid_stx_df.drop(columns=['per', 'time', 'invalid'], axis=1,
                           inplace=True)
-
+        valid_stx_df.columns = ['stk', 'dt', 'o', 'hi', 'lo', 'c', 'v', 'oi']
         print(valid_stx_df.head())
 
 #         with closing(db_get_cnx().cursor()) as crs:
