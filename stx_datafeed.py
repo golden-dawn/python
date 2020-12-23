@@ -1,4 +1,5 @@
 import argparse
+from contextlib import closing
 import datetime
 import errno
 from enum import Enum
@@ -8,6 +9,7 @@ import logging
 import numpy as np
 import os
 import pandas as pd
+from psycopg2.extras import execute_values
 import requests
 import shlex
 import shutil
@@ -535,10 +537,24 @@ class StxDatafeed:
         valid_stx_df.columns = ['stk', 'dt', 'o', 'hi', 'lo', 'c', 'v', 'oi']
         print(valid_stx_df.head())
 
-#         with closing(db_get_cnx().cursor()) as crs:
-#         crs.execute(sql)
-#         res = list(crs.fetchall())
-
+        with closing(stxdb.db_get_cnx().cursor()) as crs:
+            sql = 'CREATE TEMPORARY TABLE temp_table ('\
+                'stk VARCHAR(16) NOT NULL, '\
+                'dt DATE NOT NULL, '\
+                'o INTEGER NOT NULL, '\
+                'hi INTEGER NOT NULL, '\
+                'lo INTEGER NOT NULL, '\
+                'c INTEGER NOT NULL, '\
+                'v INTEGER, '\
+                'oi INTEGER, '\
+                'PRIMARY KEY(stk, dt))'
+            crs.execute(sql)
+            logging.info('Created temporary table')
+            upload_data = valid_stx_df.values.tolist()
+            execute_values(crs, 'INSERT INTO temp_table '
+                           '(stk, dt, o, hi, lo, c, v, oi) VALUES %s',
+                           upload_data)
+            logging.info('Uploaded dataframe into temporary table')
 
 # # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
 # # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
