@@ -555,6 +555,13 @@ class StxDatafeed:
                            '(stk, dt, o, hi, lo, c, v, oi) VALUES %s',
                            upload_data)
             logging.info('Uploaded dataframe into temporary table')
+            stxdb.db_write_cmd(
+                'INSERT INTO eods (stk, dt, o, hi, lo, c, v, oi) '
+                'SELECT * FROM temp_table ON CONFLICT (stk, dt) DO '
+                'UPDATE SET o = EXCLUDED.o, hi = EXCLUDED.hi, '
+                'lo = EXCLUDED.lo, c = EXCLUDED.c, v = EXCLUDED.v, '
+                'oi = EXCLUDED.oi')
+            logging.info('Uploaded data into eods table')
 
 # # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
 # # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
