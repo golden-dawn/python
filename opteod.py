@@ -165,7 +165,12 @@ class OptEOD:
         print('{0:s}: removed invalid days from {1:s} table.'.
               format(stxcal.print_current_time(), self.opt_tbl))
 
-
+# TODO: make the following changes:
+# 1. Use parseargs to parse the arguments
+# 2. Pass the year-month for starting and ending upload as parameters
+# 3. Create donwloaded_options table and save in that table all the options 
+#    that have been downloaded during the year.
+# 4. Run the options upload program
 if __name__ == '__main__':
     upload_options = True
     upload_spots = True
