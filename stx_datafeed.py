@@ -563,19 +563,15 @@ class StxDatafeed:
                 'oi = EXCLUDED.oi')
             logging.info('Uploaded data into eods table')
 
-# # https://stackoverflow.com/questions/61366664/how-to-upsert-pandas-dataframe-to-postgresql-table
-# # https://stackoverflow.com/questions/51703549/pandas-update-multiple-columns-using-apply-function
+# TODO: 
 
-# Wake up every day at 10:00PM
-# If this is an end-of-month option expiry date, generate a new cache
-#  - Check that the latest EOD files have been downloaded for the day.
-#  - If the EOD files are not there yet, print an error message,
-#    sleep for an hour, check for the files again
-# If the day is not an expiry day, then download EOD data and options from www
-# Create several database tables:
-# - leaders
-# - eod_cache
-# - options_cache
+# 1. Work under the assumption that stooq files are in data_d.txt
+#    file, while eoddata files are in the files
+#    {AMEX|NASDAQ|NYSE}_yyyymmdd.txt
+# 2. For the time being, use only stooq EOD prices, do not use eoddata prices.
+# 3. Use eoddata splits to handle splits. Find the code that parses splits
+# 4. Clean up the code, remove unnecessary methods/lines
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--source', type=Datafeed,
