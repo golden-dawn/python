@@ -1,3 +1,4 @@
+import argparse
 import csv
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -13,18 +14,18 @@ import zipfile
 class OptEOD:
     data_dir = os.getenv('DATA_DIR')
     upload_dir = '/tmp'
-    options_dir = '{0:s}/options'.format(data_dir)
     month_names = {1: 'January', 2: 'February', 3: 'March', 4: 'April',
                    5: 'May', 6: 'June', 7: 'July', 8: 'August', 9: 'September',
                    10: 'October', 11: 'November', 12: 'December'}
 
-    def __init__(self, in_dir=None, opt_tbl='options', spot_tbl='opt_spots',
+    def __init__(self, in_dir, opt_tbl='options', spot_tbl='opt_spots',
                  upload_options=True, upload_spots=True):
-        self.in_dir = self.options_dir if in_dir is None else in_dir
+        self.in_dir = in_dir
         self.opt_tbl = opt_tbl
         self.spot_tbl = spot_tbl
         self.upload_spots = upload_spots
         self.upload_options = upload_options
+
 
     def load_opts(self, start_date, end_date):
         start_year, start_month = [int(x) for x in start_date.split('-')]
@@ -171,15 +172,35 @@ class OptEOD:
 # 3. Create donwloaded_options table and save in that table all the options 
 #    that have been downloaded during the year.
 # 4. Run the options upload program
+# 5. Automatically backup the zip archives on the USB sticks
+
 if __name__ == '__main__':
-    upload_options = True
-    upload_spots = True
-    if '-no_spots' in sys.argv:
-        upload_spots = False
-    if '-no_options' in sys.argv:
-        upload_options = False
-    opt_eod = OptEOD(opt_tbl='options', spot_tbl='opt_spots',
-                     upload_options=upload_options, upload_spots=upload_spots)
-    opt_eod.load_opts('2002-02', '2018-12')
-    # opt_eod.load_opts_archive('{0:s}/bb_2016_April.zip'.
-    #                           format(opt_eod.in_dir), 2016, 4)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--source', type=Datafeed,
+                        choices=list(Datafeed), default=Datafeed.stooq)
+#     parser.add_argument('-s', '--stooq', action='store_true',
+#                         help='Use data from stooq')
+    parser.add_argument('-n', '--no_spots', action='store_true',
+                        help='Do not upload spots')
+    parser.add_argument('-o', '--no_options', action='store_true',
+                        help='Do not upload options')
+    parser.add_argument('-d', '--data_dir',
+                        help='download directory for options files',
+                        type=str,
+                        default=os.path.join(os.getenv('HOME'), 'Downloads'))
+    parser.add_argument('-s', '--start',
+                        help='yyyy-mm first month to upload in db',
+                        type=str,
+                        default='2002-02')
+    parser.add_argument('-e', '--end',
+                        help='yyyy-mm last month to upload in db',
+                        type=str,
+                        default='2020-12')
+    args = parser.parse_args()
+
+    upload_options = False if args.no_options else True
+    upload_spots = False if args.no_spots else True
+    opt_eod = OptEOD(
+        args.data_dir, opt_tbl='options', spot_tbl='opt_spots',
+        upload_options=(not no_options), upload_spots=(not no_spots))
+#     opt_eod.load_opts(args.start, args.end)
