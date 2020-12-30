@@ -2,6 +2,7 @@ import argparse
 import csv
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import logging
 import os
 from shutil import rmtree
 import stxcal
@@ -25,7 +26,14 @@ class OptEOD:
         self.spot_tbl = spot_tbl
         self.upload_spots = upload_spots
         self.upload_options = upload_options
-
+        logging.info('Using downloaded options archives from {0:s}'.
+                     format(in_dir))
+        logging.info('Will {0:s} spots in table {1:s}'.
+                     format('upload' if upload_spots else 'not upload',
+                            self.spot_tbl))
+        logging.info('Will {0:s} options in table {1:s}'.
+                     format('upload' if upload_options else 'not upload',
+                            self.opt_tbl))
 
     def load_opts(self, start_date, end_date):
         start_year, start_month = [int(x) for x in start_date.split('-')]
@@ -176,10 +184,6 @@ class OptEOD:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--source', type=Datafeed,
-                        choices=list(Datafeed), default=Datafeed.stooq)
-#     parser.add_argument('-s', '--stooq', action='store_true',
-#                         help='Use data from stooq')
     parser.add_argument('-n', '--no_spots', action='store_true',
                         help='Do not upload spots')
     parser.add_argument('-o', '--no_options', action='store_true',
@@ -198,9 +202,14 @@ if __name__ == '__main__':
                         default='2020-12')
     args = parser.parse_args()
 
-    upload_options = False if args.no_options else True
-    upload_spots = False if args.no_spots else True
+    # Configure logging
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
+        '%(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
     opt_eod = OptEOD(
         args.data_dir, opt_tbl='options', spot_tbl='opt_spots',
-        upload_options=(not no_options), upload_spots=(not no_spots))
+        upload_options=(not args.no_options), upload_spots=(not args.no_spots))
 #     opt_eod.load_opts(args.start, args.end)
