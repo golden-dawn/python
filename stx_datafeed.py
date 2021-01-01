@@ -562,7 +562,11 @@ class StxDatafeed:
                 'lo = EXCLUDED.lo, c = EXCLUDED.c, v = EXCLUDED.v, '
                 'oi = EXCLUDED.oi')
             logging.info('Uploaded data into eods table')
-
+        last_upload_date = valid_stx_df['date'].max()
+        stxdb.db_write_cmd("UPDATE analyses SET dt='{0:s}' WHERE "
+                           "analysis='eod_datafeed'".format(last_upload_date))
+        logging.info('Updated latest eod datafeed date {0:s} in DB'.
+                     format(last_uplaod_date))
 # TODO: 
 
 # 1. Work under the assumption that stooq files are in data_d.txt
@@ -571,6 +575,8 @@ class StxDatafeed:
 # 2. For the time being, use only stooq EOD prices, do not use eoddata prices.
 # 3. Use eoddata splits to handle splits. Find the code that parses splits
 # 4. Clean up the code, remove unnecessary methods/lines
+# 5. Automate the calculation of the start date from where data should
+#    be uploaded in the database.
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -593,8 +599,12 @@ if __name__ == '__main__':
         level=logging.INFO
     )
     sdf = StxDatafeed(data_dir)
-#     sdf.backup_database()
-    sdf.parse_stooq_new('2020-12-17')
+    res = stxdb.db_read_cmd("SELECT dt FROM analyses WHERE "
+                            "analysis='eod_datafeed'")
+    start_date = str(res[0][0]) if res else '2000-01-01'
+    sdf.parse_stooq_new(start_date)
+    sdf.handle_splits(start_date)
+    sdf.backup_database()
     sys.exit(0)
 #     if args.stooq:
 #         s_date_sq = '2018-03-12'
