@@ -445,7 +445,9 @@ if __name__ == '__main__':
     res = stxdb.db_read_cmd("SELECT dt FROM analyses WHERE "
                             "analysis='eod_datafeed'")
     start_date = str(res[0][0]) if res else '2000-01-01'
+    logging.info('The start date is: {0:s}'.format(start_date))
+    res = stxdb.db_read_cmd("SELECT MAX(dt) FROM splits")
+    splits_start_date = str(res[0][0]) if res else '2000-01-01'
     sdf.parse_stooq_new(start_date)
-    sdf.handle_splits(start_date)
+    sdf.handle_splits(splits_start_date)
     sdf.backup_database()
-    sys.exit(0)
