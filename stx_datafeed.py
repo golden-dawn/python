@@ -352,9 +352,19 @@ class StxDatafeed:
             else:
                 break
             next_date = stxcal.next_busday(next_date)
+
         if not db_dates:
             logging.info('No new data available for processing. Exiting')
             return
+
+        start_date = stxcal.next_busday(last_db_date)
+        num_bdays = stxcal.num_busdays(start_date, db_dates[0])
+        if num_bdays > 0:
+            logging.warn('No data for {0:d} days ({1:s} - {2:s}). Exiting ...'.
+                         format(num_bdays, start_date,
+                                stxcal.prev_busday(db_dates[0])))
+            return
+
         sel_stx_df = stx_df.query('date in @db_dates').copy()
         logging.info('{0:d}/{1:d} records found for following dates: [{2:s}]'.
                      format(len(sel_stx_df), len(stx_df), ', '.join(db_dates)))
