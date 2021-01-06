@@ -356,7 +356,8 @@ class StxDatafeed:
         if not db_dates:
             logging.info('No new data available for processing. Exiting')
             return
-
+        logging.info('Check that there are no time gaps between DB data and '
+                     'upload data')
         start_date = stxcal.next_busday(last_db_date)
         num_bdays = stxcal.num_busdays(start_date, db_dates[0])
         if num_bdays > 0:
@@ -364,6 +365,13 @@ class StxDatafeed:
                          format(num_bdays, start_date,
                                 stxcal.prev_busday(db_dates[0])))
             return
+        logging.info('Check that there are no time gaps in the upload data')
+        for ixx in range(len(db_dates) - 1):
+            if stxcal.next_busday(db_dates[ixx]) != db_dates[ixx + 1]:
+                logging.warn('Inconsistent dates {0:s} and {1:s} '
+                             'at indexes {2:d} and {3:d}'.
+                             format(db_dates[ixx], db_dates[ixx + 1],
+                                    ixx, ixx + 1))
 
         sel_stx_df = stx_df.query('date in @db_dates').copy()
         logging.info('{0:d}/{1:d} records found for following dates: [{2:s}]'.
