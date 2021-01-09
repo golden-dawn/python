@@ -7,4 +7,4 @@
 14 14 * * 1-5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --intraday --cron
 44 15 * * 5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --intraday-expiry --cron
 44 16 * * 1-5 ${HOME}/c/test.sh ${HOME}/c/stx_ana_1.exe --eod --cron
-00 22 * * * {HOME}/python/datafeed.sh
+00 22 * * * ${HOME}/python/datafeed.sh
