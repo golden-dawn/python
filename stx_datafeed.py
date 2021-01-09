@@ -409,7 +409,6 @@ class StxDatafeed:
         valid_stx_df.drop(columns=['per', 'time', 'invalid'], axis=1,
                           inplace=True)
         valid_stx_df.columns = ['stk', 'dt', 'o', 'hi', 'lo', 'c', 'v', 'oi']
-        print(valid_stx_df.head())
 
         with closing(stxdb.db_get_cnx().cursor()) as crs:
             sql = 'CREATE TEMPORARY TABLE temp_table ('\
@@ -436,11 +435,11 @@ class StxDatafeed:
                 'lo = EXCLUDED.lo, c = EXCLUDED.c, v = EXCLUDED.v, '
                 'oi = EXCLUDED.oi')
             logging.info('Uploaded data into eods table')
-        last_upload_date = valid_stx_df['date'].max()
+        last_upload_date = valid_stx_df['dt'].max()
         stxdb.db_write_cmd("UPDATE analyses SET dt='{0:s}' WHERE "
                            "analysis='eod_datafeed'".format(last_upload_date))
         logging.info('Updated latest eod datafeed date {0:s} in DB'.
-                     format(last_uplaod_date))
+                     format(last_upload_date))
 
 
 if __name__ == '__main__':
