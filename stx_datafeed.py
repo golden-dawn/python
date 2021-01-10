@@ -148,9 +148,12 @@ class StxDatafeed:
                     continue
                 denominator, nominator = tokens[3].strip().split('-')
                 split_ratio = float(nominator) / float(denominator)
+                delete_split_dates = []
                 for split_date in stk_splits.keys():
                     if abs(stxcal.num_busdays(split_date, dt)) < 5:
-                        del stk_splits[split_date]
+                        delete_split_dates.append(split_date)
+                for split_date in delete_split_dates:
+                    del stk_splits[split_date]
                 stk_splits[dt] = split_ratio
                 split_dct[stk] = stk_splits
         for stk, stk_splits in split_dct.items():
