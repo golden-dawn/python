@@ -194,6 +194,16 @@ class OptEOD:
         end_date = stxcal.prev_busday(end_date)
         logging.info('Moving to downloaded_options table all options dated '
                      'between {0:s} and {1:s}'.format(start_date, end_date))
+        sql = 'INSERT INTO downloaded_options '\
+            '(expiry, und, cp, strike, dt, bid, ask, v, oi) '\
+            "SELECT * FROM options WHERE dt BETWEEN '{0:s}' AND '{1:s}' "\
+            'ON CONFLICT (expiry, und, cp, strike, dt) DO NOTHING'.format(
+            start_date, end_date)
+        logging.info('sql cmd: {0:s}'.format(sql))
+        stxdb.db_write_cmd(sql)
+        logging.info('Moved to downloaded_options table all options dated '
+                     'between {0:s} and {1:s}'.format(start_date, end_date))
+
 
 # TODO: make the following changes:
 # 1. Use parseargs to parse the arguments
