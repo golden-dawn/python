@@ -174,6 +174,27 @@ class OptEOD:
         print('{0:s}: removed invalid days from {1:s} table.'.
               format(stxcal.print_current_time(), self.opt_tbl))
 
+
+    def move_downloaded_options(self, start_yymm, end_yymm):
+        start_yy, start_mm = start_yymm.split('-')
+        start_year = int(start_yy)
+        start_month = int(start_mm)
+        end_yy, end_mm = end_yymm.split('-')
+        end_year = int(end_yy)
+        end_month = int(end_mm)
+        start_date = '{0:d}-{1:02d}-01'.format(start_year, start_month)
+        logging.info('start_date = {0:s}'.format(start_date))
+        if not stxcal.is_busday(start_date):
+            start_date = stxcal.next_busday(start_date)
+        if end_month == 12:
+            end_year += 1
+        end_month = (end_month + 1) % 12
+        end_date = '{0:d}-{1:02d}-01'.format(end_year, end_month)
+        logging.info('end_date = {0:s}'.format(end_date))
+        end_date = stxcal.prev_busday(end_date)
+        logging.info('Moving to downloaded_options table all options dated '
+                     'between {0:s} and {1:s}'.format(start_date, end_date))
+
 # TODO: make the following changes:
 # 1. Use parseargs to parse the arguments
 # 2. Pass the year-month for starting and ending upload as parameters
@@ -212,4 +233,5 @@ if __name__ == '__main__':
     opt_eod = OptEOD(
         args.data_dir, opt_tbl='options', spot_tbl='opt_spots',
         upload_options=(not args.no_options), upload_spots=(not args.no_spots))
+    opt_eod.move_downloaded_options(args.start, args.end)
 #     opt_eod.load_opts(args.start, args.end)
