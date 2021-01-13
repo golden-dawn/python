@@ -203,6 +203,14 @@ class OptEOD:
         stxdb.db_write_cmd(sql)
         logging.info('Moved to downloaded_options table all options dated '
                      'between {0:s} and {1:s}'.format(start_date, end_date))
+        logging.info('Removing from options table all options downloaded '
+                     'between {0:s} and {1:s}'.format(start_date, end_date))
+        sql = "DELETE FROM options WHERE dt BETWEEN '{0:s}' AND '{1:s}'"\
+            " ".format(start_date, end_date)
+        logging.info('sql cmd: {0:s}'.format(sql))
+        stxdb.db_write_cmd(sql)
+        logging.info('Removed from options table all options downloaded '
+                     'between {0:s} and {1:s}'.format(start_date, end_date))
 
 
 # TODO: make the following changes:
@@ -244,4 +252,4 @@ if __name__ == '__main__':
         args.data_dir, opt_tbl='options', spot_tbl='opt_spots',
         upload_options=(not args.no_options), upload_spots=(not args.no_spots))
     opt_eod.move_downloaded_options(args.start, args.end)
-#     opt_eod.load_opts(args.start, args.end)
+    opt_eod.load_opts(args.start, args.end)
