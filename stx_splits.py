@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 from stx_eod import StxEOD
 
