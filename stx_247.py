@@ -3,6 +3,7 @@ import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import json
+import logging
 import numpy as np
 import os
 import pandas as pd
@@ -21,6 +22,12 @@ from weasyprint import HTML
 
 class StxAnalyzer:
     def __init__(self):
+        self.report_dir = os.path.join(os.getenv('HOME'), 'market')
+        logging.info('PDF reports are stored locally in {0:s}'.
+                     format(self.report_dir))
+        self.git_report_dir = os.path.join(os.getenv('HOME'), 'reports')
+        logging.info('PDF reports are stored in git from {0:s}'.
+                     format(self.git_report_dir))
         self.report_style = '''
 <style>
 body {
@@ -146,9 +153,6 @@ img {
         res = ['<html>', self.report_style, '<body>']
         res.append('<h3>TODAY - {0:s}</h3>'.format(crt_date))
         res.extend(self.get_report(crt_date, df_1))
-#         res += '{0:6s} {1:9s} {2:6s} {3:12s} {4:6s} {5:6s}\n'.format(
-#             'name', 'direction', 'spread', 'avg_volume', 'avg_rg', 'hi_act')
-#         res += self.get_report(crt_date, df_1)
         if eod:
             df_2 = self.get_setups_for_tomorrow(crt_date)
             next_date = stxcal.next_busday(crt_date)
@@ -160,6 +164,7 @@ img {
         res.append('</html>')
         with open('/tmp/x.html', 'w') as html_file:
             html_file.write('\n'.join(res))
+        logging.info('Generated HTML report')
         time_now = datetime.datetime.now()
         time_now_date = '{0:d}-{1:02d}-{2:02d}'.format(time_now.year, 
                                                        time_now.month, 
@@ -174,9 +179,15 @@ img {
         else:
             suffix = 'EOD' if eod else 'ID'
         pdf_fname = '{0:s}_{1:s}.pdf'.format(crt_date, suffix)
-        pdf_filename = os.path.join(os.getenv('HOME'), 'market', pdf_fname)
+        logging.info('PDF report file name: {0:s}'.format(pdf_fname))
+        pdf_filename = os.path.join(self.report_dir, pdf_fname)
         HTML(filename='/tmp/x.html').write_pdf(pdf_filename)
-        return pdf_filename
+        logging.info('Saved report locally in {0:s}'.format(pdf_filename))
+        git_pdf_filename = os.path.join(self.git_report_dir, pdf_fname)
+        HTML(filename='/tmp/x.html').write_pdf(git_pdf_filename)
+        logging.info('Saved report in git upload folder {0:s}'.
+                     format(git_pdf_filename))
+        return pdf_filename, git_pdf_filename
 
     def mail_analysis(self, pdf_report, analysis_type):
         smtp_server = os.getenv('EMAIL_SERVER')
@@ -224,12 +235,19 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--cron', action='store_true',
                         help="Flag invocation from cron job")
     args = parser.parse_args()
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
+        '%(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.INFO
+    )
     analysis_type = 'Analysis'
     eod = False
     if args.cron:
         today_date = stxcal.today_date()
         if not stxcal.is_busday(today_date):
-            print("stx_247 dont run on holidays ({0:s})".format(today_date))
+            logging.warn("stx_247 dont run on holidays ({0:s})".
+                         format(today_date))
             sys.exit(0)
     if args.eod:
         analysis_type = 'EOD'
@@ -239,6 +257,7 @@ if __name__ == '__main__':
     if args.date:
         crt_date = args.date
     stx_ana = StxAnalyzer()
-    pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
+    pdf_report, git_pdf_report = stx_ana.do_analysis(
+        crt_date, args.max_spread, eod)
     if args.mail:
         stx_ana.mail_analysis(pdf_report, analysis_type)
