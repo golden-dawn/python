@@ -1,7 +1,5 @@
 import argparse
 import datetime
-from email.mime.application import MIMEApplication
-from email.mime.multipart import MIMEMultipart
 import json
 import logging
 import numpy as np
@@ -189,35 +187,6 @@ img {
                      format(git_pdf_filename))
         return pdf_filename, git_pdf_filename
 
-    def mail_analysis(self, pdf_report, analysis_type):
-        smtp_server = os.getenv('EMAIL_SERVER')
-        smtp_user = os.getenv('EMAIL_USER')
-        smtp_passwd = os.getenv('EMAIL_PASSWD')
-        smtp_email = os.getenv('EMAIL_USER')
-        smtp_port = os.getenv('EMAIL_PORT')
-        try:
-            try:
-                s = smtplib.SMTP(host=smtp_server, port=smtp_port)
-                s.starttls()
-                s.login(smtp_user, smtp_passwd)
-                msg = MIMEMultipart()
-                pdf_name = os.path.basename(pdf_report)
-                with open(pdf_report, 'rb') as fpdf:
-                    pdf = MIMEApplication(fpdf.read(), Name=pdf_name)
-                pdf['Content-Disposition'] = 'attachment; filename="{0:s}"'\
-                    ''.format(pdf_name)
-                msg.attach(pdf)
-                msg['Subject'] = '{0:s} {1:s}'.format(analysis_type, crt_date)
-                msg['From'] = smtp_email
-                msg['To'] = smtp_email
-                s.sendmail(smtp_email, smtp_email, msg.as_string())
-            except:
-                print('Something failed: {0:s}'.format(traceback.print_exc()))
-            finally:
-                s.quit()
-        except:
-            print('Failed to send email: {0:s}'.format(traceback.print_exc()))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -230,8 +199,6 @@ if __name__ == '__main__':
                         help="Run EOD analysis")
     parser.add_argument('-i', '--intraday', action='store_true',
                         help="Run Intraday analysis")    
-    parser.add_argument('-m', '--mail', action='store_true',
-                        help="Email analysis results")    
     parser.add_argument('-c', '--cron', action='store_true',
                         help="Flag invocation from cron job")
     args = parser.parse_args()
@@ -259,5 +226,3 @@ if __name__ == '__main__':
     stx_ana = StxAnalyzer()
     pdf_report, git_pdf_report = stx_ana.do_analysis(
         crt_date, args.max_spread, eod)
-    if args.mail:
-        stx_ana.mail_analysis(pdf_report, analysis_type)
