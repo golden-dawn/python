@@ -1,5 +1,7 @@
 import argparse
 import datetime
+from github import Github
+import glob
 import json
 import logging
 import numpy as np
@@ -17,6 +19,7 @@ import sys
 import time
 import traceback
 from weasyprint import HTML
+import zipfile
 
 class StxAnalyzer:
     def __init__(self):
@@ -187,6 +190,55 @@ img {
                      format(git_pdf_filename))
         return pdf_filename, git_pdf_filename
 
+    def update_local_directory(self, crt_date, pdf_report):
+        today_date = stxcal.today_date()
+        start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
+        prev_month_date = stxcal.prev_busday(start_of_current_month)
+        start_of_previous_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
+        zipfile_name = os.path.join(self.report_dir, '{0:s}.zip'.
+            format(stxcal.prev_busday(start_of_previous_month)))
+        logging.info('Will archive all the reports prior to {0:s} in {1:s}'.
+            format(start_of_previous_month, zipfile_name))
+        pdf_file_list = glob.glob(os.path.join(self.report_dir, '*.pdf'))
+        zipfile_open_mode = 'a' if os.path.isfile(zipfile_name) else 'w'
+        num_archived_pdfs = 0
+        z = zipfile.ZipFile(zipfile_name, zipfile_open_mode)
+        for pdf_file in pdf_file_list:
+            short_filename = pdf_file.split(os.path.sep)[-1]
+            if short_filename < start_of_previous_month:
+                z.write(pdf_file)
+                num_archived_pdfs += 1
+                os.remove(pdf_file)
+        z.close()
+        logging.info('Archived {0:d} PDF reports in {1:s}'.
+            format(num_archived_pdfs, zipfile_name))
+
+
+    def update_git_directory(self, ana_date, git_pdf_report):
+        today_date = stxcal.today_date()
+        start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
+        prev_month_date = stxcal.prev_busday(start_of_current_month)
+        start_of_previous_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
+        if ana_date < start_of_previous_month:
+            logging.warn('Will not store in github reports before {0:s}'.
+                format(start_of_previous_month))
+            return
+        g = Github(os.getenv('GIT_TOKEN'))
+        git_user = g.get_user()
+        repo = g.get_repo('{0:s}/reports'.format(git_user.login))
+        git_files = [x.name for x in repo.get_contents('')
+            if x.name != 'README.md'].sort()
+        logging.info('Found {0:d} reports in the git repository'.
+            format(len(git_files) if git_files else 0))
+        first_date, last_date = None, None
+        if git_files:
+            first_date = git_files[0][:git_files[0].find('_')]
+            last_date = git_files[-1][:git_files[-1].find('_')]
+            logging.info('Git repo has reports from {0:s} to {1:s}'.
+                format(first_date, last_date))
+            logging.info('Checking for files in github older than {0:s}'.
+                format(start_of_previous_month))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -223,6 +275,9 @@ if __name__ == '__main__':
         analysis_type = 'Intraday'
     if args.date:
         crt_date = args.date
+    logging.info('Running analysis for {0:s}'.format(crt_date))
     stx_ana = StxAnalyzer()
     pdf_report, git_pdf_report = stx_ana.do_analysis(
         crt_date, args.max_spread, eod)
+    stx_ana.update_local_directory(crt_date, pdf_report)
+    stx_ana.update_git_directory(crt_date, git_pdf_report)
