@@ -213,7 +213,6 @@ img {
         logging.info('Archived {0:d} PDF reports in {1:s}'.
             format(num_archived_pdfs, zipfile_name))
 
-
     def update_git_directory(self, ana_date, git_pdf_report):
         today_date = stxcal.today_date()
         start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
@@ -238,6 +237,7 @@ img {
                 format(first_date, last_date))
             logging.info('Checking for files in github older than {0:s}'.
                 format(start_of_previous_month))
+        logging.info('For now, no report uploading in git')
 
 
 if __name__ == '__main__':
