@@ -36,7 +36,14 @@ class OptEOD:
                             self.opt_tbl))
 
     def load_opts(self, start_date, end_date):
-        start_year, start_month = [int(x) for x in start_date.split('-')]
+        start_tokens = start_date.split('-')
+        start_day = 0
+        if len(start_tokens) == 2:
+            start_year, start_month = int(tokens[0]), int(tokens[1])
+        elif len(start_tokens) == 3:
+            start_year, start_month, start_day = int(tokens[0]), int(
+                tokens[1]), int(tokens[2])
+#         start_year, start_month = [int(x) for x in start_date.split('-')]
         end_year, end_month = [int(x) for x in end_date.split('-')]
         for year in range(start_year, end_year + 1):
             y_spots, y_opts = 0, 0
@@ -44,18 +51,22 @@ class OptEOD:
                 if (year == start_year and month < start_month) or \
                    (year == end_year and month > end_month):
                     continue
+                if year == start_year and month == start_month:
+                    day = start_day
+                else:
+                    day = 0
                 zip_fname = os.path.join(
                     self.in_dir,
                     'bb_{0:d}_{1:s}.zip'.format(year, self.month_names[month]))
                 if os.path.exists(zip_fname):
                     m_spots, m_opts = self.load_opts_archive(zip_fname, year,
-                                                             month)
+                                                             month, day)
                     y_spots += m_spots
                     y_opts += m_opts
             print('{0:s}\t{1:10d}\t{2:5d}\t{3:6d}'.
                   format(stxcal.print_current_time(), year, y_spots, y_opts))
 
-    def load_opts_archive(self, zip_fname, year, month):
+    def load_opts_archive(self, zip_fname, year, month, day=0):
         # remove the tmp directory (if it already exists, and recreate it
         tmp_dir = '{0:s}/tmp'.format(self.data_dir)
         if os.path.exists(tmp_dir):
@@ -66,6 +77,12 @@ class OptEOD:
             zip_file.extractall(tmp_dir)
         daily_opt_files = os.listdir(tmp_dir)
         for opt_file in daily_opt_files:
+            file_day = int(opt_file[17:19])
+            if file_day < day:
+                logging.info('Skipping file {0:s}, because it is before '
+                             'start date {1:d}-{2:02d}-{3:02d}'.
+                             format(opt_file, year, month, day))
+                continue
             d_spots, d_opts = self.load_opts_daily(os.path.join(tmp_dir,
                                                                 opt_file))
             m_spots += d_spots
@@ -232,7 +249,7 @@ if __name__ == '__main__':
                         type=str,
                         default=os.path.join(os.getenv('HOME'), 'Downloads'))
     parser.add_argument('-s', '--start',
-                        help='yyyy-mm first month to upload in db',
+                        help='yyyy-mm 1st upload month; or specific date',
                         type=str,
                         default='2002-02')
     parser.add_argument('-e', '--end',
