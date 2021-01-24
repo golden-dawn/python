@@ -256,6 +256,8 @@ if __name__ == '__main__':
                         help='yyyy-mm last month to upload in db',
                         type=str,
                         default='2020-12')
+    parser.add_argument('-m', '--move_downloaded_options', action='store_true',
+                        help='Move downloaded options')
     args = parser.parse_args()
 
     # Configure logging
@@ -268,5 +270,6 @@ if __name__ == '__main__':
     opt_eod = OptEOD(
         args.data_dir, opt_tbl='options', spot_tbl='opt_spots',
         upload_options=(not args.no_options), upload_spots=(not args.no_spots))
-    opt_eod.move_downloaded_options(args.start, args.end)
+    if args.move_downloaded_options:
+        opt_eod.move_downloaded_options(args.start, args.end)
     opt_eod.load_opts(args.start, args.end)
