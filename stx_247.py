@@ -238,6 +238,15 @@ img {
             logging.info('Checking for files in github older than {0:s}'.
                 format(start_of_previous_month))
         logging.info('For now, no report uploading in git')
+    # I should be able to encode and upload files to git using this:
+    # filename = './2021-01-22_EOD.pdf'
+    # with open(filename, 'rb') as pdf_file:
+    #    pdf_b64_content = base64.b64encode(pdf_file.read())
+    # pdf_str_content = pdf_b64_content.decode('utf-8')
+    # blob = repo.create_git_blob(pdf_str_content, 'base64')
+    # repo.create_file('test.txt', 'test', 'this is a test', branch='master')
+    # Last thing doesn't work. It uploads PDF to github, but it cannot be visualized
+    # repo.create_file('2021-01-22_EOD.pdf', 'test pdf report', pdf_str_content, branch='master')
 
 
 if __name__ == '__main__':
