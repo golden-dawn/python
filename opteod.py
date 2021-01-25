@@ -36,13 +36,13 @@ class OptEOD:
                             self.opt_tbl))
 
     def load_opts(self, start_date, end_date):
-        start_tokens = start_date.split('-')
+        s_tokens = start_date.split('-')
         start_day = 0
-        if len(start_tokens) == 2:
-            start_year, start_month = int(tokens[0]), int(tokens[1])
-        elif len(start_tokens) == 3:
-            start_year, start_month, start_day = int(tokens[0]), int(
-                tokens[1]), int(tokens[2])
+        if len(s_tokens) == 2:
+            start_year, start_month = int(s_tokens[0]), int(s_tokens[1])
+        elif len(s_tokens) == 3:
+            start_year, start_month, start_day = int(s_tokens[0]), int(
+                s_tokens[1]), int(s_tokens[2])
 #         start_year, start_month = [int(x) for x in start_date.split('-')]
         end_year, end_month = [int(x) for x in end_date.split('-')]
         for year in range(start_year, end_year + 1):
