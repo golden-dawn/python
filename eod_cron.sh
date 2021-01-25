@@ -9,5 +9,5 @@ cd ${HOME}/c
 cd ${HOME}/python
 source .env
 export LANG=en_US.UTF-8
-python3 stx_247.py -e -c -m -s 15
+python3 stx_247.py -e -c -s 15
 cd ${CRT_DIR}
