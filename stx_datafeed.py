@@ -223,7 +223,9 @@ class StxDatafeed:
         else:
             last_bkp_date = datetime.datetime.strptime(db_bkp_dirs[-1],
                                                        '%Y-%m-%d_%H%M%S')
-            if (crt_date - last_bkp_date).seconds > (24 * 7 - 1) * 3600:
+            diff = crt_date - last_bkp_date
+            diff_seconds = diff.days * 24 * 3600 + diff.seconds
+            if diff_seconds > (24 * 7 - 1) * 3600:
                 backup_needed = True
         if not backup_needed:
             logging.info('Found {0:d} DB backups, most recent is {1:d} days '
