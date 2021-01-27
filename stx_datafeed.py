@@ -445,6 +445,16 @@ class StxDatafeed:
                            "analysis='eod_datafeed'".format(last_upload_date))
         logging.info('Updated latest eod datafeed date {0:s} in DB'.
                      format(last_upload_date))
+        self.rename_stooq_file(dates.index[0], dates.index[num_dates - 1])
+
+    def rename_stooq_file(self, first_date, last_date):
+        stooq_file = os.path.join(os.getenv('HOME'), 'Downloads', 'data_d.txt')
+        if os.path.exists(stooq_file):
+            archive_file = os.path.join(os.getenv('HOME'), 'Downloads',
+                'stooq_{0:s}_{1:s}.txt'.format(first_date, last_date))
+            os.rename(stooq_file, archive_file)
+            logging.info('Moved {0:s} into {1:s}'.format(stooq_file,
+                archive_file))
 
 
 if __name__ == '__main__':
