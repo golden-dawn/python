@@ -51,6 +51,19 @@ img {
 }
 </style>
 '''
+    def get_rs_stx(self, dt, best=True):
+        rs_rank = 99 if best else 0
+        rs_order = 'desc' if best else 'asc'
+        q = sql.Composed([
+                sql.SQL("select stk, indicators->>'rs' as rs from indicators"),
+                sql.SQL(' where dt='), sql.Literal(dt),
+                sql.SQL(' and stk not in (select * from excludes) and '),
+                sql.SQL("(indicators->>'rs_rank')::int="),
+                sql.Literal(rs_rank),
+                sql.SQL(" order by (indicators->>'rs')::int "),
+                sql.SQL(rs_order)])
+        df = pd.read_sql(q, stxdb.db_get_cnx())
+        return df
 
     def get_triggered_setups(self, dt):
         q = sql.Composed([
@@ -114,10 +127,10 @@ img {
                        inplace=True)
         return df
 
-    def get_report(self, crt_date, df, plot_indexes):
+    def get_report(self, crt_date, df, do_analyze):
         s_date = stxcal.move_busdays(crt_date, -50)
         res = []
-        if plot_indexes:
+        if do_analyze:
             indexes = ['^GSPC', '^IXIC', '^DJI']
             for index in indexes:
                 stk_plot = StxPlot(index, s_date, crt_date)
@@ -125,6 +138,17 @@ img {
                 res.append('<h4>{0:s}</h4>'.format(index))
                 res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                            format(index, index))
+            rs_df = self.get_rs_stx(crt_date, True)
+            for i, (_, row) in enumerate(rs_df.iterrows()):
+                stk = row['stk']
+                stk_plot = StxPlot(stk, s_date, crt_date)
+                stk_plot.plot_to_file()
+                logging.info('i = {}'.format(i))
+                res.append('<h4>{}. {}, RS={}</h4>'.
+                           format(i + 1, stk, row['rs']))
+                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                           format(stk, stk))
+
         for _, row in df.iterrows():
             stk = row['stk']
             stk_plot = StxPlot(stk, s_date, crt_date)
