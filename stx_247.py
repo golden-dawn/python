@@ -148,6 +148,16 @@ img {
                            format(i + 1, stk, row['rs']))
                 res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                            format(stk, stk))
+            rs_df = self.get_rs_stx(crt_date, False)
+            for i, (_, row) in enumerate(rs_df.iterrows()):
+                stk = row['stk']
+                stk_plot = StxPlot(stk, s_date, crt_date)
+                stk_plot.plot_to_file()
+                logging.info('i = {}'.format(i))
+                res.append('<h4>{}. {}, RS={}</h4>'.
+                           format(i + 1, stk, row['rs']))
+                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                           format(stk, stk))
 
         for _, row in df.iterrows():
             stk = row['stk']
