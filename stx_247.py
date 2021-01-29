@@ -114,9 +114,17 @@ img {
                        inplace=True)
         return df
 
-    def get_report(self, crt_date, df):
+    def get_report(self, crt_date, df, plot_indexes):
         s_date = stxcal.move_busdays(crt_date, -50)
         res = []
+        if plot_indexes:
+            indexes = ['^GSPC', '^IXIC', '^DJI']
+            for index in indexes:
+                stk_plot = StxPlot(index, s_date, crt_date)
+                stk_plot.plot_to_file()
+                res.append('<h4>{0:s}</h4>'.format(index))
+                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                           format(index, index))
         for _, row in df.iterrows():
             stk = row['stk']
             stk_plot = StxPlot(stk, s_date, crt_date)
@@ -153,14 +161,14 @@ img {
         df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
         res = ['<html>', self.report_style, '<body>']
         res.append('<h3>TODAY - {0:s}</h3>'.format(crt_date))
-        res.extend(self.get_report(crt_date, df_1))
+        res.extend(self.get_report(crt_date, df_1, True))
         if eod:
             df_2 = self.get_setups_for_tomorrow(crt_date)
             next_date = stxcal.next_busday(crt_date)
             self.get_high_activity(crt_date, df_2)
             df_2 = self.filter_spreads_hiact(df_2, spreads, max_spread)
             res.append('<h3>TOMMORROW - {0:s}</h3>'.format(next_date))
-            res.extend(self.get_report(crt_date, df_2))
+            res.extend(self.get_report(crt_date, df_2, False))
         res.append('</body>')
         res.append('</html>')
         with open('/tmp/x.html', 'w') as html_file:
