@@ -500,6 +500,29 @@ class StxJL:
                 return jlr[self.col_ix[col_name2]]
         return jlr[self.col_ix[col_name]]
 
+    def get_html_formatted_price(self, piv, pivot): # state, pivot, price):
+        res = '<tr><td>{0:s}</td>'.format(piv.dt)
+        res += (piv.state * '<td></td>')
+        td_style = ''
+        if pivot:
+            td_style = ' style="background-color:#{0:s};"'.format(
+                '006400' if piv.state in [StxJL.UT, StxJL.NRe] else '640000')
+        res += '<td{0:s}>{1:.2f}</td>'.format(td_style, piv.price / 100.0)
+        res += ((7 - piv.state) * '<td></td>')
+        return res
+
+    def html_report(self, pivs):
+        html_table = '<table border="1">'
+        html_table += '<tr><th>Date</th><th>SRa</th><th>NRa</th>'\
+            '<th>UT</th><th>DT</th><th>NRe</th><th>SRe</th>'\
+            '<th>range</th><th>OBV</th></tr>'
+        for piv in pivs:
+            piv_row = self.get_html_formatted_price(piv, 1)
+            html_table += piv_row
+#         html_table.append(self.get_html_formatted_price()
+        html_table += '</table>'
+        return html_table
+
 
 if __name__ == '__main__':
     stk = sys.argv[1]
@@ -517,6 +540,7 @@ if __name__ == '__main__':
     pivs = jl.get_num_pivots(4)
     print("4 pivs:")
     jl.print_pivs(pivs)
+    print(jl.html_report(pivs))
     # jl.jl_print(print_pivots_only = True)
     # pd.set_option('display.max_rows', 2000)
     # pd.set_option('display.max_columns', 1500)
