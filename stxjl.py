@@ -65,7 +65,7 @@ class StxJL:
         hi = df_0.loc[max_dt].hi
         lo = df_0.loc[min_dt].lo
         self.trs = []
-        self.trs.append(df_0.ix[0].hi - df_0.ix[0].lo)
+        self.trs.append(df_0.iloc[0].hi - df_0.iloc[0].lo)
         for h, l, c_1 in zip(df_0['hi'].values[1:], df_0['lo'].values[1:],
                              df_0['c'].values[:-1]):
             self.trs.append(max(h, c_1) - min(l, c_1))
@@ -111,7 +111,7 @@ class StxJL:
     def rec_day(self, sh, sl, ixx=-1):
         if ixx == -1:
             ixx = self.ts.pos
-        sr = self.ts.df.ix[ixx]
+        sr = self.ts.df.iloc[ixx]
         dtc = str(self.ts.df.index[ixx].date())
         lix = ixx - self.ts.start
         # print("lix = %d" % lix)
@@ -219,8 +219,8 @@ class StxJL:
         elif self.last['state'] == StxJL.SRe:
             self.sRe(fctr)
         self.trs.pop(0)
-        sr = self.ts.df.ix[self.ts.pos]
-        sr_1 = self.ts.df.ix[self.ts.pos - 1]
+        sr = self.ts.df.iloc[self.ts.pos]
+        sr_1 = self.ts.df.iloc[self.ts.pos - 1]
         self.trs.append(max(sr.hi, sr_1.c) - min(sr.lo, sr_1.c))
         self.avg_rg = np.mean(self.trs)
 
@@ -238,7 +238,7 @@ class StxJL:
         self.trs[:] = [x * ratio for x in self.trs]
 
     def sRa(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.UT] < r.hi:
             sh = StxJL.UT
@@ -265,7 +265,7 @@ class StxJL:
         self.rec_day(sh, sl)
 
     def nRa(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.UT] < r.hi or self.lp[StxJL.m_NRa] + fctr < r.hi:
             sh = StxJL.UT
@@ -283,7 +283,7 @@ class StxJL:
         self.rec_day(sh, sl)
 
     def uT(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.UT] < r.hi:
             sh = StxJL.UT
@@ -295,7 +295,7 @@ class StxJL:
         self.rec_day(sh, sl)
 
     def sRe(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.DT] > r.lo:
             sl = StxJL.DT
@@ -322,7 +322,7 @@ class StxJL:
         self.rec_day(sh, sl)
 
     def dT(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.DT] > r.lo:
             sl = StxJL.DT
@@ -334,7 +334,7 @@ class StxJL:
         self.rec_day(sh, sl)
 
     def nRe(self, fctr):
-        r = self.ts.df.ix[self.ts.pos]
+        r = self.ts.df.iloc[self.ts.pos]
         sh, sl = StxJL.Nil, StxJL.Nil
         if self.lp[StxJL.DT] > r.lo or self.lp[StxJL.m_NRe] - fctr > r.lo:
             sl = StxJL.DT
@@ -523,6 +523,14 @@ class StxJL:
         html_table += '</table>'
         return html_table
 
+    @classmethod
+    def jl_report(cls, stk, start_date, end_date, factor):
+        ts = StxTS(stk, start_date, end_date)
+        jl = StxJL(ts, factor)
+        jlres = jl.jl(end_date)
+        pivs = jl.get_num_pivots(4)
+        return jl.html_report(pivs)
+
 
 if __name__ == '__main__':
     stk = sys.argv[1]
@@ -530,6 +538,8 @@ if __name__ == '__main__':
     ed = sys.argv[3]
     dt = sys.argv[4]
     factor = float(sys.argv[5])
+#     res = StxJL.jl_report(stk, sd, ed, factor)
+#     print(res)
     ts = StxTS(stk, sd, ed)
     jl = StxJL(ts, factor)
     jlres = jl.jl(dt)
