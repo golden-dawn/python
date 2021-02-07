@@ -17,7 +17,7 @@ from stxts import StxTS
 from stx_plot import StxPlot
 import sys
 import time
-import traceback
+import traceback as tb
 from weasyprint import HTML
 import zipfile
 
@@ -129,6 +129,7 @@ img {
 
     def get_report(self, crt_date, df, do_analyze):
         s_date = stxcal.move_busdays(crt_date, -50)
+        jl_s_date = stxcal.move_busdays(crt_date, -350)
         res = []
         if do_analyze:
             indexes = ['^GSPC', '^IXIC', '^DJI']
@@ -138,6 +139,18 @@ img {
                 res.append('<h4>{0:s}</h4>'.format(index))
                 res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                            format(index, index))
+                try:
+                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
+                                  format(index, tb.print_exc()))
+                try:
+                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
+                                  format(index, tb.print_exc()))
             rs_df = self.get_rs_stx(crt_date, True)
             for i, (_, row) in enumerate(rs_df.iterrows()):
                 stk = row['stk']
@@ -148,6 +161,18 @@ img {
                            format(i + 1, stk, row['rs']))
                 res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                            format(stk, stk))
+                try:
+                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
+                                  format(stk, tb.print_exc()))
+                try:
+                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
+                                  format(stk, tb.print_exc()))
             rs_df = self.get_rs_stx(crt_date, False)
             for i, (_, row) in enumerate(rs_df.iterrows()):
                 stk = row['stk']
@@ -158,6 +183,19 @@ img {
                            format(i + 1, stk, row['rs']))
                 res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                            format(stk, stk))
+                logging.info('stk = {}'.format(stk))
+                try:
+                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
+                    tb.print_exc()
+                try:
+                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('JL(2.0) calc failed for {0:s}'.format(stk))
+                    tb.print_exc()
 
         for _, row in df.iterrows():
             stk = row['stk']
@@ -186,6 +224,18 @@ img {
                               int(1000 * avg_volume), avg_rg / 100, 
                               row['hi_act']))
             res.append('</table>')
+            try:
+                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
+                res.append(jl_res)
+            except:
+                logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
+                              format(stk, tb.print_exc()))
+            try:
+                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
+                res.append(jl_res)
+            except:
+                logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
+                              format(stk, tb.print_exc()))
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
