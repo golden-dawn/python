@@ -122,7 +122,7 @@ img {
         df['spread'] = df.apply(lambda r: spreads.get(r['stk']), axis=1)
         df.drop_duplicates(['stk', 'direction'], inplace=True)
         df = df[df.spread < max_spread]
-        df = df[df.hi_act >= 3]
+#         df = df[df.hi_act >= 3]
         df.sort_values(by=['direction', 'hi_act'], ascending=False, 
                        inplace=True)
         return df
@@ -130,6 +130,7 @@ img {
     def get_report(self, crt_date, df, do_analyze):
         s_date = stxcal.move_busdays(crt_date, -50)
         jl_s_date = stxcal.move_busdays(crt_date, -350)
+        ana_s_date = stxcal.move_busdays(crt_date, -20)
         res = []
         if do_analyze:
             indexes = ['^GSPC', '^IXIC', '^DJI']
@@ -143,14 +144,21 @@ img {
                     jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
                     res.append(jl_res)
                 except:
-                    logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
-                                  format(index, tb.print_exc()))
+                    logging.error('{0:s} JL(1.0) calc failed'.format(index))
+                    tb.print_exc()
                 try:
                     jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
                     res.append(jl_res)
                 except:
-                    logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
-                                  format(index, tb.print_exc()))
+                    logging.error('{0:s} JL(2.0) calc failed'.format(index))
+                    tb.print_exc()
+                try:
+                    ana_res = self.ana_report(index, ana_s_date, crt_date)
+                    res.append(ana_res)
+                except:
+                    logging.error('Failed to analyze {0:s}'.format(index))
+                    tb.print_exc()
+
             rs_df = self.get_rs_stx(crt_date, True)
             for i, (_, row) in enumerate(rs_df.iterrows()):
                 stk = row['stk']
@@ -165,14 +173,21 @@ img {
                     jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
                     res.append(jl_res)
                 except:
-                    logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
-                                  format(stk, tb.print_exc()))
+                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
+                    tb.print_exc()
                 try:
                     jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
                     res.append(jl_res)
                 except:
-                    logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
-                                  format(stk, tb.print_exc()))
+                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
+                    tb.print_exc()
+                try:
+                    ana_res = self.ana_report(stk, ana_s_date, crt_date)
+                    res.append(ana_res)
+                except:
+                    logging.error('Failed to analyze {0:s}'.format(stk))
+                    tb.print_exc()
+
             rs_df = self.get_rs_stx(crt_date, False)
             for i, (_, row) in enumerate(rs_df.iterrows()):
                 stk = row['stk']
@@ -196,46 +211,62 @@ img {
                 except:
                     logging.error('JL(2.0) calc failed for {0:s}'.format(stk))
                     tb.print_exc()
+                try:
+                    ana_res = self.ana_report(stk, ana_s_date, crt_date)
+                    res.append(ana_res)
+                except:
+                    logging.error('Failed to analyze {0:s}'.format(stk))
+                    tb.print_exc()
 
         for _, row in df.iterrows():
-            stk = row['stk']
-            stk_plot = StxPlot(stk, s_date, crt_date)
-            stk_plot.plot_to_file()
-            res.append('<h4>{0:s}</h4>'.format(stk))
-            res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                       format(stk, stk))
-            ts = StxTS(stk, s_date, crt_date)
-            day_ix = ts.set_day(crt_date)
-            if day_ix == -1:
+            try:
+                stk = row['stk']
+                stk_plot = StxPlot(stk, s_date, crt_date)
+                stk_plot.plot_to_file()
+                res.append('<h4>{0:s}</h4>'.format(stk))
+                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                           format(stk, stk))
+                ts = StxTS(stk, s_date, crt_date)
+                day_ix = ts.set_day(crt_date)
+                if day_ix == -1:
+                    continue
+                avg_volume = np.average(ts.df['v'].values[-20:])
+                rgs = [max(h, c_1) - min(l, c_1)
+                       for h, l, c_1 in zip(ts.df['hi'].values[-20:],
+                                            ts.df['lo'].values[-20:],
+                                            ts.df['c'].values[-21:-1])]
+                avg_rg = np.average(rgs)
+                res.append('<table border="1">')
+                res.append('<tr><th>name</th><th>direction</th><th>spread'
+                           '</th><th>avg_volume</th><th>avg_rg</th><th>hi_act'
+                           '</th></tr>')
+                res.append('<tr><td>{0:s}</td><td>{1:s}</td><td>{2:d}</td><td>'
+                           '{3:,d}</td><td>{4:.2f}</td><td>{5:d}</td></tr>'.
+                           format(stk, row['direction'], int(row['spread']),
+                                  int(1000 * avg_volume), avg_rg / 100,
+                                  row['hi_act']))
+                res.append('</table>')
+            except:
+                logging.error('Failed analysis for {0:s}'.format(stk))
                 continue
-            avg_volume = np.average(ts.df['v'].values[-20:])
-            rgs = [max(h, c_1) - min(l, c_1) 
-                   for h, l, c_1 in zip(ts.df['hi'].values[-20:], 
-                                        ts.df['lo'].values[-20:], 
-                                        ts.df['c'].values[-21:-1])]
-            avg_rg = np.average(rgs)
-            res.append('<table border="1">')
-            res.append('<tr><th>name</th><th>direction</th><th>spread'
-                       '</th><th>avg_volume</th><th>avg_rg</th><th>hi_act'
-                       '</th></tr>')
-            res.append('<tr><td>{0:s}</td><td>{1:s}</td><td>{2:d}</td><td>'
-                       '{3:,d}</td><td>{4:.2f}</td><td>{5:d}</td></tr>'.
-                       format(stk, row['direction'], int(row['spread']),
-                              int(1000 * avg_volume), avg_rg / 100, 
-                              row['hi_act']))
-            res.append('</table>')
             try:
                 jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
                 res.append(jl_res)
             except:
-                logging.error('JL(1.0) calc failed for {0:s}: {1:s}'.
-                              format(stk, tb.print_exc()))
+                logging.error('{0:s} JL(1.0) calc failed'.format(stk))
+                tb.print_exc()
             try:
                 jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
                 res.append(jl_res)
             except:
-                logging.error('JL(2.0) calc failed for {0:s}: {1:s}'.
-                              format(stk, tb.print_exc()))
+                logging.error('{0:s} JL(2.0) calc failed'.format(stk))
+                tb.print_exc()
+            try:
+                ana_res = self.ana_report(stk, ana_s_date, crt_date)
+                res.append(ana_res)
+            except:
+                logging.error('Failed to analyze {0:s}'.format(stk))
+                tb.print_exc()
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
@@ -282,22 +313,92 @@ img {
                      format(git_pdf_filename))
         return pdf_filename, git_pdf_filename
 
+    def ana_report(self, stk, start_date, end_date):
+        res = '<table><tr>'
+        # add the A/D setups table
+        res += '<td><table>'
+        qad = sql.Composed(
+            [sql.SQL('select * from jl_setups where dt between '),
+             sql.Literal(start_date),
+             sql.SQL(' and '),
+             sql.Literal(end_date),
+             sql.SQL(' and setup in ('),
+             sql.SQL(',').join([sql.Literal('Gap'),
+                                sql.Literal('SC'),
+                                sql.Literal('RDay')]),
+             sql.SQL(') and stk='),
+             sql.Literal(stk),
+             sql.SQL(' order by dt, direction, setup')])
+        df_ad = pd.read_sql(qad, stxdb.db_get_cnx())
+        for _, row in df_ad.iterrows():
+            res += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'\
+                '</tr>'.format(row['dt'], row['setup'], row['direction'],
+                               row['score'])
+        res += '</td></table>'
+        # add the JL setups table
+        res += '<td><table>'
+        qjl = sql.Composed(
+            [sql.SQL('select * from jl_setups where dt between '),
+             sql.Literal(start_date),
+             sql.SQL(' and '),
+             sql.Literal(end_date),
+             sql.SQL(' and setup in ('),
+             sql.SQL(',').join([sql.Literal('JL_B'),
+                                sql.Literal('JL_P'),
+                                sql.Literal('JL_SR')]),
+             sql.SQL(') and stk='),
+             sql.Literal(stk),
+             sql.SQL(' order by dt, direction, setup, factor')])
+        df_jl = pd.read_sql(qjl, stxdb.db_get_cnx())
+        for _, row in df_jl.iterrows():
+            res += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'\
+                '<td>{}</td></tr>'.format(row['dt'], row['setup'],
+                                          row['direction'], row['factor'],
+                                          row['score'])
+        res += '</table></td>'
+        # add the candlesticks setups table
+        res += '<td><table>'
+        qcs = sql.Composed(
+            [sql.SQL('select * from jl_setups where dt between '),
+             sql.Literal(start_date),
+             sql.SQL(' and '),
+             sql.Literal(end_date),
+             sql.SQL(' and setup in ('),
+             sql.SQL(',').join([sql.Literal('EngHarami'),
+                                sql.Literal('Cbs'),
+                                sql.Literal('3out'),
+                                sql.Literal('3'),
+                                sql.Literal('Kicking'),
+                                sql.Literal('Piercing'),
+                                sql.Literal('Engulfing'),
+                                sql.Literal('Star')]),
+             sql.SQL(') and stk='),
+             sql.Literal(stk),
+             sql.SQL(' order by dt, direction, setup')])
+        df_cs = pd.read_sql(qcs, stxdb.db_get_cnx())
+        for _, row in df_cs.iterrows():
+            res += '<tr><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
+                row['dt'], row['setup'], row['direction'])
+        res += '</td></table>'
+        res += '</tr></table>'
+        return res
+
     def update_local_directory(self, crt_date, pdf_report):
         today_date = stxcal.today_date()
         start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
         prev_month_date = stxcal.prev_busday(start_of_current_month)
-        start_of_previous_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
+        start_of_prev_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
         zipfile_name = os.path.join(self.report_dir, '{0:s}.zip'.
-            format(stxcal.prev_busday(start_of_previous_month)))
+            format(stxcal.prev_busday(start_of_prev_month)))
         logging.info('Will archive all the reports prior to {0:s} in {1:s}'.
-            format(start_of_previous_month, zipfile_name))
+            format(start_of_prev_month, zipfile_name))
         pdf_file_list = glob.glob(os.path.join(self.report_dir, '*.pdf'))
         zipfile_open_mode = 'a' if os.path.isfile(zipfile_name) else 'w'
         num_archived_pdfs = 0
         z = zipfile.ZipFile(zipfile_name, zipfile_open_mode)
         for pdf_file in pdf_file_list:
             short_filename = pdf_file.split(os.path.sep)[-1]
-            if short_filename < start_of_previous_month:
+            if short_filename < start_of_prev_month:
                 z.write(pdf_file)
                 num_archived_pdfs += 1
                 os.remove(pdf_file)
@@ -309,10 +410,10 @@ img {
         today_date = stxcal.today_date()
         start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
         prev_month_date = stxcal.prev_busday(start_of_current_month)
-        start_of_previous_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
-        if ana_date < start_of_previous_month:
+        start_of_prev_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
+        if ana_date < start_of_prev_month:
             logging.warn('Will not store in github reports before {0:s}'.
-                format(start_of_previous_month))
+                format(start_of_prev_month))
             return
         g = Github(os.getenv('GIT_TOKEN'))
         git_user = g.get_user()
@@ -328,7 +429,7 @@ img {
             logging.info('Git repo has reports from {0:s} to {1:s}'.
                 format(first_date, last_date))
             logging.info('Checking for files in github older than {0:s}'.
-                format(start_of_previous_month))
+                format(start_of_prev_month))
         logging.info('For now, no report uploading in git')
     # I should be able to encode and upload files to git using this:
     # filename = './2021-01-22_EOD.pdf'
