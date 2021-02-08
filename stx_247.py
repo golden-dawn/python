@@ -90,22 +90,19 @@ img {
         df['d_8'] = eight_days_ago
         def hiactfun(r):
             qha = sql.Composed(
-                [sql.SQL('select * from setups where dt between '),
+                [sql.SQL('select * from jl_setups where dt between '),
                  sql.Literal(r['d_8']), 
                  sql.SQL(' and '),
                  sql.Literal(r['dt']),
                  sql.SQL(' and stk='),
                  sql.Literal(r['stk']),
-                 sql.SQL(' and setup in ('),
-                 sql.SQL(',').join([sql.Literal('GAP_HV'), 
-                                    sql.Literal('STRONG_CLOSE')]),
+                 sql.SQL(' and abs(score) > 100 and setup in ('),
+                 sql.SQL(',').join([sql.Literal('Gap'),
+                                    sql.Literal('SC'),
+                                    sql.Literal('RDay')]),
                  sql.SQL(')')])
-            cnx = stxdb.db_get_cnx()
-            rows = []
-            with cnx.cursor() as crs:
-                crs.execute(qha.as_string(cnx))
-                rows = crs.fetchall()
-            return len(rows) if rows else 0
+            db_df = pd.read_sql(qha, stxdb.db_get_cnx())
+            return db_df['score'].sum() if len(db_df) > 0 else 0
         df['hi_act'] = df.apply(hiactfun, axis=1)
 
     def get_opt_spreads(self, crt_date, eod):
@@ -326,7 +323,7 @@ img {
              sql.SQL(',').join([sql.Literal('Gap'),
                                 sql.Literal('SC'),
                                 sql.Literal('RDay')]),
-             sql.SQL(') and stk='),
+             sql.SQL(') and abs(score) >= 100 and stk='),
              sql.Literal(stk),
              sql.SQL(' order by dt, direction, setup')])
         df_ad = pd.read_sql(qad, stxdb.db_get_cnx())
