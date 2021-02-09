@@ -51,19 +51,17 @@ img {
 }
 </style>
 '''
-    def get_rs_stx(self, dt, best=True):
-        rs_rank = 99 if best else 0
-        rs_order = 'desc' if best else 'asc'
+    def get_rs_stx(self, dt):
         q = sql.Composed([
-                sql.SQL("select stk, indicators->>'rs' as rs from indicators"),
-                sql.SQL(' where dt='), sql.Literal(dt),
-                sql.SQL(' and stk not in (select * from excludes) and '),
-                sql.SQL("(indicators->>'rs_rank')::int="),
-                sql.Literal(rs_rank),
-                sql.SQL(" order by (indicators->>'rs')::int "),
-                sql.SQL(rs_order)])
-        df = pd.read_sql(q, stxdb.db_get_cnx())
-        return df
+                sql.SQL("select stk, indicators->>'rs' as rs, "
+                        "indicators->>'rs_rank' as rs_rank from indicators"),
+                sql.SQL(' where dt='),
+                sql.Literal(dt),
+                sql.SQL(' and stk not in (select * from excludes)')])
+        rsdf = pd.read_sql(q, stxdb.db_get_cnx()) 
+        rsdf[["rs", "rs_rank"]] = rsdf[["rs", "rs_rank"]].apply(pd.to_numeric)
+        rsdf.sort_values(by=['rs'], ascending=False, inplace=True)
+        return rsdf
 
     def get_triggered_setups(self, dt):
         q = sql.Composed([
@@ -124,6 +122,28 @@ img {
                        inplace=True)
         return df
 
+    def process_rs(self, i, row, s_date, jl_s_date, ana_s_date, crt_date):
+        res = []
+        stk = row['stk']
+        stk_plot = StxPlot(stk, s_date, crt_date)
+        stk_plot.plot_to_file()
+        res.append('<h4>{}. {}, RS={}</h4>'.
+                   format(i + 1, stk, row['rs']))
+        res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.format(stk, stk))
+        try:
+            jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
+            res.append(jl_res)
+        except:
+            logging.error('JL(1.5) calc failed for {0:s}'.format(stk))
+            tb.print_exc()
+        try:
+            ana_res = self.ana_report(stk, ana_s_date, crt_date)
+            res.append(ana_res)
+        except:
+            logging.error('Failed to analyze {0:s}'.format(stk))
+            tb.print_exc()
+        return res
+
     def get_report(self, crt_date, df, do_analyze):
         s_date = stxcal.move_busdays(crt_date, -50)
         jl_s_date = stxcal.move_busdays(crt_date, -350)
@@ -156,37 +176,14 @@ img {
                     logging.error('Failed to analyze {0:s}'.format(index))
                     tb.print_exc()
 
-            rs_df = self.get_rs_stx(crt_date, True)
-            for i, (_, row) in enumerate(rs_df.iterrows()):
-                stk = row['stk']
-                stk_plot = StxPlot(stk, s_date, crt_date)
-                stk_plot.plot_to_file()
-                logging.info('i = {}'.format(i))
-                res.append('<h4>{}. {}, RS={}</h4>'.
-                           format(i + 1, stk, row['rs']))
-                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                           format(stk, stk))
-                try:
-                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
-                    res.append(jl_res)
-                except:
-                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
-                    tb.print_exc()
-                try:
-                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
-                    res.append(jl_res)
-                except:
-                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
-                    tb.print_exc()
-                try:
-                    ana_res = self.ana_report(stk, ana_s_date, crt_date)
-                    res.append(ana_res)
-                except:
-                    logging.error('Failed to analyze {0:s}'.format(stk))
-                    tb.print_exc()
-
-            rs_df = self.get_rs_stx(crt_date, False)
-            for i, (_, row) in enumerate(rs_df.iterrows()):
+            rsdf = self.get_rs_stx(crt_date)
+            rsbest = rsdf.query('rs==99').copy()
+            rsworst = rsdf.query('rs==0').copy()
+            rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
+            for i, (_, row) in enumerate(rsbest.iterrows()):
+                res.extend(self.process_rs(i, row, s_date, jl_s_date,
+                                           ana_s_date, crt_date))
+            for i, (_, row) in enumerate(rsworst.iterrows()):
                 stk = row['stk']
                 stk_plot = StxPlot(stk, s_date, crt_date)
                 stk_plot.plot_to_file()
@@ -197,16 +194,10 @@ img {
                            format(stk, stk))
                 logging.info('stk = {}'.format(stk))
                 try:
-                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
+                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
                     res.append(jl_res)
                 except:
-                    logging.error('JL(1.0) calc failed for {0:s}'.format(stk))
-                    tb.print_exc()
-                try:
-                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
-                    res.append(jl_res)
-                except:
-                    logging.error('JL(2.0) calc failed for {0:s}'.format(stk))
+                    logging.error('JL(1.5) calc failed for {0:s}'.format(stk))
                     tb.print_exc()
                 try:
                     ana_res = self.ana_report(stk, ana_s_date, crt_date)
@@ -247,16 +238,10 @@ img {
                 logging.error('Failed analysis for {0:s}'.format(stk))
                 continue
             try:
-                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.0)
+                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
                 res.append(jl_res)
             except:
-                logging.error('{0:s} JL(1.0) calc failed'.format(stk))
-                tb.print_exc()
-            try:
-                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 2.0)
-                res.append(jl_res)
-            except:
-                logging.error('{0:s} JL(2.0) calc failed'.format(stk))
+                logging.error('{0:s} JL(1.5) calc failed'.format(stk))
                 tb.print_exc()
             try:
                 ana_res = self.ana_report(stk, ana_s_date, crt_date)
