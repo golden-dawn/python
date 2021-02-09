@@ -122,7 +122,7 @@ img {
                        inplace=True)
         return df
 
-    def process_rs(self, i, row, s_date, jl_s_date, ana_s_date, crt_date):
+    def rs_report(self, i, row, s_date, jl_s_date, ana_s_date, crt_date):
         res = []
         stk = row['stk']
         stk_plot = StxPlot(stk, s_date, crt_date)
@@ -144,111 +144,110 @@ img {
             tb.print_exc()
         return res
 
+    def setup_report(self, row, s_date, jl_s_date, ana_s_date, crt_date):
+        res = []
+        try:
+            stk = row['stk']
+            stk_plot = StxPlot(stk, s_date, crt_date)
+            stk_plot.plot_to_file()
+            res.append('<h4>{0:s}</h4>'.format(stk))
+            res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                       format(stk, stk))
+            ts = StxTS(stk, s_date, crt_date)
+            day_ix = ts.set_day(crt_date)
+            if day_ix == -1:
+                return []
+            avg_volume = np.average(ts.df['v'].values[-20:])
+            rgs = [max(h, c_1) - min(l, c_1)
+                   for h, l, c_1 in zip(ts.df['hi'].values[-20:],
+                                        ts.df['lo'].values[-20:],
+                                        ts.df['c'].values[-21:-1])]
+            avg_rg = np.average(rgs)
+            res.append('<table border="1">')
+            res.append('<tr><th>name</th><th>dir</th><th>spread'
+                       '</th><th>avg_volume</th><th>avg_rg</th><th>hi_act'
+                       '</th><th>rs</th><th>rs_rank</th></tr>')
+            res.append('<tr><td>{0:s}</td><td>{1:s}</td><td>{2:d}</td><td>'
+                       '{3:,d}</td><td>{4:.2f}</td><td>{5:d}</td>'
+                       '<td>{6:d}</td><td>{7:d}</td></tr>'.
+                       format(stk, row['direction'], int(row['spread']),
+                              int(1000 * avg_volume), avg_rg / 100,
+                              row['hi_act'], row['rs'], row['rs_rank']))
+            res.append('</table>')
+        except:
+            logging.error('Failed analysis for {0:s}'.format(stk))
+            tb.print_exc()
+            return []
+        try:
+            jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
+            res.append(jl_res)
+        except:
+            logging.error('{0:s} JL(1.5) calc failed'.format(stk))
+            tb.print_exc()
+        try:
+            ana_res = self.ana_report(stk, ana_s_date, crt_date)
+            res.append(ana_res)
+        except:
+            logging.error('Failed to analyze {0:s}'.format(stk))
+            tb.print_exc()
+        return res
+
     def get_report(self, crt_date, df, do_analyze):
         s_date = stxcal.move_busdays(crt_date, -50)
         jl_s_date = stxcal.move_busdays(crt_date, -350)
         ana_s_date = stxcal.move_busdays(crt_date, -20)
         res = []
-        if do_analyze:
-            indexes = ['^GSPC', '^IXIC', '^DJI']
-            for index in indexes:
-                stk_plot = StxPlot(index, s_date, crt_date)
-                stk_plot.plot_to_file()
-                res.append('<h4>{0:s}</h4>'.format(index))
-                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                           format(index, index))
-                try:
-                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
-                    res.append(jl_res)
-                except:
-                    logging.error('{0:s} JL(1.0) calc failed'.format(index))
-                    tb.print_exc()
-                try:
-                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
-                    res.append(jl_res)
-                except:
-                    logging.error('{0:s} JL(2.0) calc failed'.format(index))
-                    tb.print_exc()
-                try:
-                    ana_res = self.ana_report(index, ana_s_date, crt_date)
-                    res.append(ana_res)
-                except:
-                    logging.error('Failed to analyze {0:s}'.format(index))
-                    tb.print_exc()
-
-            rsdf = self.get_rs_stx(crt_date)
-            rsbest = rsdf.query('rs==99').copy()
-            rsworst = rsdf.query('rs==0').copy()
-            rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
-            for i, (_, row) in enumerate(rsbest.iterrows()):
-                res.extend(self.process_rs(i, row, s_date, jl_s_date,
-                                           ana_s_date, crt_date))
-            for i, (_, row) in enumerate(rsworst.iterrows()):
-                stk = row['stk']
-                stk_plot = StxPlot(stk, s_date, crt_date)
-                stk_plot.plot_to_file()
-                logging.info('i = {}'.format(i))
-                res.append('<h4>{}. {}, RS={}</h4>'.
-                           format(i + 1, stk, row['rs']))
-                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                           format(stk, stk))
-                logging.info('stk = {}'.format(stk))
-                try:
-                    jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
-                    res.append(jl_res)
-                except:
-                    logging.error('JL(1.5) calc failed for {0:s}'.format(stk))
-                    tb.print_exc()
-                try:
-                    ana_res = self.ana_report(stk, ana_s_date, crt_date)
-                    res.append(ana_res)
-                except:
-                    logging.error('Failed to analyze {0:s}'.format(stk))
-                    tb.print_exc()
-
-        for _, row in df.iterrows():
+        if not do_analyze:
+            return res
+        indexes = ['^GSPC', '^IXIC', '^DJI']
+        for index in indexes:
+            stk_plot = StxPlot(index, s_date, crt_date)
+            stk_plot.plot_to_file()
+            res.append('<h4>{0:s}</h4>'.format(index))
+            res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                       format(index, index))
             try:
-                stk = row['stk']
-                stk_plot = StxPlot(stk, s_date, crt_date)
-                stk_plot.plot_to_file()
-                res.append('<h4>{0:s}</h4>'.format(stk))
-                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                           format(stk, stk))
-                ts = StxTS(stk, s_date, crt_date)
-                day_ix = ts.set_day(crt_date)
-                if day_ix == -1:
-                    continue
-                avg_volume = np.average(ts.df['v'].values[-20:])
-                rgs = [max(h, c_1) - min(l, c_1)
-                       for h, l, c_1 in zip(ts.df['hi'].values[-20:],
-                                            ts.df['lo'].values[-20:],
-                                            ts.df['c'].values[-21:-1])]
-                avg_rg = np.average(rgs)
-                res.append('<table border="1">')
-                res.append('<tr><th>name</th><th>direction</th><th>spread'
-                           '</th><th>avg_volume</th><th>avg_rg</th><th>hi_act'
-                           '</th></tr>')
-                res.append('<tr><td>{0:s}</td><td>{1:s}</td><td>{2:d}</td><td>'
-                           '{3:,d}</td><td>{4:.2f}</td><td>{5:d}</td></tr>'.
-                           format(stk, row['direction'], int(row['spread']),
-                                  int(1000 * avg_volume), avg_rg / 100,
-                                  row['hi_act']))
-                res.append('</table>')
-            except:
-                logging.error('Failed analysis for {0:s}'.format(stk))
-                continue
-            try:
-                jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
+                jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
                 res.append(jl_res)
             except:
-                logging.error('{0:s} JL(1.5) calc failed'.format(stk))
+                logging.error('{0:s} JL(1.0) calc failed'.format(index))
                 tb.print_exc()
             try:
-                ana_res = self.ana_report(stk, ana_s_date, crt_date)
+                jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
+                res.append(jl_res)
+            except:
+                logging.error('{0:s} JL(2.0) calc failed'.format(index))
+                tb.print_exc()
+            try:
+                ana_res = self.ana_report(index, ana_s_date, crt_date)
                 res.append(ana_res)
             except:
-                logging.error('Failed to analyze {0:s}'.format(stk))
+                logging.error('Failed to analyze {0:s}'.format(index))
                 tb.print_exc()
+
+        rsdf = self.get_rs_stx(crt_date)
+        rsbest = rsdf.query('rs_rank==99').copy()
+        rsworst = rsdf.query('rs_rank==0').copy()
+        rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
+        for i, (_, row) in enumerate(rsbest.iterrows()):
+            res.extend(self.rs_report(i, row, s_date, jl_s_date, ana_s_date,
+                                      crt_date))
+        for i, (_, row) in enumerate(rsworst.iterrows()):
+            res.extend(self.rs_report(i, row, s_date, jl_s_date, ana_s_date,
+                                      crt_date))
+        setup_df = df.merge(rsdf)
+        up_setup_df = setup_df.query("direction=='U'").copy()
+        up_setup_df.sort_values(by=['rs'], ascending=False, inplace=True)
+        down_setup_df = setup_df.query("direction=='D'").copy()
+        down_setup_df.sort_values(by=['rs'], ascending=True, inplace=True)
+        res.append('<h3>{0:d} UP Setups</h3>'.format(len(up_setup_df)))
+        for _, row in up_setup_df.iterrows():
+            res.extend(self.setup_report(row, s_date, jl_s_date, ana_s_date,
+                                         crt_date))
+        res.append('<h3>{0:d} DOWN Setups</h3>'.format(len(down_setup_df)))
+        for _, row in down_setup_df.iterrows():
+            res.extend(self.setup_report(row, s_date, jl_s_date, ana_s_date,
+                                         crt_date))
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
