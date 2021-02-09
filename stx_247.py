@@ -197,44 +197,42 @@ img {
         jl_s_date = stxcal.move_busdays(crt_date, -350)
         ana_s_date = stxcal.move_busdays(crt_date, -20)
         res = []
-        if not do_analyze:
-            return res
-        indexes = ['^GSPC', '^IXIC', '^DJI']
-        for index in indexes:
-            stk_plot = StxPlot(index, s_date, crt_date)
-            stk_plot.plot_to_file()
-            res.append('<h4>{0:s}</h4>'.format(index))
-            res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
-                       format(index, index))
-            try:
-                jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
-                res.append(jl_res)
-            except:
-                logging.error('{0:s} JL(1.0) calc failed'.format(index))
-                tb.print_exc()
-            try:
-                jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
-                res.append(jl_res)
-            except:
-                logging.error('{0:s} JL(2.0) calc failed'.format(index))
-                tb.print_exc()
-            try:
-                ana_res = self.ana_report(index, ana_s_date, crt_date)
-                res.append(ana_res)
-            except:
-                logging.error('Failed to analyze {0:s}'.format(index))
-                tb.print_exc()
-
         rsdf = self.get_rs_stx(crt_date)
-        rsbest = rsdf.query('rs_rank==99').copy()
-        rsworst = rsdf.query('rs_rank==0').copy()
-        rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
-        for i, (_, row) in enumerate(rsbest.iterrows()):
-            res.extend(self.rs_report(i, row, s_date, jl_s_date, ana_s_date,
-                                      crt_date))
-        for i, (_, row) in enumerate(rsworst.iterrows()):
-            res.extend(self.rs_report(i, row, s_date, jl_s_date, ana_s_date,
-                                      crt_date))
+        if do_analyze:
+            indexes = ['^GSPC', '^IXIC', '^DJI']
+            for index in indexes:
+                stk_plot = StxPlot(index, s_date, crt_date)
+                stk_plot.plot_to_file()
+                res.append('<h4>{0:s}</h4>'.format(index))
+                res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
+                           format(index, index))
+                try:
+                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 1.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('{0:s} JL(1.0) calc failed'.format(index))
+                    tb.print_exc()
+                try:
+                    jl_res = StxJL.jl_report(index, jl_s_date, crt_date, 2.0)
+                    res.append(jl_res)
+                except:
+                    logging.error('{0:s} JL(2.0) calc failed'.format(index))
+                    tb.print_exc()
+                try:
+                    ana_res = self.ana_report(index, ana_s_date, crt_date)
+                    res.append(ana_res)
+                except:
+                    logging.error('Failed to analyze {0:s}'.format(index))
+                    tb.print_exc()
+            rsbest = rsdf.query('rs_rank==99').copy()
+            rsworst = rsdf.query('rs_rank==0').copy()
+            rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
+            for i, (_, row) in enumerate(rsbest.iterrows()):
+                res.extend(self.rs_report(i, row, s_date, jl_s_date,
+                                          ana_s_date, crt_date))
+            for i, (_, row) in enumerate(rsworst.iterrows()):
+                res.extend(self.rs_report(i, row, s_date, jl_s_date,
+                                          ana_s_date, crt_date))
         setup_df = df.merge(rsdf)
         up_setup_df = setup_df.query("direction=='U'").copy()
         up_setup_df.sort_values(by=['rs'], ascending=False, inplace=True)
@@ -296,6 +294,7 @@ img {
 
     def ana_report(self, stk, start_date, end_date):
         res = '<table><tr>'
+        jl_start_date = stxcal.move_busdays(end_date, -8)
         # add the A/D setups table
         res += '<td><table>'
         qad = sql.Composed(
@@ -313,14 +312,14 @@ img {
         df_ad = pd.read_sql(qad, stxdb.db_get_cnx())
         for _, row in df_ad.iterrows():
             res += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'\
-                '</tr>'.format(row['dt'], row['setup'], row['direction'],
-                               row['score'])
+                '</tr>'.format(row['dt'].strftime('%b %d'), row['setup'],
+                               row['direction'], row['score'])
         res += '</td></table>'
         # add the JL setups table
         res += '<td><table>'
         qjl = sql.Composed(
             [sql.SQL('select * from jl_setups where dt between '),
-             sql.Literal(start_date),
+             sql.Literal(jl_start_date),
              sql.SQL(' and '),
              sql.Literal(end_date),
              sql.SQL(' and setup in ('),
@@ -333,9 +332,9 @@ img {
         df_jl = pd.read_sql(qjl, stxdb.db_get_cnx())
         for _, row in df_jl.iterrows():
             res += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td>'\
-                '<td>{}</td></tr>'.format(row['dt'], row['setup'],
-                                          row['direction'], row['factor'],
-                                          row['score'])
+                '<td>{}</td></tr>'.format(row['dt'].strftime('%b %d'),
+                                          row['setup'], row['direction'],
+                                          row['factor'], row['score'])
         res += '</table></td>'
         # add the candlesticks setups table
         res += '<td><table>'
@@ -359,7 +358,7 @@ img {
         df_cs = pd.read_sql(qcs, stxdb.db_get_cnx())
         for _, row in df_cs.iterrows():
             res += '<tr><td>{}</td><td>{}</td><td>{}</td></tr>'.format(
-                row['dt'], row['setup'], row['direction'])
+                row['dt'].strftime('%b %d'), row['setup'], row['direction'])
         res += '</td></table>'
         res += '</tr></table>'
         return res
