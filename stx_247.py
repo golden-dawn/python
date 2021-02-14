@@ -224,15 +224,6 @@ img {
                 except:
                     logging.error('Failed to analyze {0:s}'.format(index))
                     tb.print_exc()
-            rsbest = rsdf.query('rs_rank==99').copy()
-            rsworst = rsdf.query('rs_rank==0').copy()
-            rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
-            for i, (_, row) in enumerate(rsbest.iterrows()):
-                res.extend(self.rs_report(i, row, s_date, jl_s_date,
-                                          ana_s_date, crt_date))
-            for i, (_, row) in enumerate(rsworst.iterrows()):
-                res.extend(self.rs_report(i, row, s_date, jl_s_date,
-                                          ana_s_date, crt_date))
         setup_df = df.merge(rsdf)
         up_setup_df = setup_df.query("direction=='U'").copy()
         up_setup_df.sort_values(by=['rs'], ascending=False, inplace=True)
@@ -246,6 +237,17 @@ img {
         for _, row in down_setup_df.iterrows():
             res.extend(self.setup_report(row, s_date, jl_s_date, ana_s_date,
                                          crt_date))
+        if do_analyze:
+            rsbest = rsdf.query('rs_rank==99').copy()
+            rsworst = rsdf.query('rs_rank==0').copy()
+            rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
+            for i, (_, row) in enumerate(rsbest.iterrows()):
+                res.extend(self.rs_report(i, row, s_date, jl_s_date,
+                                          ana_s_date, crt_date))
+            for i, (_, row) in enumerate(rsworst.iterrows()):
+                res.extend(self.rs_report(i, row, s_date, jl_s_date,
+                                          ana_s_date, crt_date))
+
         return res
 
     def do_analysis(self, crt_date, max_spread, eod):
