@@ -5,7 +5,7 @@ source .env
 source .bash_profile
 source .bash_profile.pysave
 cd ${HOME}/c
-./stx_ana_1.exe -eod
+./stx_ana_1.exe --eod
 cd ${HOME}/python
 source .env
 export LANG=en_US.UTF-8
