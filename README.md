@@ -26,7 +26,7 @@ sudo -u postgres createuser -P -s -e cma
 
 Install the Postgres development library:
 ```
-sudo apt-get install libpq-dev
+sudo apt-get install -y libpq-dev
 ```
 
 Use `pg_config` to find out where the include and library files are:
@@ -58,7 +58,7 @@ automatically installed.
 ### Installing Java:
 ```
 sudo apt update
-sudo apt install openjdk-8-jdk
+sudo apt install -y openjdk-8-jdk
 echo -e "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/" >> $HOME/.bashrc
 echo -e "export PATH=PATH:$JAVA_HOME/bin" >> $HOME/.bashrc
 ```
@@ -69,7 +69,7 @@ Python3 is already installed on ubuntu 18.04.  So let's move to Python3.
 Need to install the following: pip, virtualenv, autoenv
 
 ```
-sudo apt install python3-pip
+sudo apt install -y python3-pip
 pip3 install virtualenv
 pip3 install virtualenv virtualenvwrapper autoenv
 pip3 install rope jedi importmagic autopep8 flake8
