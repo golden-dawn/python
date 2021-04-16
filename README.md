@@ -15,12 +15,16 @@ bootup USB).
 
 ### Instructions for installing Postgres:
 ```
+sudo apt -y install vim bash-completion wget
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 RELEASE=$(lsb_release -cs)
 echo "deb http://apt.postgresql.org/pub/repos/apt/ ${RELEASE}"-pgdg main | sudo tee  /etc/apt/sources.list.d/pgdg.list
 cat /etc/apt/sources.list.d/pgdg.list
 sudo apt update
-sudo apt -y install postgresql-11
+sudo apt install postgresql-13 postgresql-client-13
+systemctl status postgresql.service
+systemctl status postgresql@13-main.service 
+sudo su - postgres
 sudo -u postgres createuser -P -s -e cma
 ```
 
