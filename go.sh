@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# TODO:
+# 1. The script does not exit if the parameters are not setup
+# 2. Python virtual environment is not installed properly:
+
+# virtualenvwrapper.sh: There was a problem running the initialization hooks.
+#
+# If Python could not import the module virtualenvwrapper.hook_loader,
+# check that virtualenvwrapper has been installed for
+# VIRTUALENVWRAPPER_PYTHON= and that PATH is
+# set properly.
+# 3. Add the postgres database instantiation procedures
+# 4. Ensure the environment variables file has all the required variables
+
+
 # Remember the current directory to return at the end of script execution
 CRT_DIR=$(dirname $0)
 cd "${CRT_DIR}" && CRT_DIR=$PWD
