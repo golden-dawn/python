@@ -246,7 +246,7 @@ class StxDatafeed:
                     raise
             # launch the subprocesses that back up the database
             try:
-                cmd1 = '/usr/local/bin/pg_dump -Fc {0:s}'.format(db_name)
+                cmd1 = 'sudo -u postgres pg_dump -Fc {0:s}'.format(db_name)
                 cmd2 = 'split -b 1000m - {0:s}/{1:s}'.format(db_bkp_dir,
                                                              db_name)
                 p1 = subprocess.Popen(shlex.split(cmd1),
@@ -322,7 +322,7 @@ class StxDatafeed:
 
     def parse_stooq_new(self, last_db_date):
         logging.info('Checking if a new stooq file has been downloaded')
-        stooq_file = os.path.join(os.getenv('HOME'), 'Downloads', 'data_d.txt')
+        stooq_file = os.path.join(os.getenv('DOWNLOAD_DIR'), 'data_d.txt')
         if not os.path.exists(stooq_file):
             logging.info('No new stooq data file found.  Nothing to do.')
             return
@@ -352,7 +352,7 @@ class StxDatafeed:
                 break
             ix0 += 1
         for ixx in range(ix0, num_dates):
-            if dates.index[ixx] == next_date and dates.values[ixx] > 8000:
+            if dates.index[ixx] == next_date and dates.values[ixx] > 5000:
                 db_dates.append(dates.index[ixx])
             else:
                 break
