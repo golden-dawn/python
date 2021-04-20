@@ -1,9 +1,9 @@
 #!/bin/bash
 export CRT_DIR=${PWD}
 cd ${HOME}
-source .env
-source .bash_profile
-source .bash_profile.pysave
+source ${HOME}/.env_vars
+source ${HOME}/.bash_profile
+source ${HOME}/.bash_profile.pysave
 cd ${HOME}/c
 ./stx_ana_1.exe --eod --cron
 cd ${HOME}/python
