@@ -12,6 +12,8 @@
 # set properly.
 # 3. Add the postgres database instantiation procedures
 # 4. Ensure the environment variables file has all the required variables
+# 5. Install the python packages
+# 6. Install the cJSON package
 
 
 # Remember the current directory to return at the end of script execution
@@ -98,3 +100,19 @@ systemctl status postgresql@${POSTGRES_VERSION}-main.service
 # sudo -u postgres createuser -P -s -e z2z2z2
 # also, create the database
 # sudo -u postgres createdb stx
+
+sudo apt install -y libpq-dev
+sudo apt install -y libcurl4-openssl-dev
+
+sudo apt install -y cmake
+cd ${HOME}
+git clone git@github.com:DaveGamble/cJSON.git
+cd cJSON/
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+cd ${HOME}
+rm -rf cJSON/
+cd ${CRT_DIR}
