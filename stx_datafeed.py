@@ -15,8 +15,10 @@ import shlex
 import shutil
 import stxcal
 import stxdb
+from stxts import StxTS
 import subprocess
 import sys
+import traceback as tb
 
 
 class Datafeed(Enum):
@@ -158,7 +160,20 @@ class StxDatafeed:
                 split_dct[stk] = stk_splits
         for stk, stk_splits in split_dct.items():
             for dt, ratio in stk_splits.items():
-                print('{0:s} {1:s} {2:f}'.format(stk, dt, ratio))
+                self.print_split_report(stk, dt, ratio)
+
+    def print_split_report(self, stk, dt, ratio):
+        print(f'{stk} {dt} {ratio}')
+        try:
+            s_date = stxcal.move_busdays(dt, -10)
+            e_date = stxcal.move_busdays(dt, 10)
+            ts = StxTS(stk, s_date, e_date)
+            ts.set_day(e_date, c=-1)
+            print(f'{ts.df}')
+        except:
+            logging.error('print_split_report failed for {stk}, {dt}, {ratio}')
+            tb.print_exc()
+
 
     def upload_splits(self, splits_file):
         print('Uploading stocks from file {0:s}'.format(splits_file))
@@ -448,9 +463,9 @@ class StxDatafeed:
         self.rename_stooq_file(dates.index[0], dates.index[num_dates - 1])
 
     def rename_stooq_file(self, first_date, last_date):
-        stooq_file = os.path.join(os.getenv('HOME'), 'Downloads', 'data_d.txt')
+        stooq_file = os.path.join(os.getenv('DATA_DIR'), 'data_d.txt')
         if os.path.exists(stooq_file):
-            archive_file = os.path.join(os.getenv('HOME'), 'Downloads',
+            archive_file = os.path.join(os.getenv('DATA_DIR'),
                 'stooq_{0:s}_{1:s}.txt'.format(first_date, last_date))
             os.rename(stooq_file, archive_file)
             logging.info('Moved {0:s} into {1:s}'.format(stooq_file,
