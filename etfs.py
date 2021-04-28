@@ -16,6 +16,33 @@ import string
 for letter in list(string.ascii_uppercase):
     etf_url = f'https://etfdb.com/alpha/{letter}/'
 
+filename = os.path.join(os.getenv('HOME'), 'etf_b.txt')
+with open(filename, 'r') as f:
+    text = f.read()
+lines = text.split('\n')
+start_ix = 1000000
+end_ix = -1
+for i, line in enumerate(lines):
+    stripped_line = line.strip()
+    if stripped_line == '<tbody>':
+        start_ix = i
+    if stripped_line == '</tbody>':
+        end_ix = i
+    if i <= start_ix:
+        continue
+    if i <= end_ix:
+        break
+    if stripped_line in ['<tr>', '</tr>']:
+        continue
+    line_tokens = stripped_line.split('</td> <td class="" data-th=')
+    print(f'{line_tokens}')
+    tkns0 = line_tokens[0].split('>')
+    etf_ticker = tkns0[2][:-3] if len(tkns0) > 2 else ''
+    tkns1 = line_tokens[1].split('>')
+    etf_name = tkns1[2][:-3] if len(tkns1) > 2 else ''
+    tkns2 = line_tokens[2].split('>')
+    etf_category = tkns2[2][:-3] if len(tkns2) > 2 else ''
+    print(f'etf_ticker = {etf_ticker}, etf_name = {etf_name} etf_category = {etf_category}')
 
 # begin - parse the holdings info for each fund
 filename = os.path.join(os.getenv('HOME'), 'want.html')
