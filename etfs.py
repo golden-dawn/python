@@ -20,10 +20,71 @@ import time
 # for letter in list(string.ascii_uppercase):
 #     etf_url = f'https://etfdb.com/alpha/{letter}/'
 
-
 # filename = os.path.join(os.getenv('HOME'), 'etfs_a.json')
 # with open(filename) as f:
 #     etfs_json = json.load(f)
+
+# etf_rows = etfs_json.get('rows', [])
+# if not etf_rows:
+#     print('No ETFs found')
+
+# etf_ix, processed_etfs = 0, 0
+# for etf in etf_rows:
+#     etf_ix += 1
+#     print(f'{json.dumps(etf, indent=2)}')
+#     etf_symbol_raw = etf.get('symbol')
+#     if not etf_symbol_raw:
+#         print(f'ETF {etf_ix} missing symbol')
+#         continue
+#     symbol_tokens = etf_symbol_raw.split('\u003e')
+#     etf_symbol = symbol_tokens[2][:-6]
+#     etf_name_raw = etf.get('name')
+#     if not etf_name_raw:
+#         print(f'ETF {etf_ix} missing name')
+#         continue
+#     name_tokens = etf_name_raw.split('\u003e')
+#     if len(name_tokens) < 4:
+#         print(f'ETF {etf_ix} failed to parse name text (not enough tokens)')
+#         continue
+#     name_raw = name_tokens[3]
+#     iix = name_raw.find('<span')
+#     if iix == -1:
+#         print(f'ETF {etf_ix} failed to parse name text (no span)')
+#         continue
+#     etf_name = name_raw[:iix].strip()
+#     etf_category = etf.get('etf_category', 'N/A')
+#     print(f'ETF ticker {etf_symbol}, name {etf_name}, category {etf_category}')
+#     processed_etfs += 1
+# print(f'Processed {processed_etfs} out of {len(etf_rows)} ETFs')
+
+# filename = os.path.join(os.getenv('HOME'), 'etf_b.txt')
+# with open(filename, 'r') as f:
+#     text = f.read()
+# lines = text.split('\n')
+# start_ix = 1000000
+# end_ix = -1
+# for i, line in enumerate(lines):
+#     stripped_line = line.strip()
+#     if stripped_line == '<tbody>':
+#         start_ix = i
+#     if stripped_line == '</tbody>':
+#         end_ix = i
+#     if i <= start_ix:
+#         continue
+#     if i <= end_ix:
+#         break
+#     if stripped_line in ['<tr>', '</tr>']:
+#         continue
+#     line_tokens = stripped_line.split('</td> <td class="" data-th=')
+#     print(f'{line_tokens}')
+#     tkns0 = line_tokens[0].split('>')
+#     etf_ticker = tkns0[2][:-3] if len(tkns0) > 2 else ''
+#     tkns1 = line_tokens[1].split('>')
+#     etf_name = tkns1[2][:-3] if len(tkns1) > 2 else ''
+#     tkns2 = line_tokens[2].split('>')
+#     etf_category = tkns2[2][:-3] if len(tkns2) > 2 else ''
+#     print(f'etf_ticker = {etf_ticker}, etf_name = {etf_name} etf_category = {etf_category}')
+
 
 # etf_rows = etfs_json.get('rows', [])
 # if not etf_rows:
