@@ -367,9 +367,16 @@ class StxDatafeed:
                 break
             ix0 += 1
         for ixx in range(ix0, num_dates):
-            if dates.index[ixx] == next_date and dates.values[ixx] > 5000:
+            if dates.index[ixx] == next_date and dates.values[ixx] > 9000:
                 db_dates.append(dates.index[ixx])
             else:
+                if dates.index[ixx] != next_date:
+                    logging.error(f'Missing date {next_date}; got '
+                                  f'{dates.index[ixx]} instead') 
+                    
+                if dates.values[ixx] < 9000:
+                    logging.error(f'Not enough records ({dates.values[ixx]}) '
+                                  f'available for {dates.index[ixx]}') 
                 break
             next_date = stxcal.next_busday(next_date)
 
