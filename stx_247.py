@@ -1,6 +1,5 @@
 import argparse
 import datetime
-from github import Github
 import glob
 import json
 import logging
@@ -26,9 +25,6 @@ class StxAnalyzer:
         self.report_dir = os.path.join(os.getenv('HOME'), 'market')
         logging.info('PDF reports are stored locally in {0:s}'.
                      format(self.report_dir))
-        self.git_report_dir = os.path.join(os.getenv('HOME'), 'reports')
-        logging.info('PDF reports are stored in git from {0:s}'.
-                     format(self.git_report_dir))
         self.report_style = '''
 <style>
 body {
@@ -288,11 +284,7 @@ img {
         pdf_filename = os.path.join(self.report_dir, pdf_fname)
         HTML(filename='/tmp/x.html').write_pdf(pdf_filename)
         logging.info('Saved report locally in {0:s}'.format(pdf_filename))
-        git_pdf_filename = os.path.join(self.git_report_dir, pdf_fname)
-        HTML(filename='/tmp/x.html').write_pdf(git_pdf_filename)
-        logging.info('Saved report in git upload folder {0:s}'.
-                     format(git_pdf_filename))
-        return pdf_filename, git_pdf_filename
+        return pdf_filename
 
     def ana_report(self, stk, start_date, end_date):
         res = '<table><tr>'
@@ -388,41 +380,6 @@ img {
         logging.info('Archived {0:d} PDF reports in {1:s}'.
             format(num_archived_pdfs, zipfile_name))
 
-    def update_git_directory(self, ana_date, git_pdf_report):
-        today_date = stxcal.today_date()
-        start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
-        prev_month_date = stxcal.prev_busday(start_of_current_month)
-        start_of_prev_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
-        if ana_date < start_of_prev_month:
-            logging.warn('Will not store in github reports before {0:s}'.
-                format(start_of_prev_month))
-            return
-        g = Github(os.getenv('GIT_TOKEN'))
-        git_user = g.get_user()
-        repo = g.get_repo('{0:s}/reports'.format(git_user.login))
-        git_files = [x.name for x in repo.get_contents('')
-            if x.name != 'README.md'].sort()
-        logging.info('Found {0:d} reports in the git repository'.
-            format(len(git_files) if git_files else 0))
-        first_date, last_date = None, None
-        if git_files:
-            first_date = git_files[0][:git_files[0].find('_')]
-            last_date = git_files[-1][:git_files[-1].find('_')]
-            logging.info('Git repo has reports from {0:s} to {1:s}'.
-                format(first_date, last_date))
-            logging.info('Checking for files in github older than {0:s}'.
-                format(start_of_prev_month))
-        logging.info('For now, no report uploading in git')
-    # I should be able to encode and upload files to git using this:
-    # filename = './2021-01-22_EOD.pdf'
-    # with open(filename, 'rb') as pdf_file:
-    #    pdf_b64_content = base64.b64encode(pdf_file.read())
-    # pdf_str_content = pdf_b64_content.decode('utf-8')
-    # blob = repo.create_git_blob(pdf_str_content, 'base64')
-    # repo.create_file('test.txt', 'test', 'this is a test', branch='master')
-    # Last thing doesn't work. It uploads PDF to github, but it cannot be visualized
-    # repo.create_file('2021-01-22_EOD.pdf', 'test pdf report', pdf_str_content, branch='master')
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -461,7 +418,5 @@ if __name__ == '__main__':
         crt_date = args.date
     logging.info('Running analysis for {0:s}'.format(crt_date))
     stx_ana = StxAnalyzer()
-    pdf_report, git_pdf_report = stx_ana.do_analysis(
-        crt_date, args.max_spread, eod)
+    pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
     stx_ana.update_local_directory(crt_date, pdf_report)
-    stx_ana.update_git_directory(crt_date, git_pdf_report)
