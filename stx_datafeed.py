@@ -171,7 +171,8 @@ class StxDatafeed:
             ts.set_day(e_date, c=-1)
             print(f'{ts.df}')
         except:
-            logging.error('print_split_report failed for {stk}, {dt}, {ratio}')
+            logging.error(f'print_split_report failed for {stk}, {dt}, '
+                          f'{ratio}')
             tb.print_exc()
 
 
