@@ -4,7 +4,7 @@
 15 15 * * 1-5 ${HOME}/python/intraday_cron.sh
 00 18 * * * ${HOME}/python/datafeed.sh
 45 19 * * 1-4 ${HOME}/python/eod_cron.sh
-47 19 * * 6-7 ${HOME}/python/eod.sh
+47 15 * * 6-7 ${HOME}/python/eod.sh
 00 21 * * * ${HOME}/python/datafeed.sh
 47 22 * * 5 ${HOME}/python/eod_cron.sh
 47 22 * * 6-7 ${HOME}/python/eod.sh
