@@ -148,12 +148,11 @@ def main():
 
     # These two names are hard-coded.  We might set them up as
     # arguments later
-    envelope_folder_name = 'EnvelopeData'
-    envelope_file_name = 'envelope_addresses.csv'    
+    db_backup_folder_name = 'db_backups'
+    reports_folder_name = 'reports'
     try:
         gdc = GoogleDriveClient(db_backup_folder_name, reports_folder_name)
-        # Get the Google Drive IDs of the envelope csv file and of the
-        # folder containing it
+        # Get the Google Drive IDs of the DB backup and reports folders
         folder_id, file_id = egd.get_envelope_folder_file_id()
         downloaded_file_path = egd.download_envelope_file(file_id)
         updated_file_path = egd.update_envelope_file(downloaded_file_path)
