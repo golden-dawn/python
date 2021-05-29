@@ -153,7 +153,9 @@ def main():
     try:
         gdc = GoogleDriveClient(db_backup_folder_name, reports_folder_name)
         # Get the Google Drive IDs of the DB backup and reports folders
-        folder_id, file_id = egd.get_envelope_folder_file_id()
+        db_folder_id = gdc.get_folder_id(db_backup_folder_name)
+        report_folder_id = gdc.get_folder_id(reports_folder_name)
+
         downloaded_file_path = egd.download_envelope_file(file_id)
         updated_file_path = egd.update_envelope_file(downloaded_file_path)
         egd.upload_envelope_file(folder_id, updated_file_path,
