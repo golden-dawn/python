@@ -1,4 +1,5 @@
 import argparse
+from configparser import ConfigParser
 from contextlib import closing
 import datetime
 import errno
@@ -39,11 +40,18 @@ class StxDatafeed:
                'formatted=true&crumb=BfPVqc7QhCQ&lang=en-US&region=US&' \
                'date={1:d}&corsDomain=finance.yahoo.com'
 
-    def __init__(self, in_dir, extension='.txt'):
-        self.in_dir = in_dir
+    def __init__(self, extension='.txt'):
         self.eod_tbl = 'eods'
         self.rec_name = self.eod_tbl
         self.divi_tbl = 'dividends'
+        # instantiate config parser
+        self.config = ConfigParser()
+        # parse existing configuration file
+        cfg_file_path = os.path.abspath(os.path.join(os.getenv('HOME'),
+                                                     'stx_cfg.ini'))
+        self.config.read(cfg_file_path)
+        self.in_dir = self.config.get('datafeed', 'data_dir'),
+
 
     def get_name(self, x):
         return {
@@ -219,7 +227,8 @@ class StxDatafeed:
 
     def backup_database(self):
         # Get current DB name from POSTGRES_DB env variable
-        db_name = os.getenv('POSTGRES_DB')
+        # db_name = os.getenv('POSTGRES_DB')
+        db_name = self.config.get('postgres_db', 'db_name')
         # Ensure root backup directory is created
         db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup', db_name)
         try:
@@ -294,7 +303,12 @@ class StxDatafeed:
     def db_usb_backup(self, db_name):
         logging.info('Starting USB backup')
         db_backup_dir = os.path.join(os.getenv('HOME'), 'db_backup', db_name)
-        usb_list = [os.getenv('USB_1'), os.getenv('USB_2'), os.getenv('USB_3')]
+        usb_list = [
+            self.config.get('postgres_db', 'usb_1'),
+            self.config.get('postgres_db', 'usb_2'),
+            self.config.get('postgres_db', 'usb_3')
+        ]
+            # os.getenv('USB_1'), os.getenv('USB_2'), os.getenv('USB_3')]
         for usb in usb_list:
             if not os.path.exists(usb):
                 logging.info('{0:s} not found; skipping'.format(usb))
@@ -338,7 +352,9 @@ class StxDatafeed:
 
     def parse_stooq_new(self, last_db_date):
         logging.info('Checking if a new stooq file has been downloaded')
-        stooq_file = os.path.join(os.getenv('DOWNLOAD_DIR'), 'data_d.txt')
+        # stooq_file = os.path.join(os.getenv('DOWNLOAD_DIR'), 'data_d.txt')
+        download_dir = self.config.get('datafeed', 'download_dir'),
+        stooq_file = os.path.join(download_dir, 'data_d.txt')
         if not os.path.exists(stooq_file):
             logging.info('No new stooq data file found.  Nothing to do.')
             return
@@ -471,9 +487,10 @@ class StxDatafeed:
         self.rename_stooq_file(dates.index[0], dates.index[num_dates - 1])
 
     def rename_stooq_file(self, first_date, last_date):
-        stooq_file = os.path.join(os.getenv('DATA_DIR'), 'data_d.txt')
+        data_dir = self.config.get('datafeed', 'data_dir'),
+        stooq_file = os.path.join(data_dir, 'data_d.txt')
         if os.path.exists(stooq_file):
-            archive_file = os.path.join(os.getenv('DATA_DIR'),
+            archive_file = os.path.join(data_dir,
                 'stooq_{0:s}_{1:s}.txt'.format(first_date, last_date))
             os.rename(stooq_file, archive_file)
             logging.info('Moved {0:s} into {1:s}'.format(stooq_file,
@@ -489,14 +506,13 @@ if __name__ == '__main__':
                         type=str,
                         default=os.path.join(os.getenv('HOME'), 'Downloads'))
     args = parser.parse_args()
-    data_dir = os.getenv('DOWNLOAD_DIR')
     logging.basicConfig(
         format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
         '%(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
-    sdf = StxDatafeed(data_dir)
+    sdf = StxDatafeed()
     res = stxdb.db_read_cmd("SELECT dt FROM analyses WHERE "
                             "analysis='eod_datafeed'")
     start_date = str(res[0][0]) if res else '2000-01-01'
