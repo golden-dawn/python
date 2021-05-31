@@ -47,42 +47,24 @@ class GoogleDriveClient():
         self.reports_folder_name = reports_folder_name
 
     """Get Google Drive IDs for the envelope csv folder and file"""
-    def get_envelope_folder_file_id(self):
+    def get_folder_id(self, folder_name):
         # Call Drive v3 API, first get the ID of EnvelopeData folder
-        envelope_data = self.drive_service.files().list(
+        folder_data = self.drive_service.files().list(
             supportsAllDrives=True,
             includeItemsFromAllDrives=True,
-            q=f"name='{self.envelope_folder_name}'",
+            q=f"name='{folder_name}'",
             fields="nextPageToken, files(id, name)"
         ).execute()
-        envelope_folders = envelope_data.get('files', [])
+        drive_folders = envelope_data.get('files', [])
         # Throw exception if could not find EnvelopeData folder
-        if not envelope_folders:
-            raise Exception(f'Could not find {self.envelope_folder_name} '
-                            'folder')
+        if not drive_folders:
+            raise Exception(f'Could not find {folder_name} folder')
         # Get the ID of the Envelope folder
-        envelope_folder_id = envelope_folders[0].get('id')
-        if envelope_folder_id is None:
-            raise Exception(f'Could not retrieve {self.envelope_folder_name} '
-                            'folder ID')
-        logging.debug(f'The ID of the {self.envelope_folder_name} folder '
-                      f'is {envelope_folder_id}')
-        # Get the ID of the Envelope csv file
-        env_csv_query = f"'{envelope_folder_id}' in parents and "\
-            f"name='{self.envelope_file_name}'"
-        envelope_csv = self.drive_service.files().list(
-            supportsAllDrives=True,
-            includeItemsFromAllDrives=True,
-            q=env_csv_query,
-            fields="nextPageToken, files(id, name)"
-        ).execute()
-        envelope_csv_id = None
-        envelope_csv_files = envelope_csv.get('files', [])
-        if envelope_csv_files:
-            envelope_csv_id = envelope_csv_files[0].get('id')
-        logging.debug(f'The ID of {self.envelope_file_name} is '
-                      f'{envelope_csv_id}')
-        return envelope_folder_id, envelope_csv_id
+        folder_id = drive_folders[0].get('id')
+        if folder_id is None:
+            raise Exception(f'No folder ID for {folder_name} ')
+        logging.debug(f'ID of {folder_name} folder is {folder_id}')
+        return folder_id
 
     def download_envelope_file(self, file_id):
         # If there is no ID for the envelope CSV file, do not
@@ -155,11 +137,12 @@ def main():
         # Get the Google Drive IDs of the DB backup and reports folders
         db_folder_id = gdc.get_folder_id(db_backup_folder_name)
         report_folder_id = gdc.get_folder_id(reports_folder_name)
-
-        downloaded_file_path = egd.download_envelope_file(file_id)
-        updated_file_path = egd.update_envelope_file(downloaded_file_path)
-        egd.upload_envelope_file(folder_id, updated_file_path,
-                                 envelope_file_name)
+        logging.info(f'db_folder_id = {db_folder_id}; '
+                     f'report_folder_id = {report_folder_id}')
+        # downloaded_file_path = egd.download_envelope_file(file_id)
+        # updated_file_path = egd.update_envelope_file(downloaded_file_path)
+        # egd.upload_envelope_file(folder_id, updated_file_path,
+        #                          envelope_file_name)
     except:
         tb.print_exc()
 
