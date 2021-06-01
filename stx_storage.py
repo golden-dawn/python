@@ -55,8 +55,8 @@ class GoogleDriveClient():
             q=f"name='{folder_name}'",
             fields="nextPageToken, files(id, name)"
         ).execute()
-        drive_folders = envelope_data.get('files', [])
-        # Throw exception if could not find EnvelopeData folder
+        drive_folders = folder_data.get('files', [])
+        # Throw exception if could not find folder
         if not drive_folders:
             raise Exception(f'Could not find {folder_name} folder')
         # Get the ID of the Envelope folder
