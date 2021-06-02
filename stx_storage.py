@@ -83,10 +83,7 @@ class GoogleDriveClient():
             logging.debug(f"Download {int(status.progress()) * 100}%.")
         return download_path
 
-    def upload_envelope_file(self, folder_id, file_path, file_name):
-        if file_path is None:
-            logging.info(f'No changes made to {file_name}, no upload needed')
-            return
+    def upload_file(self, folder_id, file_path, file_name):
         media = MediaFileUpload(file_path)
         response = self.drive_service.files().list(
             supportsAllDrives=True,
@@ -139,6 +136,10 @@ def main():
         report_folder_id = gdc.get_folder_id(reports_folder_name)
         logging.info(f'db_folder_id = {db_folder_id}; '
                      f'report_folder_id = {report_folder_id}')
+        report_file_name = '2021-05-28_EOD.pdf'
+        report_file_path = os.path.join(os.getenv('HOME'), 'market',
+                                        report_file_name)
+        gdc.upload_file(report_folder_id, report_file_path, report_file_name)
         # downloaded_file_path = egd.download_envelope_file(file_id)
         # updated_file_path = egd.update_envelope_file(downloaded_file_path)
         # egd.upload_envelope_file(folder_id, updated_file_path,
