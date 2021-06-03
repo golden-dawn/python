@@ -66,23 +66,6 @@ class GoogleDriveClient():
         logging.debug(f'ID of {folder_name} folder is {folder_id}')
         return folder_id
 
-    def download_envelope_file(self, file_id):
-        # If there is no ID for the envelope CSV file, do not
-        # download; need to create new file
-        if file_id is None:
-            return None
-        request = self.drive_service.files().get_media(fileId=file_id)
-        # TODO: add current timestamp to download path
-        download_path = os.path.abspath(os.path.join(
-            os.sep, 'var', 'www', 'html', 'download', self.envelope_file_name))
-        fh = io.FileIO(download_path, 'w')
-        downloader = MediaIoBaseDownload(fh, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            logging.debug(f"Download {int(status.progress()) * 100}%.")
-        return download_path
-
     def upload_file(self, folder_id, file_path, file_name):
         media = MediaFileUpload(file_path)
         response = self.drive_service.files().list(
@@ -140,10 +123,6 @@ def main():
         report_file_path = os.path.join(os.getenv('HOME'), 'market',
                                         report_file_name)
         gdc.upload_file(report_folder_id, report_file_path, report_file_name)
-        # downloaded_file_path = egd.download_envelope_file(file_id)
-        # updated_file_path = egd.update_envelope_file(downloaded_file_path)
-        # egd.upload_envelope_file(folder_id, updated_file_path,
-        #                          envelope_file_name)
     except:
         tb.print_exc()
 
