@@ -1,10 +1,16 @@
 import argparse
+from configparser import ConfigParser
 import logging
 import os
 from stx_eod import StxEOD
 
 
 if __name__ == '__main__':
+    config = ConfigParser()
+    # parse existing configuration file
+    cfg_file_path = os.path.abspath(os.path.join(os.getenv('HOME'),
+                                                 'stx_cfg.ini'))
+    config.read(cfg_file_path)
     parser = argparse.ArgumentParser(description='Stock splits')
     parser.add_argument('-s', '--splitsfile',
                         help='name of the splits file',
@@ -12,7 +18,7 @@ if __name__ == '__main__':
                         required=True)
     parser.add_argument('-d', '--datadir',
                         help='directory that contains the splits file',
-                        default=os.getenv('DOWNLOAD_DIR'),
+                        default=config.get('datafeed', 'data_dir'),
                         type=str)
     args = parser.parse_args()
 
