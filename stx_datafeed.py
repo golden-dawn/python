@@ -50,7 +50,7 @@ class StxDatafeed:
         cfg_file_path = os.path.abspath(os.path.join(os.getenv('HOME'),
                                                      'stx_cfg.ini'))
         self.config.read(cfg_file_path)
-        self.in_dir = self.config.get('datafeed', 'data_dir'),
+        self.in_dir = self.config.get('datafeed', 'data_dir')
 
 
     def get_name(self, x):
@@ -353,7 +353,7 @@ class StxDatafeed:
     def parse_stooq_new(self, last_db_date):
         logging.info('Checking if a new stooq file has been downloaded')
         # stooq_file = os.path.join(os.getenv('DOWNLOAD_DIR'), 'data_d.txt')
-        download_dir = self.config.get('datafeed', 'download_dir'),
+        download_dir = self.config.get('datafeed', 'download_dir')
         stooq_file = os.path.join(download_dir, 'data_d.txt')
         if not os.path.exists(stooq_file):
             logging.info('No new stooq data file found.  Nothing to do.')
@@ -487,7 +487,7 @@ class StxDatafeed:
         self.rename_stooq_file(dates.index[0], dates.index[num_dates - 1])
 
     def rename_stooq_file(self, first_date, last_date):
-        data_dir = self.config.get('datafeed', 'data_dir'),
+        data_dir = self.config.get('datafeed', 'data_dir')
         stooq_file = os.path.join(data_dir, 'data_d.txt')
         if os.path.exists(stooq_file):
             archive_file = os.path.join(data_dir,
