@@ -97,7 +97,15 @@ class GoogleDriveClient():
                 ).execute()
                 logging.info(f'Updated File {file}')
 
+    def upload_report(self, report_file_path, report_file_name):
+        report_folder_id = self.get_folder_id(self.reports_folder_name)
+        self.upload_file(report_folder_id, report_file_path, report_file_name)
+        
+    # def upload_db_backup(self, db_backup_file_path, report_file_name):
+    #     report_folder_id = self.get_folder_id(self.reports_folder_name)
+    #     self.upload_file(report_folder_id, report_file_path, report_file_name)
 
+        
 def main():
     # initialize logging
     logging.basicConfig(
