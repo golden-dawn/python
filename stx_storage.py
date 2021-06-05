@@ -11,7 +11,7 @@ import sys
 import traceback as tb
 
 class GoogleDriveClient():
-    def __init__(self, db_backup_folder_name, reports_folder_name):
+    def __init__(self):
         # Get all rights to list files, download a file, and upload files
         SCOPES = ['https://www.googleapis.com/auth/drive']
         # instantiate config parser
@@ -43,8 +43,11 @@ class GoogleDriveClient():
         self.drive_service = build('drive', 'v3', credentials=creds)
         logging.info('Connected to Google Drive')
         # store the envelope folder and file name in class members
-        self.db_backup_folder_name = db_backup_folder_name
-        self.reports_folder_name = reports_folder_name
+        self.db_backup_folder_name = config.get('google_drive',
+                                                'db_backup_folder_name')
+
+        self.reports_folder_name = config.get('google_drive',
+                                              'reports_folder_name')
 
     """Get Google Drive IDs for the envelope csv folder and file"""
     def get_folder_id(self, folder_name):
@@ -115,22 +118,17 @@ def main():
         level=logging.INFO
         # level=logging.DEBUG
     )
-
-    # These two names are hard-coded.  We might set them up as
-    # arguments later
-    db_backup_folder_name = 'db_backups'
-    reports_folder_name = 'reports'
     try:
-        gdc = GoogleDriveClient(db_backup_folder_name, reports_folder_name)
+        gdc = GoogleDriveClient()
         # Get the Google Drive IDs of the DB backup and reports folders
-        db_folder_id = gdc.get_folder_id(db_backup_folder_name)
-        report_folder_id = gdc.get_folder_id(reports_folder_name)
-        logging.info(f'db_folder_id = {db_folder_id}; '
-                     f'report_folder_id = {report_folder_id}')
+        # db_folder_id = gdc.get_folder_id(db_backup_folder_name)
+        # report_folder_id = gdc.get_folder_id(reports_folder_name)
+        # logging.info(f'db_folder_id = {db_folder_id}; '
+        #              f'report_folder_id = {report_folder_id}')
         report_file_name = '2021-05-28_EOD.pdf'
         report_file_path = os.path.join(os.getenv('HOME'), 'market',
                                         report_file_name)
-        gdc.upload_file(report_folder_id, report_file_path, report_file_name)
+        gdc.upload_report(report_file_path, report_file_name)
     except:
         tb.print_exc()
 
