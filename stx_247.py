@@ -419,4 +419,6 @@ if __name__ == '__main__':
     logging.info('Running analysis for {0:s}'.format(crt_date))
     stx_ana = StxAnalyzer()
     pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
+    gdc = GoogleDriveClient()
+    gdc.upload_report(pdf_report, os.path.basename(pdf_report))
     stx_ana.update_local_directory(crt_date, pdf_report)
