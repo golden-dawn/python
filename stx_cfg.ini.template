@@ -1,0 +1,14 @@
+[google_drive]
+client_id = XXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXmjd6dc.apps.googleusercontent.com
+client_secret = XXXXXXXXXXXXXXXXXXXXXXXX
+refresh_token = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-XX
+db_backup_folder_name = db_backups
+reports_folder_name = reports
+[datafeed]
+data_dir = /path/to/data/dir
+download_dir = /path/to/download/dir
+[postgres_db]
+db_name = stx
+usb_1 = /path/to/usb_1
+usb_2 = /path/to/usb_2
+usb_3 = /path/to/usb_3
