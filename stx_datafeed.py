@@ -360,7 +360,18 @@ class StxDatafeed:
             return
         logging.info('Reading stooq file, renaming columns, getting daily '
                      'US stocks data')
-        df = pd.read_csv(stooq_file)
+        df = pd.read_csv(stooq_file, dtype={
+            "<TICKER>": "string",
+            "<PER>": "string",
+            "<DATE>": "string",
+            "<TIME>": "string",
+            "<OPEN>": float,
+            "<HIGH>": float,
+            "<LOW>": float,
+            "<CLOSE>": float,
+            "<VOL>": int,
+            "<OPENINT>": int
+        })
         df.columns = [x[1: -1].lower() for x in df.columns]
         stx_df = df.query('ticker.str.endswith(".US") and per == "D"',
                           engine='python').copy()
