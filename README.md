@@ -28,6 +28,17 @@ sudo su - postgres
 sudo -u postgres createuser -P -s -e cma
 ```
 
+To setup a password for the `postgres` user:
+```
+sudo -u postgres psql
+
+postgres=# \c postgres
+You are now connected to database "postgres" as user "postgres".
+
+postgres=# ALTER USER postgres PASSWORD '***********';
+ALTER ROLE
+```
+
 Install the Postgres development library:
 ```
 sudo apt-get install -y libpq-dev
