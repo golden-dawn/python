@@ -11,6 +11,10 @@ bootup USB).
 4. Exit the BIOS, saving the changes.
 5. When the OS boots up, select the option to install Ubuntu.
 6. Ubuntu installation will override all the data previously stored.
+7. Do upgrade to the most recent release of ubuntu, use this command:
+   ```
+   sudo do-release-upgrade -d -f DistUpgradeViewGtk3
+   ```
 
 
 ### Instructions for installing Postgres:
