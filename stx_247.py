@@ -14,6 +14,7 @@ import stxdb
 from stxjl import StxJL
 from stxts import StxTS
 from stx_plot import StxPlot
+from stx_storage import GoogleDriveClient
 import sys
 import time
 import traceback as tb
