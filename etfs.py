@@ -224,11 +224,7 @@ for i, etf_record in enumerate(etf_list):
 from psycopg2 import sql
 import stxdb
 import pandas as pd
-q = sql.Composed([sql.SQL("SELECT name FROM etfs WHERE ticker IN "), sql.SQL("(\
-SELECT etf FROM stk_etfs WHERE stk = "), sql.Literal('AI'), sql.SQL(")")])
-print(q.as_string(stxdb.db_get_cnx()))
-# SELECT name FROM etfs WHERE ticker IN (SELECT etf FROM stk_etfs WHERE stk = '\
-AI')
+q = sql.Composed([sql.SQL("SELECT name FROM etfs"))
 res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
 etf_words = ' '.join([x[0] for x in res])
 etf_words_list = etf_words.split()
@@ -236,5 +232,4 @@ dct = {}
 for w in etf_words_list:
     count = dct.get(w, 0)
     dct[w] = count + 1
-
 # end logic that maps a set of labels to etf names
