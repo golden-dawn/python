@@ -224,7 +224,7 @@ for i, etf_record in enumerate(etf_list):
 from psycopg2 import sql
 import stxdb
 import pandas as pd
-q = sql.Composed([sql.SQL("SELECT name FROM etfs"))
+q = sql.Composed([sql.SQL("SELECT name FROM etfs")])
 res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
 etf_words = ' '.join([x[0] for x in res])
 etf_words_list = etf_words.split()
