@@ -73,6 +73,7 @@ sudo apt -y autoremove
 sudo pip3 install virtualenv virtualenvwrapper autoenv
 sudo pip3 install rope jedi importmagic autopep8 flake8
 mkdir -p ${HOME}/.envs
+echo 'export VIRTUALENVWRAPPER_PYTHON=$(which python3)' >> ${HOME}/.bashrc
 echo 'export WORKON_HOME=${HOME}/.envs' >> ${HOME}/.bashrc
 echo 'source /usr/local/bin/virtualenvwrapper.sh' >> ${HOME}/.bashrc
 echo 'source /usr/local/bin/activate.sh' >> ${HOME}/.bashrc
@@ -115,4 +116,11 @@ make
 sudo make install
 cd ${HOME}
 rm -rf cJSON/
+echo -e "Create stx virtual environment"
+cd ${HOME}/python
+source ${HOME}/.bashrc
+mkvirtualenv stx
+echo -e "Install python packages in stx virtual environment"
+source $HOME/.envs/stx/bin/activate
+pip3 install -r reqs.txt
 cd ${CRT_DIR}
