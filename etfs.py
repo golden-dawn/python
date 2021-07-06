@@ -1,5 +1,7 @@
 import json
 import os
+import pandas as pd
+from psycopg2 import sql
 import requests
 import string
 import stxdb
@@ -148,90 +150,90 @@ import time
 #     etf_category = tkns2[2][:-3] if len(tkns2) > 2 else ''
 #     print(f'etf_ticker = {etf_ticker}, etf_name = {etf_name} etf_category = {etf_category}')
 
-filename = os.path.join(os.getenv('HOME'), 'reports', 'etf_list.txt')
-with open(filename, 'r') as f:
-    text = f.read()
-lines = text.split('\n')
-for line in lines:
-    tokens = line.split('\t')
-    if len(tokens) > 4:       
-        etf_ticker = tokens[0]
-        etf_name = tokens[1].replace("'", '')
-        etf_category = tokens[2]
-        stxdb.db_write_cmd(
-            f"INSERT INTO etfs VALUES('{etf_ticker}', '{etf_name}', "
-            f"'{etf_category}') ON CONFLICT (ticker) DO NOTHING"
-        )
-
-
-# begin - parse the holdings info for each fund
-
-etf_list = stxdb.db_read_cmd('select ticker from etfs')
-num_etfs = len(etf_list)
-print(f'Getting data for {num_etfs} ETFs')
-headers = requests.utils.default_headers()
-headers['User-Agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) '\
-    'Gecko/20100101 Firefox/88.0'
-etf_name = 'XLE'
-for i, etf_record in enumerate(etf_list):
-    etf_name = etf_record[0]
-    req = requests.get(f"https://www.zacks.com/funds/etf/{etf_name}/holding",
-                       headers=headers)
-    if req.status_code != 200:
-        print(f'Request for ETF {etf_name} failed with status '
-              f'{req.status_code}, error: {req.text}')
-        continue
-    lines = req.text.split('\n')
-    # print(f'The request response has {len(lines)} lines')
-    holdings_line = ''
+def get_etf_holdings():
+    filename = os.path.join(os.getenv('HOME'), 'reports', 'etf_list.txt')
+    with open(filename, 'r') as f:
+        text = f.read()
+        lines = text.split('\n')
     for line in lines:
-        if line.startswith('etf_holdings.formatted_data'):
-            holdings_line = line
-    if not holdings_line:
-        print(f'No holdings line found for {etf_name}, skipping...')
-        continue
-    holdings_tokens = holdings_line[34: -5].split(' ] ,  [ ')
-    # print(f'There are {len(holdings_tokens)} holdings tokens')
-    hold_list = []
-    for holding_row in holdings_tokens:
-        # print(f'holding_row = {holding_row}')
-        holding_tokens = holding_row.split(', ')
-        # print(f'There are {len(holding_tokens)} holding tokens')
-        if len(holding_tokens) < 2:
-            continue
-        ticker_token = holding_tokens[1]
-        # print(f'Ticker token = {ticker_token}')
-        ticker_index = ticker_token.find('rel=')
-        # print(f'Ticker index = {ticker_index}')
-        if ticker_index == -1:
-            continue
-        ticker_tokens = ticker_token[ticker_index:].split('\\"')
-        # print(f'There are {len(ticker_tokens)} ticker tokens')
-        if len(ticker_tokens) >= 2:
-            ticker = ticker_tokens[1]
-            hold_list.append(ticker)
+        tokens = line.split('\t')
+        if len(tokens) > 4:
+            etf_ticker = tokens[0]
+            etf_name = tokens[1].replace("'", '')
+            etf_category = tokens[2]
             stxdb.db_write_cmd(
-                f"INSERT INTO stk_etfs VALUES('{ticker}', '{etf_name}') "
-                f"ON CONFLICT(stk, etf) DO NOTHING"
+                f"INSERT INTO etfs VALUES('{etf_ticker}', '{etf_name}', "
+                f"'{etf_category}') ON CONFLICT (ticker) DO NOTHING"
             )
-    print(f'ETF {etf_name} has {len(hold_list)} equity holdings: {hold_list}')
-    if i > 0 and (i % 100 == 0 or i == num_etfs - 1):
-        print(f'Got data for {i} out of {num_etfs} ETFS')
-    time.sleep(2)
+    # begin - parse the holdings info for each fund
+    etf_list = stxdb.db_read_cmd('select ticker from etfs')
+    num_etfs = len(etf_list)
+    print(f'Getting data for {num_etfs} ETFs')
+    headers = requests.utils.default_headers()
+    headers['User-Agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:88.0) '\
+        'Gecko/20100101 Firefox/88.0'
+    etf_name = 'XLE'
+    for i, etf_record in enumerate(etf_list):
+        etf_name = etf_record[0]
+        req = requests.get(
+            f"https://www.zacks.com/funds/etf/{etf_name}/holding",
+            headers=headers
+        )
+        if req.status_code != 200:
+            print(f'Request for ETF {etf_name} failed with status '
+                  f'{req.status_code}, error: {req.text}')
+            continue
+        lines = req.text.split('\n')
+        # print(f'The request response has {len(lines)} lines')
+        holdings_line = ''
+        for line in lines:
+            if line.startswith('etf_holdings.formatted_data'):
+                holdings_line = line
+        if not holdings_line:
+            print(f'No holdings line found for {etf_name}, skipping...')
+            continue
+        holdings_tokens = holdings_line[34: -5].split(' ] ,  [ ')
+        # print(f'There are {len(holdings_tokens)} holdings tokens')
+        hold_list = []
+        for holding_row in holdings_tokens:
+            # print(f'holding_row = {holding_row}')
+            holding_tokens = holding_row.split(', ')
+            # print(f'There are {len(holding_tokens)} holding tokens')
+            if len(holding_tokens) < 2:
+                continue
+            ticker_token = holding_tokens[1]
+            # print(f'Ticker token = {ticker_token}')
+            ticker_index = ticker_token.find('rel=')
+            # print(f'Ticker index = {ticker_index}')
+            if ticker_index == -1:
+                continue
+            ticker_tokens = ticker_token[ticker_index:].split('\\"')
+            # print(f'There are {len(ticker_tokens)} ticker tokens')
+            if len(ticker_tokens) >= 2:
+                ticker = ticker_tokens[1]
+                hold_list.append(ticker)
+                stxdb.db_write_cmd(
+                    f"INSERT INTO stk_etfs VALUES('{ticker}', '{etf_name}') "
+                    f"ON CONFLICT(stk, etf) DO NOTHING"
+                )
+        print(f'ETF {etf_name} has {len(hold_list)} equity holdings: '
+              f'{hold_list}')
+        if i > 0 and (i % 100 == 0 or i == num_etfs - 1):
+            print(f'Got data for {i} out of {num_etfs} ETFS')
+        time.sleep(2)
 # end - parse the holdings info for each fund
 
 # start logic that maps a set of labels to etf names
-from psycopg2 import sql
-import stxdb
-import pandas as pd
-q = sql.Composed([sql.SQL("SELECT name FROM etfs")])
-res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
-etf_words = ' '.join([x[0] for x in res])
-etf_words_list = etf_words.split()
-dct = {}
-for w in etf_words_list:
-    count = dct.get(w, 0)
-    dct[w] = count + 1
+def get_etf_words(elim_dct={}):
+    q = sql.Composed([sql.SQL("SELECT name FROM etfs")])
+    res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
+    etf_words = ' '.join([x[0] for x in res])
+    etf_words_list = [ x for x in etf_words.split() if x not in elim_dct ]
+    dct = {}
+    for w in etf_words_list:
+        count = dct.get(w, 0)
+        dct[w] = count + 1
+    return dct
 # end logic that maps a set of labels to etf names
 
 
