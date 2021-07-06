@@ -234,19 +234,33 @@ for w in etf_words_list:
     dct[w] = count + 1
 # end logic that maps a set of labels to etf names
 
+
+
 # start logic that gets a set of labels for a given stock
-import os
-liminated_file = os.path.join(os.getenv('HOME'), 'python', 'eliminated_words_et\
-f.txt')
-file_str = open(eliminated_file, 'r', errors='ignore').read()
-lines = file_str.split()
-elim_dct = {x.strip(): '' for x in lines}
-stk = 'AI'
-q = sql.Composed([sql.SQL("SELECT name FROM etfs WHERE ticker IN "), sql.SQL("(\
-SELECT etf FROM stk_etfs WHERE stk = "), sql.Literal(stk), sql.SQL(")")])
-res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
-etf_words = ' '.join([x[0] for x in res])
-etf_words_list = etf_words.split()
-labels = [x for x in etf_words_list if x not in elim_dct]
-labels = list(set(labels))
+def get_eliminated_words():
+    eliminated_file = os.path.join(
+        os.getenv('HOME'),
+        'python',
+        'eliminated_words_etf.txt'
+    )
+    file_str = open(eliminated_file, 'r', errors='ignore').read()
+    lines = file_str.split()
+    elim_dct = { x.strip(): '' for x in lines }
+    return elim_dct
+
+def stock_labels(stk, elim_dct):
+    q = sql.Composed(
+        [
+            sql.SQL("SELECT name FROM etfs WHERE ticker IN "),
+            sql.SQL("(SELECT etf FROM stk_etfs WHERE stk = "),
+            sql.Literal(stk),
+            sql.SQL(")")
+        ]
+    )
+    res = stxdb.db_read_cmd(q.as_string(stxdb.db_get_cnx()))
+    etf_words = ' '.join([x[0] for x in res])
+    etf_words_list = etf_words.split()
+    labels = [x for x in etf_words_list if x not in elim_dct]
+    labels = list(set(labels))
+    return labels
 # end logic that gets a set of labels for a given stock
