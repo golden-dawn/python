@@ -125,7 +125,7 @@ def main():
         # report_folder_id = gdc.get_folder_id(reports_folder_name)
         # logging.info(f'db_folder_id = {db_folder_id}; '
         #              f'report_folder_id = {report_folder_id}')
-        report_file_name = '2021-05-28_EOD.pdf'
+        report_file_name = '2021-06-24_EOD.pdf'
         report_file_path = os.path.join(os.getenv('HOME'), 'market',
                                         report_file_name)
         gdc.upload_report(report_file_path, report_file_name)
