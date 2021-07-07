@@ -238,9 +238,11 @@ img {
             rsbest = rsdf.query('rs_rank==99').copy()
             rsworst = rsdf.query('rs_rank==0').copy()
             rsworst.sort_values(by=['rs'], ascending=True, inplace=True)
+            res.append('<h3>RS Leaders</h3>')
             for i, (_, row) in enumerate(rsbest.iterrows()):
                 res.extend(self.rs_report(i, row, s_date, jl_s_date,
                                           ana_s_date, crt_date))
+            res.append('<h3>RS Laggards</h3>')
             for i, (_, row) in enumerate(rsworst.iterrows()):
                 res.extend(self.rs_report(i, row, s_date, jl_s_date,
                                           ana_s_date, crt_date))
