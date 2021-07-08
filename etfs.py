@@ -150,6 +150,9 @@ import time
 #     etf_category = tkns2[2][:-3] if len(tkns2) > 2 else ''
 #     print(f'etf_ticker = {etf_ticker}, etf_name = {etf_name} etf_category = {etf_category}')
 
+this = sys.modules[__name__]
+this.elim_dict = None
+
 def get_etf_holdings():
     filename = os.path.join(os.getenv('HOME'), 'reports', 'etf_list.txt')
     with open(filename, 'r') as f:
@@ -240,17 +243,18 @@ def get_etf_words(elim_dct={}):
 
 # start logic that gets a set of labels for a given stock
 def get_eliminated_words():
-    eliminated_file = os.path.join(
-        os.getenv('HOME'),
-        'python',
-        'eliminated_words_etf.txt'
-    )
-    file_str = open(eliminated_file, 'r', errors='ignore').read()
-    lines = file_str.split()
-    elim_dct = { x.strip(): '' for x in lines }
-    return elim_dct
+    if this.elim_dict is None:
+        eliminated_file = os.path.join(
+            os.getenv('HOME'),
+            'python',
+            'eliminated_words_etf.txt'
+        )
+        file_str = open(eliminated_file, 'r', errors='ignore').read()
+        lines = file_str.split()
+        this.elim_dct = { x.strip(): '' for x in lines }
+    return this.elim_dct
 
-def stock_labels(stk, elim_dct):
+def stock_labels(stk, elim_dct=get_eliminated_words()):
     q = sql.Composed(
         [
             sql.SQL("SELECT name FROM etfs WHERE ticker IN "),
