@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import etfs
 import glob
 import json
 import logging
@@ -124,8 +125,8 @@ img {
         stk = row['stk']
         stk_plot = StxPlot(stk, s_date, crt_date)
         stk_plot.plot_to_file()
-        res.append('<h4>{}. {}, RS={}</h4>'.
-                   format(i + 1, stk, row['rs']))
+        res.append(f"<h4>{i + 1}. {stk}, RS={row['rs']} "
+                   f"[{', '.join(sorted(etfs.stock_labels(stk)))}]</h4>")
         res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.format(stk, stk))
         try:
             jl_res = StxJL.jl_report(stk, jl_s_date, crt_date, 1.5)
@@ -147,7 +148,8 @@ img {
             stk = row['stk']
             stk_plot = StxPlot(stk, s_date, crt_date)
             stk_plot.plot_to_file()
-            res.append('<h4>{0:s}</h4>'.format(stk))
+            res.append(f"<h4>{stk} "
+                       f"[{', '.join(sorted(etfs.stock_labels(stk)))}]</h4>")
             res.append('<img src="/tmp/{0:s}.png" alt="{1:s}">'.
                        format(stk, stk))
             ts = StxTS(stk, s_date, crt_date)
