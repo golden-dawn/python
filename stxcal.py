@@ -552,6 +552,12 @@ def long_expiries(starting_from=None):
             for x in expiries(s_date[:-3], e_date[:-3])]
 
 
+def long_date(dt):
+    epoch = datetime.utcfromtimestamp(0)
+    return int((datetime.strptime(dt, '%Y-%m-%d') -
+                epoch).total_seconds()) + 86400
+
+
 def print_current_time():
     return str(datetime.now())
 
