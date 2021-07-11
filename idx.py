@@ -15,6 +15,8 @@ class StxIndex:
         ])
 
     def get_quote(self, idx, sdt, edt):
+        long_start_date = stxcal.long_date(sdt)
+        long_end_date = stxcal.long_date(edt)
         req = ''.join([
             "https://query2.finance.yahoo.com/v8/finance/chart/",
             idx,
@@ -24,8 +26,8 @@ class StxIndex:
             "region=US&",
             "includeAdjustedClose=true&",
             "interval=1d&",
-            "period1=1625443200&",
-            "period2=1625875200&",
+            f"period1={long_start_date}&",
+            f"period2={long_end_date}&",
             "events=div|split&",
             "useYfid=true&",
             "corsDomain=finance.yahoo.com"
@@ -84,7 +86,8 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--index', type=str, required=True,
                         help='Comma-separated list of quoted Indexes')
     parser.add_argument('-s', '--startdate', type=str, 
-                        default=stxcal.current_busdate(hr=9),
+                        default=stxcal.move_busdays(
+                            stxcal.current_busdate(hr=9), -5),
                         help='Start date for quote history')
     parser.add_argument('-e', '--enddate', type=str,
                         default=stxcal.current_busdate(hr=9),
