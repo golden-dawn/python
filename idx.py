@@ -4,6 +4,7 @@ import json
 import logging
 import requests
 import stxcal
+import stxdb
 
 
 class StxIndex:
@@ -78,8 +79,16 @@ class StxIndex:
         volume_list = [ x // 1000 for x in res_volume ]
         for dt, o, hi, lo, c, v in zip(date_list, open_list, hi_list, lo_list,
                                        close_list, volume_list):
-            logging.info(f'{idx} {dt} {o} {hi} {lo} {c} {v}')
-        # logging.info(json.dumps(res.json(), indent=2))
+            # logging.info(f'{idx} {dt} {o} {hi} {lo} {c} {v}')
+            db_cmd = ''.join([
+                "insert into eods values",
+                f"('{idx}', '{dt}', {o}, {hi}, {lo}, {c}, {v}, 0)",
+                "on conflict (stk, dt) do update set ",
+                f"o={o}, hi={hi}, lo={lo}, c={c}, v={v}, oi=0"
+            ])
+            stxdb.db_write_cmd(db_cmd)
+        logging.info(f'Updated {len(date_list)} records for {idx}')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
