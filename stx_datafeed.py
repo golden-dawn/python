@@ -5,6 +5,7 @@ import datetime
 import errno
 from enum import Enum
 import glob
+from idx import StxIndex
 import json
 import logging
 import numpy as np
@@ -240,6 +241,9 @@ class StxDatafeed:
                               format(db_backup_dir, str(e)))
                 raise
         db_bkp_dirs = sorted(os.listdir(db_backup_dir))
+        db_bkp_dirs_str = '\n  '.join(db_bkp_dirs)
+        logging.debug(f"db_bkp_dirs = ")
+        logging.debug(f"  {db_bkp_dirs_str}")
         # Create backup if < 2 DB backups, or last backup older than a week
         crt_date = datetime.datetime.now()
         backup_needed = False
@@ -523,6 +527,14 @@ if __name__ == '__main__':
         datefmt='%Y-%m-%d %H:%M:%S',
         level=logging.INFO
     )
+    logging.info('Getting index (S&P500, Nasdaq, Dow Jones) quotes')
+    si = StxIndex()
+    index_end_date = stxcal.current_busdate(hr=9)
+    index_start_date = stxcal.move_busdays(index_end_date, -5)
+
+    for idx in ['^GSPC', '^IXIC', '^DJI']:
+        si.get_quote(idx, index_start_date, index_end_date)
+
     sdf = StxDatafeed()
     res = stxdb.db_read_cmd("SELECT dt FROM analyses WHERE "
                             "analysis='eod_datafeed'")
