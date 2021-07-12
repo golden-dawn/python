@@ -399,6 +399,10 @@ if __name__ == '__main__':
                         help="Run Intraday analysis")    
     parser.add_argument('-c', '--cron', action='store_true',
                         help="Flag invocation from cron job")
+    parser.add_argument('-a', '--startdate', type=str,
+                        help='Start date for batch runs')
+    parser.add_argument('-z', '--enddate', type=str,
+                        help='End date for batch runs')
     args = parser.parse_args()
     logging.basicConfig(
         format='%(asctime)s %(levelname)s [%(filename)s:%(lineno)d] - '
@@ -421,9 +425,22 @@ if __name__ == '__main__':
         analysis_type = 'Intraday'
     if args.date:
         crt_date = args.date
-    logging.info('Running analysis for {0:s}'.format(crt_date))
     stx_ana = StxAnalyzer()
-    pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
-    gdc = GoogleDriveClient()
-    gdc.upload_report(pdf_report, os.path.basename(pdf_report))
-    stx_ana.update_local_directory(crt_date, pdf_report)
+    if args.startdate and args.enddate:
+        logging.info('Running analysis from {args.startdate} to {args.enddate}')
+        crs_date = args.startdate
+        num = 0
+        while crs_date <=args.enddate:
+            logging.info(f'Running analysis for {crs_date}')
+            pdf_report = stx_ana.do_analysis(crs_date, args.max_spread, True)
+            stx_ana.update_local_directory(crs_date, pdf_report)
+            crs_date = stxcal.next_busday(crs_date)
+            num += 1
+        logging.info(f'Ran EOD analysis for {num} days between '
+                     f'{args.startdate} and {args.enddate}')
+    else:
+        logging.info(f'Running analysis for {crt_date}')
+        pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
+        stx_ana.update_local_directory(crt_date, pdf_report)
+    # gdc = GoogleDriveClient()
+    # gdc.upload_report(pdf_report, os.path.basename(pdf_report))
