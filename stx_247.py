@@ -254,6 +254,9 @@ img {
     def do_analysis(self, crt_date, max_spread, eod):
         spreads = self.get_opt_spreads(crt_date, eod)
         df_1 = self.get_triggered_setups(crt_date)
+        if not df_1 or len(df_1) == 0:
+            logging.error(f'No triggered setups for {crt_date}.  Exiting...')
+            return None
         self.get_high_activity(crt_date, df_1)
         df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
         res = ['<html>', self.report_style, '<body>']
@@ -362,15 +365,17 @@ img {
         res += '</tr></table>'
         return res
 
-    def update_local_directory(self, crt_date, pdf_report):
+    def update_local_directory(self, crt_date):
         today_date = stxcal.today_date()
-        start_of_current_month = '{0:s}{1:s}'.format(today_date[:8], '01')
+        start_of_current_month = f'{today_date[:8]}01'
         prev_month_date = stxcal.prev_busday(start_of_current_month)
-        start_of_prev_month = '{0:s}{1:s}'.format(prev_month_date[:8], '01')
-        zipfile_name = os.path.join(self.report_dir, '{0:s}.zip'.
-            format(stxcal.prev_busday(start_of_prev_month)))
-        logging.info('Will archive all the reports prior to {0:s} in {1:s}'.
-            format(start_of_prev_month, zipfile_name))
+        start_of_prev_month = f'{prev_month_date[:8]}01'
+        zipfile_name = os.path.join(
+            self.report_dir,
+            f'{stxcal.prev_busday(start_of_prev_month)}.zip'
+        )
+        logging.info(f'Archive all reports prior to {start_of_prev_month} '
+                     f'in {zipfile_name}')
         pdf_file_list = glob.glob(os.path.join(self.report_dir, '*.pdf'))
         zipfile_open_mode = 'a' if os.path.isfile(zipfile_name) else 'w'
         num_archived_pdfs = 0
@@ -382,8 +387,7 @@ img {
                 num_archived_pdfs += 1
                 os.remove(pdf_file)
         z.close()
-        logging.info('Archived {0:d} PDF reports in {1:s}'.
-            format(num_archived_pdfs, zipfile_name))
+        logging.info(f'Archived {num_archived_pdfs} PDF reports in {zipfile_name}')
 
 
 if __name__ == '__main__':
@@ -433,7 +437,9 @@ if __name__ == '__main__':
         while crs_date <=args.enddate:
             logging.info(f'Running analysis for {crs_date}')
             pdf_report = stx_ana.do_analysis(crs_date, args.max_spread, True)
-            stx_ana.update_local_directory(crs_date, pdf_report)
+            if pdf_report is None:
+                logging.error(f'No report was generated for {crs_date}')
+            stx_ana.update_local_directory(crs_date)
             crs_date = stxcal.next_busday(crs_date)
             num += 1
         logging.info(f'Ran EOD analysis for {num} days between '
@@ -441,6 +447,8 @@ if __name__ == '__main__':
     else:
         logging.info(f'Running analysis for {crt_date}')
         pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
-        stx_ana.update_local_directory(crt_date, pdf_report)
+        if pdf_report is None:
+            logging.error(f'No report was generated for {crs_date}')
+        stx_ana.update_local_directory(crt_date)
     # gdc = GoogleDriveClient()
     # gdc.upload_report(pdf_report, os.path.basename(pdf_report))
