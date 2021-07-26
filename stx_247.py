@@ -254,7 +254,7 @@ img {
     def do_analysis(self, crt_date, max_spread, eod):
         spreads = self.get_opt_spreads(crt_date, eod)
         df_1 = self.get_triggered_setups(crt_date)
-        if not df_1 or len(df_1) == 0:
+        if df_1.empty:
             logging.error(f'No triggered setups for {crt_date}.  Exiting...')
             return None
         self.get_high_activity(crt_date, df_1)
@@ -387,7 +387,8 @@ img {
                 num_archived_pdfs += 1
                 os.remove(pdf_file)
         z.close()
-        logging.info(f'Archived {num_archived_pdfs} PDF reports in {zipfile_name}')
+        logging.info(f'Archived {num_archived_pdfs} PDF reports '\
+                     f'in {zipfile_name}')
 
 
 if __name__ == '__main__':
@@ -448,7 +449,7 @@ if __name__ == '__main__':
         logging.info(f'Running analysis for {crt_date}')
         pdf_report = stx_ana.do_analysis(crt_date, args.max_spread, eod)
         if pdf_report is None:
-            logging.error(f'No report was generated for {crs_date}')
+            logging.error(f'No report was generated for {crt_date}')
         stx_ana.update_local_directory(crt_date)
     # gdc = GoogleDriveClient()
     # gdc.upload_report(pdf_report, os.path.basename(pdf_report))
