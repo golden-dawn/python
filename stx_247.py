@@ -251,11 +251,28 @@ img {
 
         return res
 
+    def get_jl_setups(self, dt):
+        q = sql.Composed([
+            sql.SQL('select * from jl_setups where dt='),
+            sql.Literal(dt),
+            sql.SQL(' and setup in ('),
+            sql.SQL(', ').join([
+                sql.Literal('JL_P'),
+                sql.Literal('JL_B'),
+                sql.Literal('JL_S')
+            ]),
+            sql.SQL(') and triggered='),
+            sql.Literal(True)
+        ])
+        df = pd.read_sql(q, stxdb.db_get_cnx())
+        return df
+
     def do_analysis(self, crt_date, max_spread, eod):
         spreads = self.get_opt_spreads(crt_date, eod)
         df_1 = self.get_triggered_setups(crt_date)
-        if df_1.empty:
-            logging.error(f'No triggered setups for {crt_date}.  Exiting...')
+        df_3 = self.get_jl_setups(crt_date)
+        if df_1.empty and df_3.empty:
+            logging.error(f'No triggered/JL setups for {crt_date}.  Exiting...')
             return None
         self.get_high_activity(crt_date, df_1)
         df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
