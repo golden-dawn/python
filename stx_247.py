@@ -275,7 +275,9 @@ img {
             logging.error(f'No triggered/JL setups for {crt_date}.  Exiting...')
             return None
         self.get_high_activity(crt_date, df_1)
+        self.get_high_activity(crt_date, df_3)
         df_1 = self.filter_spreads_hiact(df_1, spreads, max_spread)
+        df_3 = self.filter_spreads_hiact(df_3, spreads, max_spread)
         res = ['<html>', self.report_style, '<body>']
         res.append('<h3>TODAY - {0:s}</h3>'.format(crt_date))
         res.extend(self.get_report(crt_date, df_1, True))
@@ -286,6 +288,8 @@ img {
             df_2 = self.filter_spreads_hiact(df_2, spreads, max_spread)
             res.append('<h3>TOMMORROW - {0:s}</h3>'.format(next_date))
             res.extend(self.get_report(crt_date, df_2, False))
+        res.append('<h3>JL - {0:s}</h3>'.format(crt_date))
+        res.extend(self.get_report(crt_date, df_3, False))
         res.append('</body>')
         res.append('</html>')
         with open('/tmp/x.html', 'w') as html_file:
