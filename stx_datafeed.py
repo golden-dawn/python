@@ -290,10 +290,11 @@ class StxDatafeed:
                 if res == 0:
                     for dir_to_remove in db_bkp_dirs[:-2]:
                         try:
+                            dir_to_remove = os.path.join(db_backup_dir,
+                                                         dir_to_remove)
                             shutil.rmtree(dir_to_remove)
                         except OSError as e:
-                            logging.error('%s - %s'.format(e.filename,
-                                                           e.strerror))
+                            logging.error(f'{e.filename} - {e.strerror}')
             except subprocess.CalledProcessError as cpe:
                 logging.error('Database backup failed: {}'.format(cpe))
                 # if backup failed, remove the backup directory
