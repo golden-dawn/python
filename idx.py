@@ -38,6 +38,7 @@ class StxIndex:
             logging.error(f'Something went wrong for {idx}: {res.text}')
             return
         res_json = res.json()
+        logging.info(f'res.json = \n{json.dumps(res_json, indent=2)}')
         res_error = res_json.get('chart').get('error')
         if res_error is not None:
             logging.error(f'Error in data for {idx}: {res_error}')

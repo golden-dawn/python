@@ -534,7 +534,11 @@ if __name__ == '__main__':
     index_start_date = stxcal.move_busdays(index_end_date, -5)
 
     for idx in ['^GSPC', '^IXIC', '^DJI']:
-        si.get_quote(idx, index_start_date, index_end_date)
+        try:
+            si.get_quote(idx, index_start_date, index_end_date)
+        except:
+            logging.error(f'Get index quote failed for {idx}')
+            tb.print_exc()
 
     sdf = StxDatafeed()
     res = stxdb.db_read_cmd("SELECT dt FROM analyses WHERE "
